@@ -3,6 +3,8 @@ class ScaleUp_App {
 
   private $_base;
 
+  private $_url;
+
   private $_views;
 
   private $_schemas;
@@ -15,6 +17,7 @@ class ScaleUp_App {
 
     $default = array(
       'base'    => home_url(),
+      'url'     => '/',
       'addons'  => array(),
     );
 
@@ -22,7 +25,8 @@ class ScaleUp_App {
 
     $this->_args  = $args;
     $this->_base  = $args[ 'base' ];
-    $this->_views = new ScaleUp_Views( $args[ 'base' ] );
+    $this->_url   = $args[ 'url' ];
+    $this->_views = new ScaleUp_Views( array( 'base' => $this ) );
 
     add_action( 'init', array( $this, 'init') );
   }
@@ -72,10 +76,6 @@ class ScaleUp_App {
           $this->_views->adopt_view( $view );
       }
     }
-  }
-
-  function has_view( $url ) {
-    $this->_views->has_view( $url );
   }
 
   function get_views() {

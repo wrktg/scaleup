@@ -1,7 +1,9 @@
 <?php
 class ScaleUp_Addon {
 
-  private $_views;
+  protected $_views;
+
+  protected $_base;
 
   function get_views() {
     return $this->_views;
