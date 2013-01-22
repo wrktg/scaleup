@@ -9,6 +9,7 @@ include_once( SCALEUP_DIR . '/classes/class-addons.php' );
 include_once( SCALEUP_DIR . '/classes/class-view.php' );
 include_once( SCALEUP_DIR . '/classes/class-views.php' );
 include_once( SCALEUP_DIR . '/classes/class-app.php' );
+include_once( SCALEUP_DIR . '/classes/class-app-server.php' );
 include_once( SCALEUP_DIR . '/classes/class-plugin-base.php' );
 include_once( SCALEUP_DIR . '/functions.php' );
 

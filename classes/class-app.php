@@ -16,8 +16,8 @@ class ScaleUp_App {
   function __construct( $args = array() ) {
 
     $default = array(
-      'base'    => home_url(),
-      'url'     => '/',
+      'base'    => '/',
+      'url'     => '',
       'addons'  => array(),
     );
 
@@ -84,6 +84,14 @@ class ScaleUp_App {
 
   function set_views( $views ) {
     $this->_views = $views;
+  }
+
+  function get_url() {
+    if ( is_object( $this->_base ) && method_exists( $this->_base, 'get_url' ) ) {
+      return $this->_base->get_url() . $this->_url;
+    } else {
+      return $this->_base . $this->_url;
+    }
   }
 
 }

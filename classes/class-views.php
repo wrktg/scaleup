@@ -53,8 +53,9 @@ class ScaleUp_Views {
      * ScaleUp_App implements get_views function, which allows this class to register
      */
     if ( is_object( $base ) && method_exists( $base, 'get_views' ) ) {
-      $views = $base->get_views();
-      $views->add_view( $url, $callbacks, $args );
+      $views    = $base->get_views();
+      $view_url = $base->get_url() . $url;
+      $view     = $views->add_view( $view_url, $callbacks, $args );
       $base->set_views( $views );
       return;
     }
@@ -71,9 +72,12 @@ class ScaleUp_Views {
    * @param $url
    * @param $callbacks
    * @param $args
+   * @return ScaleUp_View
    */
   function add_view( $url, $callbacks, $args ) {
-    $this->_views[] = new ScaleUp_View( $url, $callbacks, $args );
+    $view = new ScaleUp_View( $url, $callbacks, $args );
+    $this->_views[] = $view;
+    return $view;
   }
 
   /**

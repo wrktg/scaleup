@@ -17,17 +17,17 @@ class ScaleUp_Login_Addon extends ScaleUp_Addon {
 
     // register view on /$prefix/login/
     register_view( $this, '/', array(
-                                    'get'=> array( $this, 'get' ),
-                                    'post'=> array( $this, 'post')
+                                    'GET'=> array( $this, 'GET' ),
+                                    'POST'=> array( $this, 'POST')
                                ));
 
   }
 
-  function get() {
+  function GET( $args ) {
     echo "This callback shows the forms";
   }
 
-  function post() {
+  function POST( $args ) {
     echo "This callback handles authentication or user creation.";
   }
 

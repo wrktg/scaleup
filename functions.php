@@ -32,3 +32,16 @@ if ( !function_exists( 'register_addon' ) ) {
   }
 
 }
+
+if ( !function_exists( 'http_status' ) ) {
+
+  /**
+   * Set http status for current request and apply description
+   *
+   * @param $code
+   * @param $message
+   */
+  function http_status( $code, $message ) {
+    ScaleUp_App_Server::http_status( $code, $message );
+  }
+}
