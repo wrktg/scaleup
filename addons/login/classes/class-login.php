@@ -21,14 +21,17 @@ class ScaleUp_Login_Addon extends ScaleUp_Addon {
                                     'POST'=> array( $this, 'POST')
                                ));
 
+    register_template( dirname( dirname( __FILE__ ) ) . '/templates', '/login.php' );
+    register_template( dirname( dirname( __FILE__ ) ) . '/templates', '/bootstrap/login.php' );
+
   }
 
   function GET( $args ) {
-    echo "This callback shows the forms";
+    get_template_part( '/login.php' );
   }
 
   function POST( $args ) {
-    echo "This callback handles authentication or user creation.";
+    get_template_part( '/login.php' );
   }
 
 }

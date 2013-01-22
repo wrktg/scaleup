@@ -33,15 +33,20 @@ if ( !function_exists( 'register_addon' ) ) {
 
 }
 
-if ( !function_exists( 'http_status' ) ) {
-
+if ( !function_exists( 'register_template' ) ) {
   /**
-   * Set http status for current request and apply description
+   * Register a template located at $path + $template_name
    *
-   * @param $code
-   * @param $message
+   * $template_name must start with forward slash / and may contain one or more directories.
+   *
+   * For example: /simple.php, /form/simple.php or /gravityforms/form/simple.php
+   *
+   * @param $path
+   * @param $template_name
    */
-  function http_status( $code, $message ) {
-    ScaleUp_App_Server::http_status( $code, $message );
+  function register_template( $path, $template_name ) {
+    $scaleup_templates = ScaleUp_Templates::this();
+    $scaleup_templates->register( $path, $template_name );
   }
 }
+
