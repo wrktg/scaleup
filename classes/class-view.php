@@ -7,6 +7,8 @@ class ScaleUp_View {
 
   protected $_args;
 
+  protected $_forms = array();
+
   function __construct( $url, $callbacks, $args ) {
 
     $this->_url       = $url;
@@ -51,6 +53,25 @@ class ScaleUp_View {
   function get_callback( $method ) {
     if ( isset( $this->_callbacks[ $method ] ) )
       return $this->_callbacks[ $method ];
+    return false;
+  }
+
+  /**
+   * Return form
+   *
+   * @param $name
+   * @return bool|ScaleUp_Form
+   */
+  function get_form( $name ) {
+
+    if ( isset( $this->_forms[ $name ] ) )
+      return $this->_forms[ $name ];
+
+    // lazy load the form
+    if ( isset( $this->_args[ 'forms' ][ $name ] ) && !empty( $this->_args[ 'forms' ][ $name ] )) {
+      $this->_forms[ $name ] = $form = new ScaleUp_Form( $this->_args[ 'forms' ][ $name ] );
+      return $form;
+    }
     return false;
   }
 

@@ -57,13 +57,14 @@ class ScaleUp_Views {
       $view_url = $base->get_url() . $url;
       $view     = $views->add_view( $view_url, $callbacks, $args );
       $base->set_views( $views );
-      return;
+      return $view;
     }
 
     if ( is_string( $base ) ) {
       self::add_wp_view( $base . $url, $callbacks, $args );
     }
 
+    return false;
   }
 
   /**
@@ -86,9 +87,11 @@ class ScaleUp_Views {
    * @param $url
    * @param $callbacks
    * @param $args
+   * @return ScaleUp_View
    */
   public static function add_wp_view( $url, $callbacks, $args ) {
-    self::$_wp_views[] = new ScaleUp_View( $url, $callbacks, $args );
+    self::$_wp_views[] = $view = new ScaleUp_View( $url, $callbacks, $args );
+    return $view;
   }
 
   /**

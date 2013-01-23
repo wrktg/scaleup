@@ -34,12 +34,40 @@ class ScaleUp_App_Server {
     }
   }
 
-  function get_route( $uri, $method ) {
+  function match_route( $uri ) {
     /**
      * @todo: route matching needs to be improved because this is very primitive
      */
     if ( isset( $this->_routes[ $uri ] ) ) {
       $route = $this->_routes[ $uri ];
+      return $route;
+    }
+    return false;
+  }
+
+  /**
+   * Return context for a uri.
+   * Context is a view associated to specific uri.
+   *
+   * @param $uri
+   * @return bool|ScaleUp_View
+   */
+  function get_context( $uri ) {
+    if ( $context = $this->match_route( $uri ) )
+      if ( is_object( $context ) )
+        return $context;
+    return false;
+  }
+
+  /**
+   * Return callback to follow
+   *
+   * @param $uri
+   * @param $method
+   * @return bool|callable
+   */
+  function get_route( $uri, $method ) {
+    if ( $route = $this->match_route( $uri ) ) {
       if ( is_object( $route ) && method_exists( $route, 'get_callback' ) ) {
         $callback = $route->get_callback( $method );
         if ( is_callable( $callback ) )
@@ -78,8 +106,13 @@ class ScaleUp_App_Server {
   function serve( $method, $uri, $args ) {
 
     $callback = $this->get_route( $uri, $method );
+    $context  = $this->get_context( $uri );
+
     if ( is_callable( $callback ) )
-      call_user_func( $callback, $args );
+      if ( $context )
+        call_user_func( $callback, $args, $context );
+      else
+        call_user_func( $callback, $args );
     exit;
 
   }
@@ -95,33 +128,6 @@ class ScaleUp_App_Server {
       $uri .= "/";
 
     return $uri;
-  }
-
-  /**
-   * Set http status
-   *
-   * @todo: Need to rethink the whole server thing and how its handled
-   * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
-   * @param $code
-   * @param $message
-   */
-  static function http_status( $code, $message ) {
-
-    switch( $code ):
-      case 200:
-        $description = "OK";
-        break;
-      case 404:
-        $description = "Not Found";
-    endswitch;
-
-    header( "HTTP/1.1 {$code} {$description}" );
-    header( "Content-Type: text/html; charset=UTF-8" );
-
-    if ( 404 == $code ) {
-      get_template_part( '404' );
-      exit;
-    }
   }
 
 }
