@@ -18,6 +18,7 @@ class ScaleUp_App_Server {
      */
     $this->initialize_routes();
     if ( $this->has_route( $uri, $method ) ) {
+      do_action( 'scaleup_initialize' );
       $this->serve( $method, $uri, $args );
       $continue = false;
     }

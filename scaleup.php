@@ -13,7 +13,9 @@ include_once( SCALEUP_DIR . '/classes/class-app-server.php' );
 include_once( SCALEUP_DIR . '/classes/class-templates.php' );
 include_once( SCALEUP_DIR . '/classes/class-plugin-base.php' );
 include_once( SCALEUP_DIR . '/functions.php' );
+include_once( SCALEUP_DIR . '/template_tags.php' );
 
+include_once( SCALEUP_DIR . '/initialize.php' );
 include_once( SCALEUP_DIR . '/addons/loader.php' );
 
 new ScaleUp_Plugin();

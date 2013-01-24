@@ -3,7 +3,20 @@
   <div id="primary" class="span8">
     <?php tha_content_before(); ?>
     <div id="content" role="main">
-      login form will go here
+
+      <div class="row">
+        <div class="offset2 span4">
+          <?php if ( the_form( 'login' ) ) : ?>
+            <?php get_template_part( '/forms/form.php' ); ?>
+          <?php endif; ?>
+        </div>
+        <div class="span4">
+          <?php if ( the_form( 'register' ) ) : ?>
+            <?php get_template_part( '/forms/form.php' ); ?>
+          <?php endif; ?>
+        </div>
+      </div>
+
     </div><!-- #content -->
     <?php tha_content_after(); ?>
   </div><!-- #primary -->

@@ -12,8 +12,8 @@ if ( !function_exists( 'get_form' ) ) {
   function get_form( $name = null, $view = null ) {
 
     if ( is_null( $name ) ) {           // name is not specified when using get_form in a template
-      global $form;
-      if ( is_object( $form ) )
+      global $in_form, $form;
+      if ( $in_form && is_object( $form ) )
         return $form;
       else
         return false;
@@ -27,6 +27,25 @@ if ( !function_exists( 'get_form' ) ) {
     if ( is_object( $view ) && method_exists( $view, 'get_form' ) )
       return $view->get_form( $name );
 
+    return false;
+  }
+}
+
+if ( !function_exists( 'the_form' ) ) {
+
+  /**
+   * Setup form by name
+   *
+   * @param $name
+   * @param null $view
+   * @return bool
+   */
+  function the_form( $name, $view = null ) {
+
+    $form = get_form( $name, $view );
+    if ( $form && is_object( $form ) && method_exists( $form, 'the_form' ) ) {
+      return $form->the_form();
+    }
     return false;
   }
 }
@@ -54,8 +73,8 @@ if ( !function_exists( 'get_form_attr' ) ) {
    */
   function get_form_attr( $name ) {
     $form = get_form();
-    if ( $form && method_exists( $form, 'get_form_attr' ) ) {
-      return $form->get_form_attr( $name );
+    if ( $form && method_exists( $form, 'get_attr' ) ) {
+      return $form->get_attr( $name );
     }
 
     return null;

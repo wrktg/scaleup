@@ -69,7 +69,7 @@ class ScaleUp_View {
 
     // lazy load the form
     if ( isset( $this->_args[ 'forms' ][ $name ] ) && !empty( $this->_args[ 'forms' ][ $name ] )) {
-      $this->_forms[ $name ] = $form = new ScaleUp_Form( $this->_args[ 'forms' ][ $name ] );
+      $this->_forms[ $name ] = $form = new ScaleUp_Form( $this->_args[ 'forms' ][ $name ], $this );
       return $form;
     }
     return false;

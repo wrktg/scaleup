@@ -9,19 +9,23 @@ class ScaleUp_Login_Addon extends ScaleUp_Addon {
       'forms' => array(
         'login' => array(
           'fields' => array(
-            'username'  => array(
+            array(
+              'id'        => 'username',
               'type'      => 'text',
               'required'  => true,
             ),
-            'password'  => array(
+            array(
+              'id'        => 'password',
               'type'      => 'password',
               'required'  => true,
             ),
-            'submit'  => array(
-              'type'  => 'button',
-              'text'  => __( 'Login' ),
+            array(
+              'id'        => 'submit',
+              'type'      => 'button',
+              'text'      => __( 'Login' ),
             ),
-            'forgot'    => array(
+            array(
+              'id'        => 'forgot',
               'type'      => 'custom',
               'callback'  => array( $this, 'forgot_field' ),
             ),
@@ -29,26 +33,31 @@ class ScaleUp_Login_Addon extends ScaleUp_Addon {
         ),
         'register' => array(
           'fields' => array(
-            'givenName' => array(
+            array(
+              'id'        => 'givenName',
               'type'      => 'text',
               'required'  => true
             ),
-            'familyName' => array(
+            array(
+              'id'        => 'familyName',
               'type'      => 'text',
               'required'  => true,
             ),
-            'userName' => array(
+            array(
+              'id'        => 'userName',
               'type'      => 'text',
               'unique'    => true,
               'required'  => true,
             ),
-            'email' => array(
-              'type'        => 'text',
-              'validation'  => array('email'),
+            array(
+              'id'        => 'email',
+              'type'      => 'text',
+              'validation'=> array('email'),
             ),
-            'submit'  => array(
-              'type'  => 'button',
-              'text'  => __( 'Sign up' ),
+            array(
+              'id'        => 'submit',
+              'type'      => 'button',
+              'text'      => __( 'Sign up' ),
             ),
           ),
         ),
