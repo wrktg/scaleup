@@ -1,11 +1,9 @@
-<?php get_template_part( "/bootstrap-form/input-label" ) ?>
+<?php get_template_part( "/forms/label.php" ) ?>
 
-<?php if ( has_form_field_attr( "before_field" ) ) : the_form_field_attr( "before_field" ); endif; ?>
+<?php echo get_form_field_attr( "before_field" ); ?>
+  <textarea <?php the_form_field_attr( "name" ); ?> <?php the_form_field_attr( "id" ); ?> <?php the_form_field_attr( "class" ); ?> <?php the_form_field_attr( "rows" ); ?>>
+    <?php echo get_form_field_attr( "value" ) ?>
+  </textarea>
+<?php echo get_form_field_attr( "after_field" ); ?>
 
-<textarea id="<?php the_form_field_attr( "id" ) ?>" class="<?php the_form_field_attr( "class" ) ?>" rows="<?php the_form_field_attr( "rows" ) ?>">
-  <?php the_form_field_attr( "value" ) ?>
-</textarea>
-
-<?php if ( has_form_field_attr( "after_field" ) ) : the_form_field_attr( "after_field" ); endif; ?>
-
-<?php get_template_part( "/bootstrap-form/input-help" ) ?>
+<?php get_template_part( "/forms/help.php" ) ?>

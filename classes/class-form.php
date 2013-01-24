@@ -1,13 +1,13 @@
 <?php
 class ScaleUp_Form {
 
-  protected $_field_count;
+  static $_initialized = false;
 
-  protected $_field_position = 0;
+  protected $_position = 0;
 
   /**
    * $context is an instance of ScaleUp_View or implements ScaleUp_Context_Interface
-   * @todo: discuss with Mike Schinkel weather I should use Interface in this context
+   * @todo: discuss with Mike Schinkel whether I should use Interface in this context
    *
    * @param $args
    * @param null $context ScaleUp_View
@@ -20,9 +20,14 @@ class ScaleUp_Form {
       $action = '';
 
     $default = array(
-      'encoding'  => 'application/x-www-form-urlencoded',
-      'action'    => $action,
-      'fields'    => array(),
+      'method'        => 'post',
+      'enctype'       => '',
+      'action'        => $action,
+      'title'         => '',
+      'before_title'  => '<h2>',
+      'after_title'   => '</h2>',
+      'description'   => '',
+      'fields'        => array(),
     );
 
     $args = wp_parse_args( $args, $default );
@@ -30,14 +35,17 @@ class ScaleUp_Form {
     $this->_args = $args;
 
     foreach ( $args as $key => $value ) {
-      $this->set_attr( $key, $value );
+      $this->set( $key, $value );
       unset( $value );
     }
 
-    add_action( 'scaleup_initialize', array( $this, 'initialize' ) );
+    if ( !self::$_initialized )
+      self::initialize();
+
   }
 
-  function initialize() {
+  static function initialize() {
+    register_template( SCALEUP_DIR . '/templates', '/forms/button.php' );
     register_template( SCALEUP_DIR . '/templates', '/forms/form.php' );
     register_template( SCALEUP_DIR . '/templates', '/forms/checkbox.php' );
     register_template( SCALEUP_DIR . '/templates', '/forms/help.php' );
@@ -45,7 +53,8 @@ class ScaleUp_Form {
     register_template( SCALEUP_DIR . '/templates', '/forms/password.php' );
     register_template( SCALEUP_DIR . '/templates', '/forms/text.php' );
     register_template( SCALEUP_DIR . '/templates', '/forms/textarea.php' );
-    do_action( 'scaleup_forms_initialize' );
+    register_template( SCALEUP_DIR . '/templates', '/forms/confirmation.php' );
+    do_action( 'initialize_scaleup_forms' );
   }
 
   /**
@@ -61,13 +70,77 @@ class ScaleUp_Form {
   }
 
   /**
+   * Validate this form.
+   * It must be loaded with $this->load before running this funciton
+   *
+   * @return bool
+   */
+  function validates() {
+    /**
+     * Do the actual heavy lifting of validating these forms.
+     */
+    return true;
+  }
+
+  /**
    * Set current form into global scope
    * @return bool;
    */
   function the_form() {
-    global $form, $in_form;
-    $form = $this;
-    $in_form = true;
+
+    /**
+     * form setup
+     */
+    $this->_inject_nonce();
+    reset( $this->_fields );
+
+    global $scaleup_form, $in_scaleup_form;
+    $scaleup_form = $this;
+    $in_scaleup_form = true;
+
+    return true;
+  }
+
+  function _inject_nonce() {
+    $nonce_field = array(
+      'id'    =>  '_nonce',
+      'type'  => 'hidden',
+      'value' => $this->get( 'action' ),
+    );
+    array_push( $this->_fields, $nonce_field );
+  }
+
+  /**
+   * Advance field position by one and return true if next field is available, otherwise return false
+   *
+   * @return bool
+   */
+  function has_fields() {
+
+    // don't count the first one because its nonce
+    if ( 1 < count( $this->_fields ) )
+      if ( 0 == $this->_position ) {
+        $this->_position++;
+        return true;
+      } else {
+        $this->_position++;
+        return false !== next( $this->_fields );
+      }
+    return false;
+  }
+
+  /**
+   * Setup field
+   *
+   * @return bool
+   */
+  function the_field() {
+
+    global $scaleup_form_field, $in_scaleup_form_field;
+    $args = current( $this->_fields );
+    $scaleup_form_field = new ScaleUp_Form_Field( $args );
+    $in_scaleup_form_field = true;
+
     return true;
   }
 
@@ -77,10 +150,15 @@ class ScaleUp_Form {
    * @param $name
    * @return mixed|null
    */
-  function get_attr( $name ) {
+  function get( $name ) {
 
-    if ( property_exists( $this, $name ) ) {
-      return $this->$name;
+    $method_name = "get_$name";
+    if ( method_exists( $this, $method_name ) )
+      return $this->$method_name( $name );
+
+    $property_name = "_$name";
+    if ( property_exists( $this, $property_name ) ) {
+      return $this->$property_name;
     }
 
     return null;
@@ -92,8 +170,14 @@ class ScaleUp_Form {
    * @param $name
    * @param $value
    */
-  function set_attr( $name, $value ) {
-    $this->$name = $value;
+  function set( $name, $value ) {
+
+    $method_name = "set_$name";
+    if ( method_exists( $this, $method_name ) )
+      $this->$method_name( $name, $value );
+
+    $property_name = "_$name";
+    $this->$property_name = $value;
   }
 
 }

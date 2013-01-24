@@ -6,6 +6,8 @@ define( 'SCALEUP_MIN_WP',  '3.4' );
 
 include_once( SCALEUP_DIR . '/classes/class-addon.php' );
 include_once( SCALEUP_DIR . '/classes/class-addons.php' );
+include_once( SCALEUP_DIR . '/classes/class-form.php' );
+include_once( SCALEUP_DIR . '/classes/class-form-field.php' );
 include_once( SCALEUP_DIR . '/classes/class-view.php' );
 include_once( SCALEUP_DIR . '/classes/class-views.php' );
 include_once( SCALEUP_DIR . '/classes/class-app.php' );

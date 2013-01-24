@@ -12,20 +12,20 @@ if ( !function_exists( 'get_form' ) ) {
   function get_form( $name = null, $view = null ) {
 
     if ( is_null( $name ) ) {           // name is not specified when using get_form in a template
-      global $in_form, $form;
-      if ( $in_form && is_object( $form ) )
-        return $form;
+      global $in_scaleup_form, $scaleup_form;
+      if ( $in_scaleup_form && is_object( $scaleup_form ) )
+        return $scaleup_form;
       else
         return false;
     }
 
-    if ( $view )
+    if ( !is_null( $view ) )
       return $view->get_form( $name );
 
-    global $view;
+    global $scaleup_view;
 
-    if ( is_object( $view ) && method_exists( $view, 'get_form' ) )
-      return $view->get_form( $name );
+    if ( is_object( $scaleup_view ) && method_exists( $scaleup_view, 'get_form' ) )
+      return $scaleup_view->get_form( $name );
 
     return false;
   }
@@ -58,7 +58,9 @@ if ( !function_exists( 'the_form_attr' ) ) {
    * @param $name
    */
   function the_form_attr( $name ) {
-    echo get_form_attr( $name );
+    $value = get_form_attr( $name );
+    if ( !empty( $value ) )
+      echo "$name=\"$value\"";
   }
 
 }
@@ -73,8 +75,8 @@ if ( !function_exists( 'get_form_attr' ) ) {
    */
   function get_form_attr( $name ) {
     $form = get_form();
-    if ( $form && method_exists( $form, 'get_attr' ) ) {
-      return $form->get_attr( $name );
+    if ( $form && method_exists( $form, 'get' ) ) {
+      return $form->get( $name );
     }
 
     return null;
@@ -121,31 +123,12 @@ if ( !function_exists( 'get_form_field' ) ) {
    */
   function get_form_field() {
 
-    global $in_form_field;
-    if ( $in_form_field ) {
-      global $form_field;
-      if ( is_object( $form_field ) ) {
-        return $form_field;
-      }
+    global $in_scaleup_form_field;
+    if ( $in_scaleup_form_field ) {
+      global $scaleup_form_field;
+      if ( is_object( $scaleup_form_field ) )
+        return $scaleup_form_field;
     }
-
-    return false;
-  }
-
-}
-
-if ( !function_exists( 'get_form_field_type' ) ) {
-
-  /**
-   * Get field type while in form field
-   *
-   * @return bool|object
-   */
-  function get_form_field_type() {
-
-    $form_field = get_form_field();
-    if ( $form_field && method_exists( $form_field, 'get_type' ) )
-      return $form_field->get_type();
 
     return false;
   }
@@ -163,8 +146,8 @@ if ( !function_exists( 'get_form_field_attr' ) ) {
   function get_form_field_attr( $name ) {
 
     $form_field = get_form_field();
-    if ( $form_field && method_exists( $form_field, 'get_attr' ) )
-      return $form_field->get_attr( $name );
+    if ( $form_field && method_exists( $form_field, 'get' ) )
+      return $form_field->get( $name );
 
     return null;
   }
@@ -179,7 +162,9 @@ if ( !function_exists( 'the_form_field_attr' ) ) {
    * @return null
    */
   function the_form_field_attr( $name ) {
-    return get_form_field_attr( $name );
+    $value = get_form_field_attr( $name );
+    if ( !empty( $value ) )
+      echo "$name=\"$value\"";
   }
 }
 

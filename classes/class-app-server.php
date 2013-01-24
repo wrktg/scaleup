@@ -110,12 +110,26 @@ class ScaleUp_App_Server {
     $context  = $this->get_context( $uri );
 
     if ( is_callable( $callback ) )
-      if ( $context )
+      if ( $context ) {
+        $this->set_context( $context );
         call_user_func( $callback, $args, $context );
-      else
+      } else {
         call_user_func( $callback, $args );
+      }
     exit;
+  }
 
+  /**
+   * Set context into global scope to templating
+   *
+   * @param $context
+   */
+  function set_context( $context ) {
+    if ( 'ScaleUp_View' == get_class( $context ) ) {
+      global $in_scaleup_view, $scaleup_view;
+      $in_scaleup_view = true;
+      $scaleup_view = $context;
+    }
   }
 
   /**
@@ -125,8 +139,13 @@ class ScaleUp_App_Server {
    */
   function normalize_uri( $uri ) {
 
-    if ( "" == pathinfo( $uri, PATHINFO_EXTENSION ) && "/" != substr( $uri, -1 ) )
-      $uri .= "/";
+    if ( "" == pathinfo( $uri, PATHINFO_EXTENSION ) ) {
+      // strip off ? from the end of url
+      if ( "?" == substr( $uri, -1 ) )
+        $uri = substr_replace( $uri ,"",-1 );
+      if ( "/" != substr( $uri, -1 ) )
+        $uri .= "/";
+    }
 
     return $uri;
   }
