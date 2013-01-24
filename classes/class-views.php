@@ -21,14 +21,14 @@ class ScaleUp_Views {
 
   private $_base;
 
-  function __construct( $base ) {
+  function __construct( $context = null ) {
 
     if ( isset( self::$_this ) ) {
       /**
        * means we're initializing ScaleUp_Views for an app as a view storage
        * set a reference to the app that includes these views
        */
-      $this->_base = $base;
+      $this->_base = $context;
 
     } else {
       /**

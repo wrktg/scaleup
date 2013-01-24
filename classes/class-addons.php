@@ -44,11 +44,12 @@ class ScaleUp_Addons {
    *
    * @param $name
    * @param $args
+   * @param $context
    * @return mixed
    */
-  public static function get_addon( $name, $args ) {
+  public static function get_addon( $name, $args, $context = null ) {
     $class = self::$_available_addons[ $name ];
-    return new $class( $args );
+    return new $class( $args, $context );
   }
 
 }

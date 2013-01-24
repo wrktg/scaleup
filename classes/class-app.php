@@ -33,7 +33,6 @@ class ScaleUp_App {
 
   function init() {
     $this->activate_addons();
-    // $this->adopt_views();
   }
 
   /**
@@ -59,21 +58,8 @@ class ScaleUp_App {
         $args = wp_parse_args( $args, $default );
 
         if ( ScaleUp_Addons::is_available( $name ) ) {
-          $this->_active_addons[] = ScaleUp_Addons::get_addon( $name, $args );
+          $this->_active_addons[] = ScaleUp_Addons::get_addon( $name, $args, $this );
         }
-      }
-    }
-  }
-
-  /**
-   * Adopt views from addons into this app
-   */
-  function adopt_views() {
-    foreach ( $this->_active_addons as $addon ) {
-      if ( method_exists( $addon, 'get_views' ) ) {
-        $views = $addon->get_views();
-        foreach ( $views as $view )
-          $this->_views->adopt_view( $view );
       }
     }
   }

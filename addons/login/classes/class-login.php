@@ -1,10 +1,9 @@
 <?php
 class ScaleUp_Login_Addon extends ScaleUp_Addon {
 
-  function __construct( $args ) {
+  function __construct( $args, $context = null ) {
 
     $default = array(
-      'base'  => null,
       'url'   => 'login',
       'forms' => array(
         'login' => array(
@@ -87,9 +86,9 @@ class ScaleUp_Login_Addon extends ScaleUp_Addon {
 
     $args = wp_parse_args( $args, $default );
 
-    $this->_base  = $args['base'];
-    $this->_url   = $args['url'];
-    $this->_views = new ScaleUp_Views( array( 'base' => $this ) );
+    $this->_base  = $context;
+    $this->_url   = $args[ 'url' ];
+    $this->_views = new ScaleUp_Views( $this );
 
     // register view on /$prefix/login/
     register_view( $this, '/',
