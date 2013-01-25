@@ -133,7 +133,10 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
       /**
        * @todo: change this to take path dynamically instead of statically because it might change depending on the configuration
        */
-      wp_redirect( '/login' );
+      if ( $login = get_view( 'login' ) )
+        $login->redirect();
+      else
+        wp_redirect( '/login' );
     }
 
     get_template_part( '/profile.php' );

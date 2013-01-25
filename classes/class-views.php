@@ -61,13 +61,35 @@ class ScaleUp_Views {
      */
     if ( is_object( $context ) && method_exists( $context, 'get_views' ) ) {
       $views    = $context->get_views();
-      $view_url = $context->get_url() . $url;
-      $view     = $views->add_view( $slug, $view_url, $callbacks, $args );
+      $view     = $views->add_view( $slug, $url, $callbacks, $context, $args );
       $context->set_views( $views );
       return $view;
     }
 
     return false;
+  }
+
+  /**
+   * ScaleUp_Views is a container of views and doesn't have a url prefix by itself therefore it either return's
+   * WordPress's home url or gets url from context if its provided.
+   *
+   * @param null $context
+   * @return string|void
+   */
+  static function get_url( $context = null ) {
+    if ( is_null( $context ) )
+      return home_url();
+
+    if ( is_object( $context ) && method_exists( $context, 'get_url' ) )
+      return $context->get_url();
+
+    if ( is_string( $context ) ) // not sure when this would happen
+      return $context;
+
+    /**
+     * @todo: if get_url was called with a context that could not be matched to anything then we should give an error
+     */
+    return null;
   }
 
   static function get_view( $slug, $context = null ) {
@@ -93,11 +115,12 @@ class ScaleUp_Views {
    * @param $slug
    * @param $url
    * @param $callbacks
+   * @param null $context
    * @param $args
    * @return ScaleUp_View
    */
-  function add_view( $slug, $url, $callbacks, $args = null ) {
-    $view = new ScaleUp_View( $slug, $url, $callbacks, $args );
+  function add_view( $slug, $url, $callbacks, $context = null, $args = null ) {
+    $view = new ScaleUp_View( $slug, $url, $callbacks, $context, $args );
     $this->_views[] = $view;
     return $view;
   }

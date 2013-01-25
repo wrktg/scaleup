@@ -1,20 +1,23 @@
 <?php
 class ScaleUp_View {
 
-  protected $_callbacks;
-
   protected $_slug;
 
   protected $_url;
+
+  protected $_callbacks;
+
+  protected $_context;
 
   protected $_args;
 
   protected $_forms = array();
 
-  function __construct( $slug, $url, $callbacks, $args ) {
+  function __construct( $slug, $url, $callbacks, $context = null, $args = null ) {
 
     $this->_slug      = $slug;
     $this->_url       = $url;
+    $this->_context   = $context;
     $this->_callbacks = wp_parse_args( $callbacks, array( 'GET' => null, 'POST'=> null ) );
     $this->_args      = $args;
 
@@ -50,7 +53,16 @@ class ScaleUp_View {
    * @return mixed
    */
   function get_url() {
-    return $this->_url;
+    if ( is_null( $this->_context ) )
+      return $this->_url;
+
+    if ( is_object( $this->_context ) && method_exists( $this->_context, 'get_url' ) )
+      return $this->_context->get_url() . $this->_url;
+
+    /**
+     * @todo: Should through an error if context doesn't have get_url method
+     */
+    return null;
   }
 
   /**
