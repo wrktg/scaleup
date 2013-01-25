@@ -1,111 +1,112 @@
 <?php
 class ScaleUp_Login_Addon extends ScaleUp_Addon {
 
-  function __construct( $args, $context = null ) {
-
-    $default = array(
-      'url'   => 'login',
+  function get_defaults() {
+    return array(
+      'url' => 'login',
       'forms' => array(
         'login' => array(
-          'title' => __( 'Login'),
+          'title' => __( 'Login' ),
           'fields' => array(
             array(
-              'id'          => 'username',
-              'type'        => 'text',
-              'required'    => true,
+              'id' => 'username',
+              'type' => 'text',
+              'required' => true,
               'placeholder' => __( 'Username' ),
-              'class'       => 'input-block-level',
+              'class' => 'input-block-level',
             ),
             array(
-              'id'        => 'password',
-              'type'      => 'password',
-              'required'  => true,
+              'id' => 'password',
+              'type' => 'password',
+              'required' => true,
               'placeholder' => __( 'Password' ),
-              'class'     => 'input-block-level'
+              'class' => 'input-block-level'
             ),
             array(
-              'id'        => 'submit',
-              'type'      => 'button',
-              'text'      => __( 'Login' ),
-              'value'     => 'login',
-              'class'     => 'btn-large'
+              'id' => 'submit',
+              'type' => 'button',
+              'text' => __( 'Login' ),
+              'value' => 'login',
+              'class' => 'btn-large'
             ),
             array(
-              'id'        => 'forgot',
-              'type'      => 'custom',
-              'callback'  => array( $this, 'forgot_field' ),
+              'id' => 'forgot',
+              'type' => 'custom',
+              'callback' => array( $this, 'forgot_field' ),
             ),
           ),
           'confirmation' => __( 'Welcome back!' ),
         ),
         'register' => array(
-          'title' => __( 'Register'),
+          'title' => __( 'Register' ),
           'fields' => array(
             array(
-              'id'        => 'givenName',
-              'type'      => 'text',
-              'required'  => true,
-              'label'     => __( 'First name' ),
-              'class'     => 'input-block-level',
+              'id' => 'givenName',
+              'type' => 'text',
+              'required' => true,
+              'label' => __( 'First name' ),
+              'class' => 'input-block-level',
             ),
             array(
-              'label'     => __( 'Last name' ),
-              'id'        => 'familyName',
-              'type'      => 'text',
-              'required'  => true,
-              'class'     => 'input-block-level'
+              'label' => __( 'Last name' ),
+              'id' => 'familyName',
+              'type' => 'text',
+              'required' => true,
+              'class' => 'input-block-level'
             ),
             array(
-              'label'     => __( 'Username' ),
-              'id'        => 'userName',
-              'type'      => 'text',
-              'unique'    => true,
-              'required'  => true,
-              'class'     => 'input-block-level',
+              'label' => __( 'Username' ),
+              'id' => 'userName',
+              'type' => 'text',
+              'unique' => true,
+              'required' => true,
+              'class' => 'input-block-level',
             ),
             array(
-              'label'     => __( 'Email' ),
-              'id'        => 'email',
-              'type'      => 'text',
-              'validation'=> array('email'),
-              'class'     => 'input-block-level'
+              'label' => __( 'Email' ),
+              'id' => 'email',
+              'type' => 'text',
+              'validation' => array( 'email' ),
+              'class' => 'input-block-level'
             ),
             array(
-              'id'        => 'submit',
-              'type'      => 'button',
-              'text'      => __( 'Sign up' ),
-              'value'     => 'register',
-              'class'     => 'btn-large btn-primary',
-              'submit'    => true,
+              'id' => 'submit',
+              'type' => 'button',
+              'text' => __( 'Sign up' ),
+              'value' => 'register',
+              'class' => 'btn-large btn-primary',
+              'submit' => true,
             ),
           ),
           'confirmation' => __( 'Welcome to community! You might want to checkout your profile.' ),
         ),
       ),
     );
-
-    $args = wp_parse_args( $args, $default );
-
-    $this->_base  = $context;
-    $this->_url   = $args[ 'url' ];
-    $this->_views = new ScaleUp_Views( $this );
-
-    // register view on /$prefix/login/
-    register_view( $this, '/',
-      array(
-           'GET'=> array( $this, 'GET' ),
-           'POST'=> array( $this, 'POST')
-      ), array( 'forms' => $args['forms'] ) );
-
-    register_template( dirname( dirname( __FILE__ ) ) . '/templates', '/login.php' );
-
   }
 
-  function GET( $args, $context ) {
+  function initialize() {
+    // register view on /$prefix/login/
+    register_view( 'login', '/', array( 'GET'  => array( $this, 'display_login_forms' ), 'POST' => array( $this, 'process_login_request') ), $this, array( 'forms' => $this->get( 'forms' ) ) );
+    register_template( dirname( dirname( __FILE__ ) ) . '/templates', '/login.php' );
+  }
+
+  /**
+   * Displays forms to the user. Callback function for GET request to $base/ url.
+   *
+   * @param $args
+   * @param $context
+   */
+  function display_login_forms( $args, $context ) {
     get_template_part( '/login.php' );
   }
 
-  function POST( $args, $context ) {
+  /**
+   * Processes submitted forms. Callback function for POST request.
+   *
+   * @param $args
+   * @param $context
+   */
+  function process_login_request( $args, $context ) {
 
     if ( $form = $context->get_form( $args[ 'submit' ] ) ) {
 

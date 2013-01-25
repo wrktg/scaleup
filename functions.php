@@ -9,30 +9,29 @@ if ( !function_exists( 'register_view' ) ) {
    *
    * @todo: Consider refactoring to register_view( $url, $callbacks, $args, $context )
    *
-   * @param $base string|ScaleUp_App|ScaleUp_Addon
+   * @param $slug string representing new view
    * @param $url string relative to base
    * @param $callbacks array with method as key and callback as value
+   * @param $context string|ScaleUp_App|ScaleUp_Addon
    * @param $args array
    * @return mixed
    */
-  function register_view( $base, $url, $callbacks, $args = array() ) {
-    return ScaleUp_Views::register_view( $base, $url, $callbacks, $args );
+  function register_view( $slug, $url, $callbacks, $context = null, $args = array() ) {
+    return ScaleUp_Views::register_view( $slug, $url, $callbacks, $context, $args );
   }
 }
 
 if ( !function_exists( 'register_addon' ) ) {
-
   /**
    * Make an addon available to be consumed by applications
    *
-   * @param $name
+   * @param $slug
    * @param $class
    * @return bool|WP_Error
    */
-  function register_addon( $name, $class ) {
-    return ScaleUp_Addons::register_addon( $name, $class );
+  function register_addon( $slug, $class ) {
+    return ScaleUp_Addons::register_addon( $slug, $class );
   }
-
 }
 
 if ( !function_exists( 'register_template' ) ) {
@@ -52,3 +51,16 @@ if ( !function_exists( 'register_template' ) ) {
   }
 }
 
+if ( !function_exists( 'get_view' ) ) {
+
+  /**
+   * Returns specific view either from global scope or the context
+   *
+   * @param $slug
+   * @param null $context
+   * @return bool
+   */
+  function get_view( $slug, $context = null ) {
+    return ScaleUp_Views::get_view( $slug, $context );
+  }
+}

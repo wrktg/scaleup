@@ -25,9 +25,8 @@ class ScaleUp_Form_Field {
     if ( !isset( $args[ 'id' ] ) && isset( $args[ 'name' ] ) )
       $args[ 'id' ] = $args[ 'name' ];
 
-    foreach ( $args as $property => $value ) {
+    foreach ( $args as $property => $value )
       $this->set( $property, $value );
-    }
 
   }
 

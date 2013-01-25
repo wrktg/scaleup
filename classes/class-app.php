@@ -26,7 +26,7 @@ class ScaleUp_App {
     $this->_args  = $args;
     $this->_base  = $args[ 'base' ];
     $this->_url   = $args[ 'url' ];
-    $this->_views = new ScaleUp_Views( array( 'base' => $this ) );
+    $this->_views = new ScaleUp_Views( $this );
 
     add_action( 'init', array( $this, 'init') );
   }

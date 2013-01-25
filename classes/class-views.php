@@ -8,18 +8,25 @@ class ScaleUp_Views {
   private static $_this;
 
   /**
-   * Used when creating arbitrary views for WordPress
+   * Stores all instances of views
+   *
    * @var array
    */
-  private static $_wp_views;
+  private static $_global_views = null;
 
   /**
+   * Contains views for an instance
    *
    * @var array
    */
   private $_views = array();
 
-  private $_base;
+  /**
+   * Contains reference to instance's container like an App
+   *
+   * @var null
+   */
+  private $_context = null;
 
   function __construct( $context = null ) {
 
@@ -28,7 +35,7 @@ class ScaleUp_Views {
        * means we're initializing ScaleUp_Views for an app as a view storage
        * set a reference to the app that includes these views
        */
-      $this->_base = $context;
+      $this->_context = $context;
 
     } else {
       /**
@@ -46,22 +53,35 @@ class ScaleUp_Views {
     return self::$_this;
   }
 
-  public static function register_view( $base, $url, $callbacks, $args = array() ) {
+  public static function register_view( $slug, $url, $callbacks, $context = null, $args = array() ) {
 
     /**
      * Check if the base object has get_views method.
      * ScaleUp_App implements get_views function, which allows this class to register
      */
-    if ( is_object( $base ) && method_exists( $base, 'get_views' ) ) {
-      $views    = $base->get_views();
-      $view_url = $base->get_url() . $url;
-      $view     = $views->add_view( $view_url, $callbacks, $args );
-      $base->set_views( $views );
+    if ( is_object( $context ) && method_exists( $context, 'get_views' ) ) {
+      $views    = $context->get_views();
+      $view_url = $context->get_url() . $url;
+      $view     = $views->add_view( $slug, $view_url, $callbacks, $args );
+      $context->set_views( $views );
       return $view;
     }
 
-    if ( is_string( $base ) ) {
-      self::add_wp_view( $base . $url, $callbacks, $args );
+    return false;
+  }
+
+  static function get_view( $slug, $context = null ) {
+
+    if ( !is_null( $context ) && is_object( $context ) && method_exists( $context, 'get_view' ) )
+      return $context->get_view( $slug );
+
+    /**
+     * Lazy load global views
+     */
+    if ( is_null( self::$_global_views ) ) {
+      self::$_global_views = apply_filters( 'register_view', array() );
+      if ( isset( self::$_global_views[ $slug ] ) )
+        return self::$_global_views[ $slug ];
     }
 
     return false;
@@ -70,13 +90,14 @@ class ScaleUp_Views {
   /**
    * Register a url as a view for an App or Addon
    *
+   * @param $slug
    * @param $url
    * @param $callbacks
    * @param $args
    * @return ScaleUp_View
    */
-  function add_view( $url, $callbacks, $args ) {
-    $view = new ScaleUp_View( $url, $callbacks, $args );
+  function add_view( $slug, $url, $callbacks, $args = null ) {
+    $view = new ScaleUp_View( $slug, $url, $callbacks, $args );
     $this->_views[] = $view;
     return $view;
   }
@@ -92,15 +113,6 @@ class ScaleUp_Views {
   public static function add_wp_view( $url, $callbacks, $args ) {
     self::$_wp_views[] = $view = new ScaleUp_View( $url, $callbacks, $args );
     return $view;
-  }
-
-  /**
-   * Adopt a specified view into list of views
-   *
-   * @param $view
-   */
-  function adopt_view( $view ) {
-    $this->_views[] = $view;
   }
 
 }

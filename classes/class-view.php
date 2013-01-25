@@ -3,19 +3,23 @@ class ScaleUp_View {
 
   protected $_callbacks;
 
+  protected $_slug;
+
   protected $_url;
 
   protected $_args;
 
   protected $_forms = array();
 
-  function __construct( $url, $callbacks, $args ) {
+  function __construct( $slug, $url, $callbacks, $args ) {
 
+    $this->_slug      = $slug;
     $this->_url       = $url;
     $this->_callbacks = wp_parse_args( $callbacks, array( 'GET' => null, 'POST'=> null ) );
     $this->_args      = $args;
 
     add_filter( 'register_route', array( $this, 'register_route' ) );
+    add_filter( 'register_view', array( $this, 'register_view' ) );
   }
 
   /**
@@ -27,6 +31,17 @@ class ScaleUp_View {
   function register_route( $routes ) {
     $routes[] = $this;
     return $routes;
+  }
+
+  /**
+   * Callback function for register_view filter to add this view to global views
+   *
+   * @param $views
+   */
+  function register_view ( $views ) {
+    if ( !isset( $views[ $this->_slug ] ) )
+      $views[ $this->_slug ] = $this;
+    return $views;
   }
 
   /**
@@ -67,12 +82,48 @@ class ScaleUp_View {
     if ( isset( $this->_forms[ $name ] ) )
       return $this->_forms[ $name ];
 
-    // lazy load the form
+    // lazy load the forms
     if ( isset( $this->_args[ 'forms' ][ $name ] ) && !empty( $this->_args[ 'forms' ][ $name ] )) {
       $this->_forms[ $name ] = $form = new ScaleUp_Form( $this->_args[ 'forms' ][ $name ], $this );
       return $form;
     }
     return false;
+  }
+
+  /**
+   * Return a field attribute
+   *
+   * @param $name
+   * @return mixed|null
+   */
+  function get( $name ) {
+
+    $method_name = "get_$name";
+    if ( method_exists( $this, $method_name ) )
+      return $this->$method_name( $name );
+
+    $property_name = "_$name";
+    if ( property_exists( $this, $property_name ) ) {
+      return $this->$property_name;
+    }
+
+    return null;
+  }
+
+  /**
+   * Set a field attribute
+   *
+   * @param $name
+   * @param $value
+   */
+  function set( $name, $value ) {
+
+    $method_name = "set_$name";
+    if ( method_exists( $this, $method_name ) )
+      $this->$method_name( $name, $value );
+
+    $property_name = "_$name";
+    $this->$property_name = $value;
   }
 
 }
