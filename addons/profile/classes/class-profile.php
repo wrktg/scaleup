@@ -12,15 +12,15 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
      * POST /profile/edit/
      *  - update authenticated user's profile
      */
-    register_view( 'profile-edit', '/edit/', array( 'GET' => array( $this, 'edit_profile' ), 'POST' => array( $this, 'update_profile' ) ), $this, array( 'forms' => $this->get( 'forms' ) ) );
+    register_view( 'profile-edit', '/edit', array( 'GET' => array( $this, 'edit_profile' ), 'POST' => array( $this, 'update_profile' ) ), $this, array( 'forms' => $this->get( 'forms' ) ) );
 
-    register_view( 'profile', '/', array( 'GET' => array( $this, 'view_profile' ) ), $this );
+    register_view( 'profile', '', array( 'GET' => array( $this, 'view_profile' ) ), $this );
 
     /**
      * GET /profile/{username}/
      *  - view username with username that matches url query
      */
-    register_view( 'profile-by-username', '/{username}/', array( 'GET' => array( $this, 'view_profile' ) ), $this );
+    register_view( 'profile-by-username', '/{username}', array( 'GET' => array( $this, 'view_profile' ) ), $this );
   }
 
   function get_defaults() {

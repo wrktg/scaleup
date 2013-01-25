@@ -86,7 +86,7 @@ class ScaleUp_Login_Addon extends ScaleUp_Addon {
 
   function initialize() {
     // register view on /$prefix/login/
-    register_view( 'login', '/', array( 'GET'  => array( $this, 'display_login_forms' ), 'POST' => array( $this, 'process_login_request') ), $this, array( 'forms' => $this->get( 'forms' ) ) );
+    register_view( 'login', '', array( 'GET'  => array( $this, 'display_login_forms' ), 'POST' => array( $this, 'process_login_request') ), $this, array( 'forms' => $this->get( 'forms' ) ) );
     register_template( dirname( dirname( __FILE__ ) ) . '/templates', '/login.php' );
   }
 

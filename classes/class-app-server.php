@@ -29,21 +29,24 @@ class ScaleUp_App_Server {
   function initialize_routes() {
     $routes = apply_filters( 'register_route', array() );
     foreach ( $routes as $route ) {
-      $url = $route->get_url();
+      $url                   = $route->get_url();
       $this->_routes[ $url ] = $route;
       unset( $route );
     }
   }
 
   function match_route( $uri ) {
-    /**
-     * @todo: route matching needs to be improved because this is very primitive
-     */
-    if ( isset( $this->_routes[ $uri ] ) ) {
-      $route = $this->_routes[ $uri ];
-      return $route;
+
+    $result = false;
+    foreach ( $this->_routes as $template => $route ) {
+      list( $matched, $args ) = $this->_match( $template, $uri );
+      if ( $matched ) {
+        $result = array( $route, $args );
+        break;
+      }
     }
-    return false;
+
+    return $result;
   }
 
   /**
@@ -57,24 +60,7 @@ class ScaleUp_App_Server {
     if ( $context = $this->match_route( $uri ) )
       if ( is_object( $context ) )
         return $context;
-    return false;
-  }
 
-  /**
-   * Return callback to follow
-   *
-   * @param $uri
-   * @param $method
-   * @return bool|callable
-   */
-  function get_route( $uri, $method ) {
-    if ( $route = $this->match_route( $uri ) ) {
-      if ( is_object( $route ) && method_exists( $route, 'get_callback' ) ) {
-        $callback = $route->get_callback( $method );
-        if ( is_callable( $callback ) )
-          return $callback;
-      }
-    }
     return false;
   }
 
@@ -84,39 +70,51 @@ class ScaleUp_App_Server {
    * @return bool
    */
   function has_route( $uri, $method ) {
-    return false !== $this->get_route( $uri, $method );
+    return false !== $this->match_route( $uri, $method );
   }
 
   function prepare_request() {
 
-    $method = $_SERVER['REQUEST_METHOD'];
-    $uri    = $_SERVER['REQUEST_URI'];
-
-    /**
-     * @todo: think about this more thoroughly.
-     */
-    $uri = $this->normalize_uri( $uri );
+    $method = $_SERVER[ 'REQUEST_METHOD' ];
+    $uri    = $_SERVER[ 'REQUEST_URI' ];
 
     $args = array();
-    if ( 'GET'  == $method ) $args = $_GET;
-    if ( 'POST' == $method ) $args = $_POST;
+    if ( 'GET' == $method )
+      $args = $_GET;
+    if ( 'POST' == $method )
+      $args = $_POST;
 
     return array( $method, $uri, $args );
   }
 
   function serve( $method, $uri, $args ) {
 
-    $callback = $this->get_route( $uri, $method );
-    $context  = $this->get_context( $uri );
+    $route = $this->match_route( $uri, $method );
 
-    if ( is_callable( $callback ) )
-      if ( $context ) {
-        $this->set_context( $context );
-        call_user_func( $callback, $args, $context );
-      } else {
-        call_user_func( $callback, $args );
+    if ( false !== $route ) {
+
+      list( $context, $variables ) = $route;
+
+      /**
+       * merge POST/GET arguments with variables from url matching
+       * @todo: Is this bad?
+       */
+      $args = wp_parse_args( $variables, $args );
+      $callback = false;
+
+      if ( is_object( $context ) && method_exists( $context, 'get_callback' ) )
+        $callback = $context->get_callback( $method );
+
+      if ( is_callable( $callback ) ) {
+        if ( $context ) {
+          $this->set_context( $context );
+          call_user_func( $callback, $args, $context );
+        }
+        else
+          call_user_func( $callback, $args );
       }
-    exit;
+      exit;
+    }
   }
 
   /**
@@ -128,26 +126,99 @@ class ScaleUp_App_Server {
     if ( 'ScaleUp_View' == get_class( $context ) ) {
       global $in_scaleup_view, $scaleup_view;
       $in_scaleup_view = true;
-      $scaleup_view = $context;
+      $scaleup_view    = $context;
     }
   }
 
   /**
-   * Make the uri consisent. For example: /hello is converted to /hello/.
+   * Match template against uri and returns an array with match result and matched variables
+   *
+   * @param $template
    * @param $uri
-   * @return mixed
+   * @return array with 2 elements: true or false of match and array or matched args
    */
-  function normalize_uri( $uri ) {
+  function _match( $template, $uri ) {
 
-    if ( "" == pathinfo( $uri, PATHINFO_EXTENSION ) ) {
-      // strip off ? from the end of url
-      if ( "?" == substr( $uri, -1 ) )
-        $uri = substr_replace( $uri ,"",-1 );
-      if ( "/" != substr( $uri, -1 ) )
-        $uri .= "/";
+    $regex = $this->_build_regexp( $template );
+    $output = preg_match( $regex, $uri, $matches );
+
+    $matched  = false;
+    $args     = array();
+
+    if ( false == $output ) {
+      /**
+       * @todo: Should return debug error that there was a problem with regex parsing
+       */
     }
 
-    return $uri;
+    if ( 1 === $output ) {
+      // uri was matches, let's get the arguments out of it
+      foreach ( $matches as $key => $value ) {
+        if ( !is_numeric( $key ) )
+          $args[ $key ] = $value;
+      }
+      $matched = true;
+    }
+
+    return array( $matched, $args );
+  }
+
+  function _build_regexp( $template ) {
+    $pattern   = $template;
+    $len       = strlen( $pattern );
+    $tokens    = array();
+    $variables = array();
+    $pos       = 0;
+    preg_match_all( '#.\{(\w+)\}#', $pattern, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER );
+    foreach ( $matches as $match ) {
+      if ( $text = substr( $pattern, $pos, $match[ 0 ][ 1 ] - $pos ) ) {
+        $tokens[ ] = array( 'text', $text );
+      }
+
+      $pos = $match[ 0 ][ 1 ] + strlen( $match[ 0 ][ 0 ] );
+      $var = $match[ 1 ][ 0 ];
+
+      // Use the character preceding the variable as a separator
+      $separators = array( $match[ 0 ][ 0 ][ 0 ] );
+
+      if ( $pos !== $len ) {
+        // Use the character following the variable as the separator when available
+        $separators[ ] = $pattern[ $pos ];
+      }
+      $regexp = sprintf( '[^%s]+', preg_quote( implode( '', array_unique( $separators ) ), "#" ) );
+
+      $tokens[ ] = array( 'variable', $match[ 0 ][ 0 ][ 0 ], $regexp, $var );
+
+      if ( in_array( $var, $variables ) ) {
+        /**
+         * @todo: Add error that variable can't be used twice
+         */
+      }
+
+      $variables[ ] = $var;
+    }
+
+    if ( $pos < $len ) {
+      $tokens[ ] = array( 'text', substr( $pattern, $pos ) );
+    }
+
+    // compute the matching regexp
+    $regexp = '';
+    foreach ( $tokens as $token ) {
+      if ( 'text' === $token[ 0 ] ) {
+        // Text tokens
+        $regexp .= preg_quote( $token[ 1 ], "#" );
+      } else {
+        // Variable tokens
+        $regexp .= sprintf( '%s(?P<%s>%s)', preg_quote( $token[ 1 ], "#" ), $token[ 3 ], $token[ 2 ] );
+      }
+    }
+
+    /**
+     * escape the string and
+     */
+    $regexp = "'$regexp/?$'";
+    return $regexp;
   }
 
 }

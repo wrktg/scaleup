@@ -48,21 +48,24 @@ class ScaleUp_View {
   }
 
   /**
-   * Return this view's url
+   * Return this view's url. Without $args, this function will return url template for this view.
    *
+   * @param null $args
    * @return mixed
    */
-  function get_url() {
+  function get_url( $args = null ) {
+
+    $url = '';
     if ( is_null( $this->_context ) )
-      return $this->_url;
+      $url = $this->_url;
+    elseif ( is_object( $this->_context ) && method_exists( $this->_context, 'get_url' ) )
+      $url = $this->_context->get_url() . $this->_url;
 
-    if ( is_object( $this->_context ) && method_exists( $this->_context, 'get_url' ) )
-      return $this->_context->get_url() . $this->_url;
+    if ( is_null( $args ) )
+      return $url;
+    else
+      return scaleup_string_template( $url, $args );
 
-    /**
-     * @todo: Should through an error if context doesn't have get_url method
-     */
-    return null;
   }
 
   /**
