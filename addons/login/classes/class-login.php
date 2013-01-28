@@ -46,6 +46,7 @@ class ScaleUp_Login_Addon extends ScaleUp_Addon {
               'validation'  => array( 'required' ),
               'label'       => __( 'First name' ),
               'class'       => 'input-block-level',
+              'control-group' => true,
             ),
             array(
               'label'       => __( 'Last name' ),

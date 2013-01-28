@@ -58,7 +58,7 @@ class ScaleUp_Form_Field {
 
   function form_errors( $form ) {
     if ( $this->_form == $form ) {
-      $form->set( 'error', array( 'validate-nonce', __( 'Nonce validation failed. What are you trying to do?' ), array() ) );
+      $form->set( 'error', array( 'validation', __( 'Nonce validation failed. What are you trying to do?' ), array() ) );
     }
   }
 
@@ -75,7 +75,7 @@ class ScaleUp_Form_Field {
       $passed = wp_verify_nonce( $field->get( 'value' ), $field->get( 'action' ) );
       if ( false == $passed ) {
         $field->set( 'valid', false );
-        $field->set( 'error', array( 'validate-nonce', __( 'Nonce validation failed. What are you trying to do?' ), array() ) );
+        $field->set( 'error', array( 'validation', __( 'What are you trying to do?' ), array() ) );
         add_filter( 'form_errors', array( $this, 'form_errors' ) );
       }
     }
@@ -95,7 +95,7 @@ class ScaleUp_Form_Field {
       $value = $field->get( 'value' );
       if ( empty( $value ) ) {
         $field->set( 'valid', false );
-        $field->set( 'error', array( 'validate-required', __( 'This field is required. Please, populate it with appropriate information.' ), array() ) );
+        $field->set( 'error', array( 'validation', __( 'This field can not be empty.' ), array() ) );
       }
     }
     return $field;
@@ -114,14 +114,10 @@ class ScaleUp_Form_Field {
       $value = $field->get( 'value' );
       if ( 1 != preg_match( '/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/', $value ) ) {
         $field->set( 'valid', false );
-        $field->set( 'error', array( 'validate-email', __( "Must be a valid email." ), array() ) );
+        $field->set( 'error', array( 'validation', __( "Must be a valid email address." ), array() ) );
       }
     }
     return $field;
-  }
-
-  function get_nonce_value() {
-    return wp_nonce_field( wp_create_nonce( $this->get( 'action' ) ) );
   }
 
   function validates() {
@@ -131,17 +127,6 @@ class ScaleUp_Form_Field {
       return $field->get( 'valid' );
     }
     return true;
-  }
-
-  /**
-   * Return field value
-   *
-   * @return mixed|string|void
-   */
-  function get_value() {
-    if ( '_nonce' == $this->_name )
-      return wp_create_nonce( $this->get( 'action' ) );
-    return apply_filters( 'form_field_get_value', $this->_value );
   }
 
   /**
@@ -165,21 +150,14 @@ class ScaleUp_Form_Field {
   }
 
   /**
-   * Set error for this field.
-   * $wp_error_params is an array of 3 values as array( $code, $message, $data )
+   * Return field value
    *
-   * @param $wp_error_params array
+   * @return mixed|string|void
    */
-  function set_error( $wp_error_params ) {
-
-    list( $code, $message, $data ) = $wp_error_params;
-
-    if ( isset( $this->_error ) && is_wp_error( $this->_error ) ) {
-      $this->_error->add( $code, $message, $data );
-    } else {
-      $this->_error = new WP_Error( $code, $message, $data );
-    }
-
+  function get_value() {
+    if ( '_nonce' == $this->_name )
+      return wp_create_nonce( $this->get( 'action' ) );
+    return apply_filters( 'form_field_get_value', $this->_value );
   }
 
   /**
@@ -199,6 +177,35 @@ class ScaleUp_Form_Field {
 
     $property_name = "_$name";
     $this->$property_name = $value;
+  }
+
+  /**
+   * Set error for this field.
+   * $wp_error_params is an array of 3 values as array( $code, $message, $data )
+   *
+   * @param $wp_error_params array
+   */
+  function set_error( $wp_error_params ) {
+
+    list( $code, $message, $data ) = $wp_error_params;
+
+    if ( isset( $this->_error ) && is_wp_error( $this->_error ) ) {
+      $this->_error->add( $code, $message, $data );
+    } else {
+      $this->_error = new WP_Error( $code, $message, $data );
+    }
+
+  }
+
+  /**
+   * Returns true if attribute is present otherwise return false.
+   *
+   * @param $name
+   * @return bool
+   */
+  function has( $name ) {
+    $property_name = "_$name";
+    return ( isset( $this->$property_name ) && !is_null( $this->$property_name )  );
   }
 
 }

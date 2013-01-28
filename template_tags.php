@@ -177,6 +177,9 @@ if ( !function_exists( 'has_form_field_attr' ) ) {
    * @return bool
    */
   function has_form_field_attr( $name ) {
-    return !is_null( get_form_field_attr( $name ) );
+    $form_field = get_form_field();
+    if ( is_object( $form_field ) && method_exists( $form_field, 'has' ) )
+      return $form_field->has( $name );
+    return false;
   }
 }

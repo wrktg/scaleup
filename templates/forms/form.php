@@ -10,8 +10,7 @@
   <?php get_template_part( '/forms/form-error.php' ); ?>
 
   <?php while ( form_has_fields() ) : the_form_field(); ?>
-
-    <?php get_template_part( sprintf( "/forms/%s.php", get_form_field_attr( "type" ) ) ); ?>
-
+    <?php $field_type = get_form_field_attr( "type" ); ?>
+    <?php get_template_part( "/forms/$field_type.php"  ); ?>
   <?php endwhile; ?>
 </form>

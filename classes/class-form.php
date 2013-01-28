@@ -249,5 +249,4 @@ class ScaleUp_Form {
     }
 
   }
-
 }
