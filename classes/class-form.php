@@ -1,18 +1,40 @@
 <?php
 class ScaleUp_Form {
 
+  /**
+   * Flag that prevents form initialization from happening more than once
+   * @var bool
+   */
   static $_initialized = false;
 
+  /**
+   * Field position marker
+   * @var int
+   */
   protected $_position = 0;
 
   /**
-   * $context is an instance of ScaleUp_View or implements ScaleUp_Context_Interface
-   * @todo: discuss with Mike Schinkel whether I should use Interface in this context
+   * Stores form's field arguments
    *
+   * @var array
+   */
+  protected $_fields = array();
+
+  /**
+   * Stores validation errors
+   *
+   * @var null | WP_Error
+   */
+  var $_error = null;
+
+  /**
+   * $context is an instance of ScaleUp_View or implements ScaleUp_Context_Interface
+   *
+   * @param $name
    * @param $args
    * @param null $context ScaleUp_View
    */
-  function __construct( $args, $context = null ) {
+  function __construct( $name, $args, $context = null ) {
 
     if ( !is_null( $context ) && is_object( $context ) && method_exists( $context, 'get_url' ) )
       $action = $context->get_url();
@@ -20,6 +42,7 @@ class ScaleUp_Form {
       $action = '';
 
     $default = array(
+      'name'          => $name,
       'method'        => 'post',
       'enctype'       => '',
       'action'        => $action,
@@ -39,6 +62,16 @@ class ScaleUp_Form {
       unset( $value );
     }
 
+    /**
+     * Inject nonce field into fields
+     */
+    $this->_fields[] = array(
+      'name'        => '_nonce',
+      'type'        => 'hidden',
+      'action'      => "$action/$name",
+      'validation'  => array( 'required', 'nonce' ),
+    );
+
     if ( !self::$_initialized )
       self::initialize();
 
@@ -47,12 +80,14 @@ class ScaleUp_Form {
   static function initialize() {
     register_template( SCALEUP_DIR . '/templates', '/forms/button.php' );
     register_template( SCALEUP_DIR . '/templates', '/forms/form.php' );
+    register_template( SCALEUP_DIR . '/templates', '/forms/form-error.php' );
     register_template( SCALEUP_DIR . '/templates', '/forms/checkbox.php' );
     register_template( SCALEUP_DIR . '/templates', '/forms/help.php' );
     register_template( SCALEUP_DIR . '/templates', '/forms/label.php' );
     register_template( SCALEUP_DIR . '/templates', '/forms/password.php' );
     register_template( SCALEUP_DIR . '/templates', '/forms/text.php' );
     register_template( SCALEUP_DIR . '/templates', '/forms/textarea.php' );
+    register_template( SCALEUP_DIR . '/templates', '/forms/hidden.php' );
     register_template( SCALEUP_DIR . '/templates', '/forms/confirmation.php' );
     do_action( 'initialize_scaleup_forms' );
   }
@@ -64,22 +99,44 @@ class ScaleUp_Form {
    * @param $args
    */
   function load( $args ) {
-    /**
-     * @todo: write load function
-     */
+
+    reset( $this->_fields );
+    while ( $field_args = current( $this->_fields ) ) {
+      $field = new ScaleUp_Form_Field( $field_args, $this );  // create an instance of the form field
+      $name = $field->get( 'name' );                          // get the name for current field
+      if ( isset( $args[ $name ] ) )                          // if field value was submitted
+        $field->set( 'value', $args[ $name ] );               // set the submitted field's value
+      $this->_fields[ key( $this->_fields ) ] = $field;       // replace the field's argument array with instantiated object
+      next( $this->_fields );                                 // advance to the next field
+    }
+
   }
 
   /**
-   * Validate this form.
-   * It must be loaded with $this->load before running this funciton
+   * Validate this form. Before calling this method, use load to populate the fields
    *
    * @return bool
    */
   function validates() {
-    /**
-     * Do the actual heavy lifting of validating these forms.
-     */
-    return true;
+
+    $valid = true;
+    foreach ( $this->_fields as $field ) {
+      if ( is_object( $field ) && method_exists( $field, 'validates' ) ) {
+        $field->set( 'valid', true );   // set default validation value to valid is true
+        if ( !$field->validates() ) {
+          $valid = false;
+          apply_filters( 'form_errors', $this );
+        }
+      } else {
+        $valid = false;
+        /**
+         * Fields at this point should not be args. If this happens, then something fishy is happening.
+         * @todo: add error to the view informing the user that an error occured
+         */
+      }
+    }
+
+    return $valid;
   }
 
   /**
@@ -88,10 +145,6 @@ class ScaleUp_Form {
    */
   function the_form() {
 
-    /**
-     * form setup
-     */
-    $this->_inject_nonce();
     reset( $this->_fields );
 
     global $scaleup_form, $in_scaleup_form;
@@ -99,15 +152,6 @@ class ScaleUp_Form {
     $in_scaleup_form = true;
 
     return true;
-  }
-
-  function _inject_nonce() {
-    $nonce_field = array(
-      'id'    =>  '_nonce',
-      'type'  => 'hidden',
-      'value' => $this->get( 'action' ),
-    );
-    array_push( $this->_fields, $nonce_field );
   }
 
   /**
@@ -138,7 +182,13 @@ class ScaleUp_Form {
 
     global $scaleup_form_field, $in_scaleup_form_field;
     $args = current( $this->_fields );
-    $scaleup_form_field = new ScaleUp_Form_Field( $args );
+    if ( is_object( $args ) ) {
+      $scaleup_form_field = $args;
+    } else {
+      $scaleup_form_field = new ScaleUp_Form_Field( $args, $this );
+      // replace arguments with instantiated object
+      $this->_fields[ key( $this->_fields ) ] = $scaleup_form_field;
+    }
     $in_scaleup_form_field = true;
 
     return true;
@@ -173,11 +223,31 @@ class ScaleUp_Form {
   function set( $name, $value ) {
 
     $method_name = "set_$name";
-    if ( method_exists( $this, $method_name ) )
-      $this->$method_name( $name, $value );
+    if ( method_exists( $this, $method_name ) ) {
+      $this->$method_name( $value );
+      return;
+    }
 
     $property_name = "_$name";
     $this->$property_name = $value;
+  }
+
+  /**
+   * Set error for this field.
+   * $wp_error_params is an array of 3 values as array( $code, $message, $data )
+   *
+   * @param $wp_error_params array
+   */
+  function set_error( $wp_error_params ) {
+
+    list( $code, $message, $data ) = $wp_error_params;
+
+    if ( isset( $this->_error ) && is_wp_error( $this->_error ) ) {
+      $this->_error->add( $code, $message, $data );
+    } else {
+      $this->_error = new WP_Error( $code, $message, $data );
+    }
+
   }
 
 }

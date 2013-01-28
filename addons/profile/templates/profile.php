@@ -6,7 +6,8 @@
 
       <div class="row">
         <div class="offset2 span3">
-          user profile information will go here
+          <h2>User Profile</h2>
+          User profile information will go here.
         </div>
       </div>
 

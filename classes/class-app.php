@@ -16,7 +16,7 @@ class ScaleUp_App {
   function __construct( $args = array() ) {
 
     $default = array(
-      'base'    => '/',
+      'base'    => '',
       'url'     => '',
       'addons'  => array(),
     );

@@ -3,7 +3,7 @@ class ScaleUp_Login_Addon extends ScaleUp_Addon {
 
   function get_defaults() {
     return array(
-      'url' => 'login',
+      'url' => '/login',
       'forms' => array(
         'login' => array(
           'title' => __( 'Login' ),
@@ -41,41 +41,40 @@ class ScaleUp_Login_Addon extends ScaleUp_Addon {
           'title' => __( 'Register' ),
           'fields' => array(
             array(
-              'id' => 'givenName',
-              'type' => 'text',
-              'required' => true,
-              'label' => __( 'First name' ),
-              'class' => 'input-block-level',
+              'id'          => 'givenName',
+              'type'        => 'text',
+              'validation'  => array( 'required' ),
+              'label'       => __( 'First name' ),
+              'class'       => 'input-block-level',
             ),
             array(
-              'label' => __( 'Last name' ),
-              'id' => 'familyName',
-              'type' => 'text',
-              'required' => true,
-              'class' => 'input-block-level'
+              'label'       => __( 'Last name' ),
+              'id'          => 'familyName',
+              'type'        => 'text',
+              'validation'  => array( 'required' ),
+              'class'       => 'input-block-level'
             ),
             array(
-              'label' => __( 'Username' ),
-              'id' => 'userName',
-              'type' => 'text',
-              'unique' => true,
-              'required' => true,
-              'class' => 'input-block-level',
+              'label'       => __( 'Username' ),
+              'id'          => 'userName',
+              'type'        => 'text',
+              'validation'  => array( 'required', 'unique' ),
+              'class'       => 'input-block-level',
             ),
             array(
-              'label' => __( 'Email' ),
-              'id' => 'email',
-              'type' => 'text',
-              'validation' => array( 'email' ),
-              'class' => 'input-block-level'
+              'label'       => __( 'Email' ),
+              'id'          => 'email',
+              'type'        => 'text',
+              'validation'  => array( 'email' ),
+              'class'       => 'input-block-level'
             ),
             array(
-              'id' => 'submit',
-              'type' => 'button',
-              'text' => __( 'Sign up' ),
-              'value' => 'register',
-              'class' => 'btn-large btn-primary',
-              'submit' => true,
+              'id'          => 'submit',
+              'type'        => 'button',
+              'text'        => __( 'Sign up' ),
+              'value'       => 'register',
+              'class'       => 'btn-large btn-primary',
+              'submit'      => true,
             ),
           ),
           'confirmation' => __( 'Welcome to community! You might want to checkout your profile.' ),
@@ -104,11 +103,12 @@ class ScaleUp_Login_Addon extends ScaleUp_Addon {
    * Processes submitted forms. Callback function for POST request.
    *
    * @param $args
-   * @param $context
+   * @param $view
    */
-  function process_login_request( $args, $context ) {
+  function process_login_request( $args, $view ) {
 
-    if ( $form = $context->get_form( $args[ 'submit' ] ) ) {
+    $submitted = $args[ 'submit' ];
+    if ( $form = $view->get_form( $submitted ) ) {
 
       $form->load( $args );
       if ( $form->validates() ) {
@@ -122,6 +122,7 @@ class ScaleUp_Login_Addon extends ScaleUp_Addon {
          */
         get_template_part( '/forms/confirmation.php' );
       } else {
+        $view->set_form( $submitted, $form );
         get_template_part( '/login.php' );
       }
     }

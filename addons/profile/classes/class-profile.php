@@ -1,31 +1,9 @@
 <?php
 class ScaleUp_Profile_Addon extends ScaleUp_Addon {
 
-  function initialize() {
-    $template_path = dirname( dirname( __FILE__ ) ) . '/templates';
-    register_template( $template_path, '/profile.php' );
-    register_template( $template_path, '/profile-edit.php' );
-
-    /**
-     * GET /profile/edit/
-     *  - edit authenticated user's profile
-     * POST /profile/edit/
-     *  - update authenticated user's profile
-     */
-    register_view( 'profile-edit', '/edit', array( 'GET' => array( $this, 'edit_profile' ), 'POST' => array( $this, 'update_profile' ) ), $this, array( 'forms' => $this->get( 'forms' ) ) );
-
-    register_view( 'profile', '', array( 'GET' => array( $this, 'view_profile' ) ), $this );
-
-    /**
-     * GET /profile/{username}/
-     *  - view username with username that matches url query
-     */
-    register_view( 'profile-by-username', '/{username}', array( 'GET' => array( $this, 'view_profile' ) ), $this );
-  }
-
   function get_defaults() {
     return array(
-      'url'   => 'profile',
+      'url'   => '/profile',
       'forms' => array(
         'profile' => array(
           'fields'=> array(
@@ -57,6 +35,12 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
               'unique'    => true,
               'required'  => true,
               'label'     => __( 'Email' ),
+              'class'     => 'input-block-level',
+            ),
+            array(
+              'id'        => 'company',
+              'type'      => 'text',
+              'label' => 'Company',
               'class'     => 'input-block-level',
             ),
             array(
@@ -103,6 +87,30 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
       ),
     );
   }
+
+  function initialize() {
+    $template_path = dirname( dirname( __FILE__ ) ) . '/templates';
+    register_template( $template_path, '/profile.php' );
+    register_template( $template_path, '/profile-edit.php' );
+
+    /**
+     * GET /profile/edit/
+     *  - edit authenticated user's profile
+     * POST /profile/edit/
+     *  - update authenticated user's profile
+     */
+    register_view( 'profile-edit', '/edit', array( 'GET' => array( $this, 'edit_profile' ), 'POST' => array( $this, 'update_profile' ) ), $this, array( 'forms' => $this->get( 'forms' ) ) );
+
+    register_view( 'profile', '', array( 'GET' => array( $this, 'view_profile' ) ), $this );
+
+    /**
+     * GET /profile/{username}/
+     *  - view username with username that matches url query
+     */
+    register_view( 'profile-by-username', '/{username}', array( 'GET' => array( $this, 'view_profile' ) ), $this );
+  }
+
+
 
   function edit_profile( $args, $view ) {
     get_template_part( '/profile-edit.php' );

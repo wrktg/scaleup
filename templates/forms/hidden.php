@@ -1,0 +1,1 @@
+<input type="hidden" <?php the_form_field_attr( "name" ); ?> <?php the_form_field_attr( "value" ); ?> />

@@ -87,7 +87,7 @@ class ScaleUp_View {
   }
 
   /**
-   * Return form
+   * Return form with specific name
    *
    * @param $name
    * @return bool|ScaleUp_Form
@@ -99,10 +99,20 @@ class ScaleUp_View {
 
     // lazy load the forms
     if ( isset( $this->_args[ 'forms' ][ $name ] ) && !empty( $this->_args[ 'forms' ][ $name ] )) {
-      $this->_forms[ $name ] = $form = new ScaleUp_Form( $this->_args[ 'forms' ][ $name ], $this );
+      $this->_forms[ $name ] = $form = new ScaleUp_Form( $name, $this->_args[ 'forms' ][ $name ], $this );
       return $form;
     }
     return false;
+  }
+
+  /**
+   * Set form with specific name
+   *
+   * @param $name
+   * @param $form
+   */
+  function set_form( $name, $form ) {
+    $this->_forms[ $name ] = $form;
   }
 
   /**
