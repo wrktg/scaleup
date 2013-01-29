@@ -7,8 +7,6 @@ if ( !function_exists( 'register_view' ) ) {
    * To register with an Addon or an App, the base must be an instance of the Addon or App.
    * The class for the Addon or App must implement: get_views & set_views methods.
    *
-   * @todo: Consider refactoring to register_view( $url, $callbacks, $args, $context )
-   *
    * @param $slug string representing new view
    * @param $url string relative to base
    * @param $callbacks array with method as key and callback as value
@@ -48,6 +46,141 @@ if ( !function_exists( 'register_template' ) ) {
   function register_template( $path, $template_name ) {
     $scaleup_templates = ScaleUp_Templates::this();
     $scaleup_templates->register( $path, $template_name );
+  }
+}
+
+if ( !function_exists( 'register_schema' ) ) {
+  /**
+   * Register a schema type against a custom post type.
+   *
+   * $post_type can be an already registered custom post type or a new post type.
+   * If $post_type is a new post type then $args must contain post type arguments.
+   * If $post_type is an existing post type then you can specify $args that will override the existing post type args.
+   *
+   * @see http://schema.org/ list of schema types
+   * @param $schema_type string schema type
+   * @param $post_type string
+   * @param $args array
+   * @return mixed
+   */
+  function register_schema( $schema_type, $post_type, $args ) {
+    return ScaleUp_Schemas::register( $schema_type, $post_type, $args );
+  }
+}
+
+if ( !function_exists( 'create_post' ) ) {
+  /**
+   * Create post populated with schema properties.
+   * $schema parameter is an associative array of schema properties and their values.
+   *
+   * @see http://schema.org/ list of schema types and their properties
+   * @see http://codex.wordpress.org/Function_Reference/wp_insert_post post fields for $args
+   * @param $schema
+   * @param $args
+   * @return int|bool
+   */
+  function create_post( $schema, $args = null ) {
+
+    $default = array(
+      'post_type'   => get_post_type_from_schema( $schema[ 'type' ] ),
+      'post_status' => 'new',
+    );
+
+    $args = wp_parse_args( $args, $default );
+
+    $args = add_magic_quotes( $args );
+
+    /**
+     * At this point, our intention is to create a post under any circumstances. This gives us the ability to create
+     * custom field against it. We are providing just enough post_* for this to succeed.
+     */
+    $post_id = wp_insert_post( $args, true );
+
+    if ( is_wp_error( $post_id ) ) {
+      /**
+       * In theory, this should not happen because wp_insert_post should always succeed. The only way that this would
+       * not happen is if the DB is not available, but then we have bigger issues to fry.
+       * @todo: Somehow log the error message. Not sure how yet.
+       */
+      return false;
+    }
+
+    foreach ( $schema as $property_name => $property_value )
+      update_property( $post_id, $property_name, $property_value );
+
+    return $post_id;
+  }
+}
+
+if ( !function_exists( 'update_post' ) ) {
+  /**
+   * Update existing post with schema
+   *
+   * @see http://schema.org/ list of schema types and their properties
+   * @see http://codex.wordpress.org/Function_Reference/wp_update_post post fields for $args
+   * @param $schema
+   * @param null $args
+   * @return bool|int|WP_Error
+   */
+  function update_post( $schema, $args = null ) {
+
+    $schema = new ScaleUp_Schema( $schema );
+
+    if ( isset( $schema[ 'id' ] ) && isset( $args[ 'ID' ] ) && $schema[ 'id' ] != $args[ 'ID' ] ) {
+      /**
+       * Seriously? Make up your mind. A post can't be 2 posts at the same time... or can it? NO IT CAN'T!
+       * @todo: throw some kind of a snarky message back at the developer for being silly
+       */
+      return false;
+    }
+
+    if ( isset( $schema[ 'id' ] ) )
+      $id = $schema[ 'id' ];
+    if ( isset( $args[ 'ID' ] ) )
+      $id = $args[ 'ID' ];
+
+    $default = array(
+      'ID' => $id,
+    );
+
+    $args = wp_parse_args( $args, $default );
+
+    $args = add_magic_quotes( $args );
+
+    $post_id = wp_update_post( $args, true );
+
+    if ( is_wp_error( $post_id ) ) {
+      /**
+       * not sure how this happened.
+       * @todo: need some kind of developer feedback here.
+       */
+    }
+
+    foreach ( $schema as $property_name => $property_value )
+      update_property( $post_id, $property_name, $property_value );
+
+    return $post_id;
+  }
+}
+
+if ( !function_exists( 'update_property' ) ) {
+  function update_property( $id, $property_name, $property_value, $args = array() ) {
+    $property = new ScaleUp_Schema_Property( $property_name, $args );
+    $property->set( 'value', $property_value );
+    return $property->update( $id );
+  }
+}
+
+if ( !function_exists( 'get_post_type_from_schema' ) ) {
+  /**
+   * Return post type registered for specific schema type
+   *
+   * @param $schema_type
+   * @internal param $post
+   * @return string
+   */
+  function get_post_type_from_schema( $schema_type ) {
+    return ScaleUp_Schemas::get_post_type( $schema_type );
   }
 }
 
