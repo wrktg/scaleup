@@ -120,13 +120,13 @@ if ( !function_exists( 'update_post' ) ) {
    * @see http://codex.wordpress.org/Function_Reference/wp_update_post post fields for $args
    * @param $schema
    * @param null $args
-   * @return bool|int|WP_Error
+   * @return bool
    */
   function update_post( $schema, $args = null ) {
 
     $schema = new ScaleUp_Schema( $schema );
 
-    if ( isset( $schema[ 'id' ] ) && isset( $args[ 'ID' ] ) && $schema[ 'id' ] != $args[ 'ID' ] ) {
+    if ( isset( $schema[ 'ID' ] ) && isset( $args[ 'ID' ] ) && $schema[ 'ID' ] != $args[ 'ID' ] ) {
       /**
        * Seriously? Make up your mind. A post can't be 2 posts at the same time... or can it? NO IT CAN'T!
        * @todo: throw some kind of a snarky message back at the developer for being silly
@@ -134,36 +134,43 @@ if ( !function_exists( 'update_post' ) ) {
       return false;
     }
 
-    if ( isset( $schema[ 'id' ] ) )
-      $id = $schema[ 'id' ];
+    if ( isset( $schema[ 'ID' ] ) )
+      $ID = $schema[ 'ID' ];
     if ( isset( $args[ 'ID' ] ) )
-      $id = $args[ 'ID' ];
+      $ID = $args[ 'ID' ];
 
     $default = array(
-      'ID' => $id,
+      'ID' => $ID,
     );
 
     $args = wp_parse_args( $args, $default );
 
     $args = add_magic_quotes( $args );
 
-    $post_id = wp_update_post( $args, true );
+    $result = wp_update_post( $args, true );
 
-    if ( is_wp_error( $post_id ) ) {
+    if ( is_wp_error( $result ) ) {
       /**
        * not sure how this happened.
        * @todo: need some kind of developer feedback here.
        */
     }
 
-    foreach ( $schema as $property_name => $property_value )
-      update_property( $post_id, $property_name, $property_value );
+    $result = $schema->update( $ID );
 
-    return $post_id;
+    return $result;
   }
 }
 
 if ( !function_exists( 'update_property' ) ) {
+  /**
+   *
+   * @param $id
+   * @param $property_name
+   * @param $property_value
+   * @param array $args
+   * @return bool
+   */
   function update_property( $id, $property_name, $property_value, $args = array() ) {
     $property = new ScaleUp_Schema_Property( $property_name, $args );
     $property->set( 'value', $property_value );

@@ -4,10 +4,6 @@
  */
 class ScaleUp_Schema extends ScaleUp_Base implements ArrayAccess {
 
-  function __construct( $properties ) {
-    parent::__construct( $properties );
-  }
-
   function offsetSet( $offset, $value ) {
       $this->set( $offset, $value );
   }

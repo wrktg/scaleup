@@ -5,10 +5,7 @@ class ScaleUp_Base {
 
   function __construct( $args = null ) {
 
-    foreach ( $args as $property => $value ) {
-      $this->set( $property, $value );
-      unset( $value );
-    }
+    $this->load( $args );
 
     if ( !self::$_initialized ) {
       $this->initialize();
@@ -23,6 +20,13 @@ class ScaleUp_Base {
    */
   function initialize(){
     // overload this function in child class
+  }
+
+  function load( $args ) {
+    foreach ( $args as $property => $value ) {
+      $this->set( $property, $value );
+      unset( $value );
+    }
   }
 
   /**
