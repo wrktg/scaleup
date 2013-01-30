@@ -60,11 +60,12 @@ if ( !function_exists( 'register_schema' ) ) {
    * @see http://schema.org/ list of schema types
    * @param $schema_type string schema type
    * @param $post_type string
-   * @param $args array
+   * @param $args array of register_post_type arguments
+   * @param $properties array override default behavior for schema's properties
    * @return mixed
    */
-  function register_schema( $schema_type, $post_type, $args ) {
-    return ScaleUp_Schemas::register( $schema_type, $post_type, $args );
+  function register_schema( $schema_type, $post_type, $args, $properties ) {
+    return ScaleUp_Schemas::register( $schema_type, $post_type, $args, $properties );
   }
 }
 
@@ -195,8 +196,30 @@ if ( !function_exists( 'get_post_type_from_schema' ) ) {
 }
 
 if ( !function_exists( 'get_schema_type' ) ) {
+  /**
+   * Return schema type that's registered for specific post type
+   * @param $post_type
+   * @return bool|string
+   */
   function get_schema_type( $post_type ) {
     return ScaleUp_Schemas::get_schema_type( $post_type );
+  }
+}
+
+if ( !function_exists( 'get_properties' ) ) {
+  /**
+   * Return array of properties for specific schema
+   *
+   * @param $schema
+   * @return
+   */
+  function get_properties( $schema ) {
+    $properties = null;
+    if ( is_string( $schema ) )
+      $properties = ScaleUp_Schemas::get_properties( $schema );
+    elseif ( is_object( $schema ) && method_exists( $schema, 'get_properties' ) )
+      $properties = $schema->get_properties();
+  return $properties;
   }
 }
 
@@ -284,5 +307,17 @@ if ( !function_exists( 'scaleup_string_template' ) ) {
     }
 
     return $result;
+  }
+}
+
+if ( !function_exists( 'get_property_reference' ) ) {
+  /**
+   * Return property reference by property name
+   *
+   * @param $property_name
+   * @return array|bool
+   */
+  function get_property_reference( $property_name ) {
+    return ScaleUp_Schemas::get_property( $property_name );
   }
 }

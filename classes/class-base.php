@@ -3,7 +3,7 @@ class ScaleUp_Base {
 
   protected static $_initialized = false;
 
-  function __construct( $args = null ) {
+  function __construct( $args = array() ) {
 
     $this->load( $args );
 
@@ -65,6 +65,11 @@ class ScaleUp_Base {
 
     $property_name = "_$name";
     $this->$property_name = $value;
+  }
+
+  function has( $name ) {
+    $property_name = "_$name";
+    return isset( $this->$property_name );
   }
 
 }

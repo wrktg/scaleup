@@ -2,67 +2,100 @@
 /**
  * Provides access and acts as repository for available schemas
  */
-class ScaleUp_Schemas extends ScaleUp_Base{
+class ScaleUp_Schemas {
 
-  private static $_initialized = false;
+  protected static $_this;
 
-  private static $_this;
+  protected static $_schemas;
 
-  private static $_schemas;
-
-  private static $_registered_schemas = array();
+  protected static $_registered_schemas;
 
   const STORAGE_TRANSIENT = 'scaleup_schemas_storage';
+
+  function __construct( $args = null ) {
+
+    if ( isset( self::$_this ) )
+      wp_die( sprintf( __( '%s is a singleton class and you cannot create a second instance.',
+        'scaleup' ), get_class( $this ) ) );
+
+    self::$_this = $this;
+    $this->initialize();
+
+    self::$_registered_schemas = new ScaleUp_Base();
+
+  }
 
   /**
    * Initialize ScaleUp_Schemas should only be called once during a request cycle
    */
   function initialize() {
-
-    self::$_this = $this;
-
     if ( false === ( $schemas = get_transient( self::STORAGE_TRANSIENT ) ) ) {
       $json = file_get_contents( SCALEUP_DIR . '/schemas.json' );
       $schemas = json_decode( $json, true );
       set_transient( self::STORAGE_TRANSIENT, $schemas );
     }
     self::$_schemas = $schemas;
-
-    self::$_initialized = true;
-  }
-
-  function register( $schema_type, $post_type, $args = null ) {
-
-    if ( isset( self::$_registered_schemas[ $schema_type ] ) ) {
-      $schema = self::get_schema( $schema_type );
-      return new WP_Error( 'registration-error', sprintf( __( '%s Schema already registered.', $schema_type ) ) );
-    }
-
   }
 
   /**
-   * Return definition for specific schema.
+   * Return singleton instance of this class
+   *
+   * @return ScaleUp_Schemas
+   */
+  static function this() {
+    return self::$_this;
+  }
+
+  /**
+   * Register schema type against a specific post type.
+   * Returns an array of 2 elements: instance of ScaleUp_Schema_Type & instance of post type object
+   * you can use list( $schema_type_obj, $post_type_object ) = ScaleUp_Schemas::register( .. ) to get the 2 values
    *
    * @param $schema_type
+   * @param $post_type
    * @param null $args
-   * @return bool|ScaleUp_Schema
+   * @param null $properties
+   * @return WP_Error|array
    */
-  static function get_schema( $schema_type, $args = null ) {
+  static function register( $schema_type, $post_type, $args = null, $properties = null ) {
 
-    $schema = false;
+    if ( self::is_registered( $schema_type ) )
+      return new WP_Error( 'registration-error', sprintf( __( '%s Schema already registered.', $schema_type ) ) );
 
-    $default = array(
-      'parents'     => false,
-      'children'    => false,
-      'reference'   => false,   // when true schema definition will be taken from schema reference instead of registered schemas
+    $post_type_obj = get_post_type_object( $post_type );
+
+    if ( is_null( $post_type_obj ) ) {
+      // register post type
+      $post_type_obj = register_post_type( $post_type, $args );
+
+    } else {
+      // post type already defined, so let's override its properties
+      /**
+       * @todo: implement post type override
+       */
+    }
+
+    $schema_type_args = array(
+      'properties' => $properties
     );
+    $default = self::$_schemas[ 'types' ][ $schema_type ];
+    $schema_type_args = wp_parse_args( $schema_type_args, $default );
+    $schema_type_obj = new ScaleUp_Schema_Type( $schema_type_args );
 
-    $args = wp_parse_args( $args, $default );
+    $registered = array( $schema_type_obj, $post_type_obj );
+    self::$_registered_schemas->set( $schema_type, $registered );
 
-    if ( $args[ 'reference' ] )
-      return new ScaleUp_Schema( $schema_type );
+    return $registered;
+  }
 
-    return $schema;
+  /**
+   * Return post type registered for specific schema type
+   *
+   * @todo: implement get_post_type
+   * @param $schema_type
+   */
+  static function get_post_type( $schema_type ) {
+
   }
 
   /**
@@ -72,7 +105,7 @@ class ScaleUp_Schemas extends ScaleUp_Base{
    * @return bool
    */
   static function is_registered( $schema_type ) {
-    return isset( self::$_registered_schemas[ $schema_type ] );
+    return self::$_registered_schemas->has( $schema_type );
   }
 
   /**
@@ -95,7 +128,7 @@ class ScaleUp_Schemas extends ScaleUp_Base{
    * @return bool
    */
   static function is_property( $name ) {
-    return isset( self::$_schemas[ $name ] );
+    return isset( self::$_schemas[ 'properties' ][ $name ] );
   }
 
   /**
@@ -106,8 +139,17 @@ class ScaleUp_Schemas extends ScaleUp_Base{
    */
   static function get_property( $name ) {
     if ( self::is_property( $name ) )
-      return self::$_schemas[ $name ];
+      return self::$_schemas[ 'properties' ][ $name ];
     return false;
+  }
+
+
+  static function get_properties( $schema ) {
+    $properties = null;
+    if ( isset( self::$_schemas[ 'types' ][ $schema ] ) ) {
+      $properties = self::$_schemas[ 'types' ][ $schema ][ 'properties' ];
+    }
+    return $properties;
   }
 
 }

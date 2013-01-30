@@ -3,8 +3,8 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
 
   function get_defaults() {
     return array(
-      'url'   => '/profile',
-      'forms' => array(
+      'url'     => '/profile',
+      'forms'   => array(
         'profile' => array(
           'fields'=> array(
             array(
@@ -89,6 +89,43 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
   }
 
   function initialize() {
+
+    register_schema( 'Person', 'person',
+      array(
+        'label'               => __( 'person', 'text_domain' ),
+        'description'         => __( 'Person Post Type for People Schema', 'text_domain' ),
+        'labels'              => array(
+          'name'                => _x( 'People', 'Post Type General Name', 'text_domain' ),
+          'singular_name'       => _x( 'Person', 'Post Type Singular Name', 'text_domain' ),
+          'menu_name'           => __( 'Person', 'text_domain' ),
+          'parent_item_colon'   => __( 'Parent:', 'text_domain' ),
+          'all_items'           => __( 'All People', 'text_domain' ),
+          'view_item'           => __( 'View People', 'text_domain' ),
+          'add_new_item'        => __( 'Add New Person', 'text_domain' ),
+          'add_new'             => __( 'New Person', 'text_domain' ),
+          'edit_item'           => __( 'Edit Person', 'text_domain' ),
+          'update_item'         => __( 'Update Person', 'text_domain' ),
+          'search_items'        => __( 'Search people', 'text_domain' ),
+          'not_found'           => __( 'No people found', 'text_domain' ),
+          'not_found_in_trash'  => __( 'No people found in Trash', 'text_domain' ),
+        ),
+        'supports'            => array(),
+        'hierarchical'        => false,
+        'public'              => true,
+        'show_ui'             => true,
+        'show_in_menu'        => true,
+        'show_in_nav_menus'   => true,
+        'show_in_admin_bar'   => true,
+        'menu_position'       => 5,
+        'menu_icon'           => '',
+        'can_export'          => true,
+        'has_archive'         => false,
+        'exclude_from_search' => false,
+        'publicly_queryable'  => false,
+        'rewrite'             => false,
+        'capability_type'     => 'page',
+      ), $this->_get_people_properties() );
+
     $template_path = dirname( dirname( __FILE__ ) ) . '/templates';
     register_template( $template_path, '/profile.php' );
     register_template( $template_path, '/profile-edit.php' );
@@ -108,9 +145,20 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
      *  - view username with username that matches url query
      */
     register_view( 'profile-by-username', '/{username}', array( 'GET' => array( $this, 'view_profile' ) ), $this );
+
   }
 
-
+  /**
+   *
+   * @return mixed
+   */
+  function _get_people_properties() {
+    $people_property_names  = get_properties( 'Person' );
+    $people_properties      = array();
+    foreach ( $people_property_names as $property_name )
+      $people_properties[ $property_name ] = array( 'meta_type' => 'user' );
+    return $people_properties;
+  }
 
   function edit_profile( $args, $view ) {
     get_template_part( '/profile-edit.php' );

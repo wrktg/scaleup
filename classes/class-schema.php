@@ -14,8 +14,9 @@ class ScaleUp_Schema extends ScaleUp_Base implements ArrayAccess {
    * database.
    *
    * @param array $properties
+   * @param array $args
    */
-  function __construct( $properties = array() ) {
+  function __construct( $properties = array(), $args = array() ) {
     parent::__construct( $properties );
   }
 
@@ -34,7 +35,7 @@ class ScaleUp_Schema extends ScaleUp_Base implements ArrayAccess {
     }
 
     if ( ScaleUp_Schemas::is_property( $property_name ) ) {
-      $args = ScaleUp_Schemas::get_property( $property_name );
+      $args = get_property_reference( $property_name );
       if ( is_array( $args ) && !empty( $args ) ) {
         $property = new ScaleUp_Schema_Property( $args );
         $property->set( 'value', $value );
@@ -60,6 +61,18 @@ class ScaleUp_Schema extends ScaleUp_Base implements ArrayAccess {
 
   }
 
+  /**
+   * Return array of properties in this schema instance
+   *
+   * @todo: Implement get_properties function
+   * @return array|null
+   */
+  function get_properties() {
+    $properties = null;
+
+    return $properties;
+  }
+
   function __get( $property_name ) {
     return $this->get( $property_name );
   }
@@ -83,7 +96,5 @@ class ScaleUp_Schema extends ScaleUp_Base implements ArrayAccess {
   function offsetGet( $offset ) {
     return $this->get( $offset );
   }
-
-
 
 }

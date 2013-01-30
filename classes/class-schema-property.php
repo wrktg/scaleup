@@ -5,7 +5,7 @@ class ScaleUp_Schema_Property extends ScaleUp_Base {
 
     $default = array();
 
-    $schema_property = ScaleUp_Schemas::get_property( $property_name );
+    $schema_property = get_property_reference( $property_name );
     if ( is_array( $schema_property ) )
       $default = $schema_property;
     else
@@ -21,7 +21,7 @@ class ScaleUp_Schema_Property extends ScaleUp_Base {
 
   /**
    * Return value in this property
-   * 
+   *
    * @return bool|float|int|null
    */
   function get_value() {
