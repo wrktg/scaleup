@@ -75,14 +75,14 @@ if ( !function_exists( 'create_post' ) ) {
    *
    * @see http://schema.org/ list of schema types and their properties
    * @see http://codex.wordpress.org/Function_Reference/wp_insert_post post fields for $args
-   * @param $schema
-   * @param $args
+   * @param $properties
+   * @param null $args
    * @return int|bool
    */
-  function create_post( $schema, $args = null ) {
+  function create_post( $properties, $args = null ) {
 
     $default = array(
-      'post_type'   => get_post_type_from_schema( $schema[ 'type' ] ),
+      'post_type'   => get_post_type_from_schema( $properties[ 'type' ] ),
       'post_status' => 'new',
     );
 
@@ -105,8 +105,7 @@ if ( !function_exists( 'create_post' ) ) {
       return false;
     }
 
-    foreach ( $schema as $property_name => $property_value )
-      update_property( $post_id, $property_name, $property_value );
+    update_post( $properties, $args );
 
     return $post_id;
   }
@@ -118,15 +117,13 @@ if ( !function_exists( 'update_post' ) ) {
    *
    * @see http://schema.org/ list of schema types and their properties
    * @see http://codex.wordpress.org/Function_Reference/wp_update_post post fields for $args
-   * @param $schema
+   * @param $properties array properties
    * @param null $args
-   * @return bool
+   * @return bool|WP_Error
    */
-  function update_post( $schema, $args = null ) {
+  function update_post( $properties, $args = null ) {
 
-    $schema = new ScaleUp_Schema( $schema );
-
-    if ( isset( $schema[ 'ID' ] ) && isset( $args[ 'ID' ] ) && $schema[ 'ID' ] != $args[ 'ID' ] ) {
+    if ( isset( $properties[ 'ID' ] ) && isset( $args[ 'ID' ] ) && $properties[ 'ID' ] != $args[ 'ID' ] ) {
       /**
        * Seriously? Make up your mind. A post can't be 2 posts at the same time... or can it? NO IT CAN'T!
        * @todo: throw some kind of a snarky message back at the developer for being silly
@@ -134,18 +131,22 @@ if ( !function_exists( 'update_post' ) ) {
       return false;
     }
 
-    if ( isset( $schema[ 'ID' ] ) )
-      $ID = $schema[ 'ID' ];
+    if ( isset( $properties[ 'ID' ] ) )
+      $post_id = $properties[ 'ID' ];
     if ( isset( $args[ 'ID' ] ) )
-      $ID = $args[ 'ID' ];
+      $post_id = $args[ 'ID' ];
 
     $default = array(
-      'ID' => $ID,
+      'ID' => $post_id,
     );
 
-    $args = wp_parse_args( $args, $default );
+    $args         = wp_parse_args( $args, $default );
+    $args         = add_magic_quotes( $args );
+    $post_type    = get_post_type( $post_id );
+    $schema_type  = get_schema_type( $post_type );
 
-    $args = add_magic_quotes( $args );
+    if ( !$schema_type )
+      return new WP_Error( 'schema', sprintf( __( 'Schema type is not available for %s' ), $post_type ) );
 
     $result = wp_update_post( $args, true );
 
@@ -154,11 +155,13 @@ if ( !function_exists( 'update_post' ) ) {
        * not sure how this happened.
        * @todo: need some kind of developer feedback here.
        */
+      return $result;
     }
 
-    $result = $schema->update( $ID );
+    $schema = new ScaleUp_Schema( $properties );
+    $schema->update( $post_id );
 
-    return $result;
+    return true;
   }
 }
 
@@ -191,8 +194,13 @@ if ( !function_exists( 'get_post_type_from_schema' ) ) {
   }
 }
 
-if ( !function_exists( 'get_view' ) ) {
+if ( !function_exists( 'get_schema_type' ) ) {
+  function get_schema_type( $post_type ) {
+    return ScaleUp_Schemas::get_schema_type( $post_type );
+  }
+}
 
+if ( !function_exists( 'get_view' ) ) {
   /**
    * Returns specific view either from global scope or the context
    *

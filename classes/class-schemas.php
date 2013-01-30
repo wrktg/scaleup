@@ -75,4 +75,39 @@ class ScaleUp_Schemas extends ScaleUp_Base{
     return isset( self::$_registered_schemas[ $schema_type ] );
   }
 
+  /**
+   * Return schema type for specific post type
+   *
+   * @todo: Implement get_schema_type function
+   * @param $post_type
+   * @return bool|string
+   */
+  static function get_schema_type( $post_type ) {
+    $schema_type = false;
+
+    return $schema_type;
+  }
+
+  /**
+   * Check if specified property is a schema property
+   *
+   * @param $name
+   * @return bool
+   */
+  static function is_property( $name ) {
+    return isset( self::$_schemas[ $name ] );
+  }
+
+  /**
+   * Return property definition from schema type reference
+   *
+   * @param $name
+   * @return bool|array
+   */
+  static function get_property( $name ) {
+    if ( self::is_property( $name ) )
+      return self::$_schemas[ $name ];
+    return false;
+  }
+
 }
