@@ -27,6 +27,7 @@ class ScaleUp_Schemas {
 
     self::$_registered_schemas  = new ScaleUp_Base();
     self::$_post_types          = new ScaleUp_Base();
+    self::$_custom_properties   = new ScaleUp_Base();
 
   }
 
@@ -108,6 +109,20 @@ class ScaleUp_Schemas {
       return new WP_Error( 'empty', __( 'Property name can not be empty' ) );
     }
 
+    $default = array(
+      'property_name' => $property_name,
+      'schema_types'  => $schema_types,
+      'data_types'    => array( 'Text' ),
+      'custom'        => true,
+    );
+
+    $args = wp_parse_args( $args, $default );
+
+    /**
+     * @todo: we should modify the reference data store instead of doing this conversion
+     */
+    $args = self::_convert_args_to_reference( $args );
+
     if ( empty( $schema_types ) ) {
       if ( self::$_custom_properties->has( $property_name ) ) {
         return new WP_Error( 'exists', sprintf( __( '%s custom property already exists.' ), $property_name ) );
@@ -118,16 +133,54 @@ class ScaleUp_Schemas {
       }
     }
 
-    $property_obj = new ScaleUp_Schema_Property( $property_name, $args );
-
     foreach ( $schema_types as $schema_type ) {
       if ( self::is_registered( $schema_type ) ) {
         $schema_type_obj = self::$_registered_schemas->get( $schema_type )->get( 'schema_type' );
-        $schema_type_obj->set( $property_name, $property_obj );
+        $properties = $schema_type_obj->get( 'properties' );
+        if ( is_array( $properties ) ) {
+          $properties[ $property_name ] = $args;
+          $schema_type_obj->set( 'properties', $properties );
+        }
       }
     }
 
+    $property_obj = new ScaleUp_Schema_Property( $property_name, $args );
+    self::$_custom_properties->set( $property_name, $property_obj );
+
     return $property_obj;
+  }
+
+  /**
+   * Converts developer friendly args into format that matches the schema reference
+   *
+   * @todo: remove this function, might be better to do opposite transformation on the source
+   *
+   * @param $args
+   * @return mixed
+   */
+  static function _convert_args_to_reference( $args ) {
+
+    if ( isset( $args[ 'description' ] ) ) {
+      $args[ 'comment' ] = $args[ 'comment_plain' ] = $args[ 'description' ];
+      unset( $args[ 'description' ] );
+    }
+
+    if ( isset( $args[ 'schema_types' ] ) ) {
+      $args[ 'domains' ] = $args[ 'schema_types' ];
+      unset( $args[ 'schema_types' ] );
+    }
+
+    if ( isset( $args[ 'property_name' ] ) ) {
+      $args[ 'id' ] = $args[ 'property_name' ];
+      unset( $args[ 'property_name' ] );
+    }
+
+    if ( isset( $args[ 'data_types' ] ) ) {
+      $args[ 'ranges' ] = $args[ 'data_types' ];
+      unset( $args[ 'data_types' ] );
+    }
+
+    return $args;
   }
 
   /**
@@ -191,7 +244,10 @@ class ScaleUp_Schemas {
    * @return bool
    */
   static function is_property( $name ) {
-    return isset( self::$_schemas[ 'properties' ][ $name ] );
+    if ( !empty( $name ) ) {
+      return isset( self::$_schemas[ 'properties' ][ $name ] ) || self::$_custom_properties->has( $name );
+    }
+    return false;
   }
 
   /**

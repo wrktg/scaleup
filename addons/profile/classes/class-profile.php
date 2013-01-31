@@ -8,24 +8,23 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
         'profile' => array(
           'fields'=> array(
             array(
-              'id'        => 'userName',
+              'id'        => 'nickName',
               'type'      => 'text',
-              'unique'    => true,
-              'required'  => true,
-              'label'     => __( 'Username' ),
+              'validation'  => array( 'required', 'unique' ),
+              'label'     => __( 'Nickname' ),
               'class'     => 'input-block-level',
             ),
             array(
               'id'        => 'givenName',
               'type'      => 'text',
-              'required'  => true,
+              'validation'  => array( 'required' ),
               'label'     => __( 'First Name' ),
               'class'     => 'input-block-level',
             ),
             array(
               'id'        => 'familyName',
               'type'      => 'text',
-              'required'  => true,
+              'validation'  => array( 'required' ),
               'label'     => __( 'Last Name' ),
               'class'     => 'input-block-level',
             ),
@@ -38,8 +37,7 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
             array(
               'id'        => 'email',
               'type'      => 'text',
-              'unique'    => true,
-              'required'  => true,
+              'validation'  => array( 'required', 'unique' ),
               'label'     => __( 'Email' ),
               'class'     => 'input-block-level',
             ),
@@ -70,14 +68,14 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
             array(
               'id'        => 'password',
               'type'      => 'password',
-              'required'  => true,
+              'validation'  => array( 'required' ),
               'label'     => __( 'Password' ),
               'class'     => 'input-block-level',
             ),
             array(
               'id'        => 'confirm',
               'type'      => 'password',
-              'required'  => true,
+              'validation'  => array( 'required' ),
               'label'     => __( 'Confirm password' ),
               'class'     => 'input-block-level',
             ),
@@ -132,7 +130,13 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
         'capability_type'     => 'page',
       ), $this->_get_person_properties() );
 
-    ScaleUp_Schemas::get_post_type( 'Person' );
+    register_property( 'nickName', array( 'Person' ),
+      array(
+           'meta_type'    => 'user',
+           'meta_key'     => 'nickname',
+           'description'  => 'Nickname of a person.',
+           'data_types'   => array( 'Text' ),
+      ));
 
     $template_path = dirname( dirname( __FILE__ ) ) . '/templates';
     register_template( $template_path, '/profile.php' );
@@ -157,14 +161,28 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
   }
 
   /**
+   * Return array of arguments for each Person property
    *
    * @return mixed
    */
   function _get_person_properties() {
     $schema = get_schema( 'Person', true );
     $properties = array();
-    foreach ( $schema[ 'properties' ] as $property_name )
-      $properties[ $property_name ] = array( 'meta_type' => 'user' );
+    foreach ( $schema[ 'properties' ] as $property_name ) {
+      $args = array( 'meta_type' => 'user' );
+      switch ( $property_name ) :
+        case 'givenName' :
+          $args[ 'meta_key' ] = 'first_name';
+          $properties[ $property_name ] = $args;
+          break;
+        case 'familyName' :
+          $args[ 'meta_key'] = 'last_name';
+          $properties[ $property_name ] = $args;
+          break;
+        default:
+          $properties[ $property_name ] = $args;
+      endswitch;
+    }
     return $properties;
   }
 
@@ -187,12 +205,17 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
 
     if ( is_user_logged_in() ) {
       $user_id = get_current_user_id();
-      $schema = get_schema( 'Person' );
-      $schema->load( $args );
-      $schema->update( $user_id );
-      $form = get_form( 'profile' );
-      $form->load( $schema );
-      get_template_part( '/profile-edit.php' );
+      $form = get_form( $args[ 'submit' ] );
+      if ( $form ) {
+        $form->load( $args );
+        if ( $form->validates() ) {
+          $schema = get_schema( 'Person' );
+          $schema->load( $args );
+          $schema->update( $user_id );
+        }
+        get_template_part( '/profile-edit.php' );
+      }
+
     } else {
       $login = get_view( 'login' );
     }

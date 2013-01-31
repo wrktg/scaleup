@@ -1,5 +1,22 @@
 <?php
 
+if ( !function_exists( 'create_app') ) {
+  /**
+   * Create an app and return it as an object
+   *
+   * @param $name
+   * @param array $args
+   * @return ScaleUp_App
+   */
+  function create_app( $name, $args = array() ) {
+    $default = array(
+      'name' => $name,
+    );
+    $args = wp_parse_args( $args, $default );
+    return new ScaleUp_App( $args );
+  }
+}
+
 if ( !function_exists( 'register_view' ) ) {
   /**
    * Register view with WordPress, an Addon or an App

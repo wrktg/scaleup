@@ -8,7 +8,6 @@ class ScaleUp_Schema extends ScaleUp_Base implements ArrayAccess {
 
   protected $_schema_type;
 
-
   /**
    * During initialization, ScaleUp_Schema takes an array of properties as an argument.
    * It stores these arguments in internal storage to be used when an $this->update is executed.
@@ -25,7 +24,6 @@ class ScaleUp_Schema extends ScaleUp_Base implements ArrayAccess {
       $properties = ScaleUp_Schemas::get_properties( $schema_type );
       foreach ( $properties as $property_name => $args ) {
         $this->$property_name = new ScaleUp_Schema_Property( $property_name, $args );
-        unset( $value );
       }
     }
   }
@@ -79,7 +77,7 @@ class ScaleUp_Schema extends ScaleUp_Base implements ArrayAccess {
       } else {
         $args = get_property_reference( $property_name );
         if ( is_array( $args ) && !empty( $args ) ) {
-          $property = new ScaleUp_Schema_Property( $args );
+          $property = new ScaleUp_Schema_Property( $property_name, $args );
           $property->set( 'value', $value );
           $this->$property_name = $property;
           if ( $update ) {
