@@ -57,4 +57,16 @@ class ScaleUp_Schema_Property extends ScaleUp_Base {
     return update_metadata( $this->get( 'meta_type' ), $object_id, $this->get( 'name' ), $this->get( 'value' ) );
   }
 
+  /**
+   * Read value into this property
+   *
+   * @param $object_id
+   */
+  function read( $object_id ) {
+    $meta_type  = $this->get( 'meta_type' );
+    $meta_key   = $this->get( 'name' );
+    $value = get_metadata( $meta_type, $object_id, $meta_key, true );
+    $this->set( 'value', $value );
+  }
+
 }

@@ -64,7 +64,7 @@ class ScaleUp_View {
     if ( is_null( $args ) )
       return $url;
     else
-      return scaleup_string_template( $url, $args );
+      return string_template( $url, $args );
 
   }
 

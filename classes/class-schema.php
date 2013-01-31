@@ -4,7 +4,10 @@
  */
 class ScaleUp_Schema extends ScaleUp_Base implements ArrayAccess {
 
-  private $_updated = array();
+  protected $_updated = array();
+
+  protected $_schema_type;
+
 
   /**
    * During initialization, ScaleUp_Schema takes an array of properties as an argument.
@@ -13,39 +16,88 @@ class ScaleUp_Schema extends ScaleUp_Base implements ArrayAccess {
    * initialization. This makes it possible to distinguish between fields that need to be updated when saving to the
    * database.
    *
-   * @param array $properties
-   * @param array $args
+   * @param null $schema_type string
+   * @param array $args array
    */
-  function __construct( $properties = array(), $args = array() ) {
-    parent::__construct( $properties );
+  function __construct( $schema_type = null, $args = array() ) {
+    $this->_schema_type = $schema_type;
+    if ( !is_null( $schema_type ) ) {
+      $properties = ScaleUp_Schemas::get_properties( $schema_type );
+      foreach ( $properties as $property_name => $args ) {
+        $this->$property_name = new ScaleUp_Schema_Property( $property_name, $args );
+        unset( $value );
+      }
+    }
   }
 
   /**
-   * Set local properties
-   * @param $property_name
-   * @param $value
+   * Read values from the database into each property in the schema
+   *
+   * @param $object_id
+   * @param array $properties
    */
-  function set( $property_name, $value ) {
+  function read( $object_id, $properties = array() ) {
+    if ( empty( $properties ) ) {
+      if ( isset( $this->_schema_type ) ) {
+        $properties = ScaleUp_Schemas::get_properties( $this->_schema_type );
+        if ( is_array( $properties ) ) {
+          $properties = array_keys( $properties );
+        } else {
+          $properties = array();
+        }
+      }
+    }
+    foreach ( $properties as $property_name ) {
+      if ( isset( $this->$property_name) && is_object( $this->$property_name ) && method_exists( $this->$property_name, 'read' ) ) {
+        $this->$property_name->read( $object_id );
+      }
+    }
+  }
+
+  /**
+   * Set local properties. Set $update to false if you do not want it to be recorded as changed.
+   *
+   * @param $property_name
+   * @param $value bool
+   * @param bool $update
+   */
+  function set( $property_name, $value, $update = true ) {
 
     // if property is already an instantiated ScaleUp_Schema_Property
     if ( isset( $this->$property_name ) && is_object( $this->$property_name ) && method_exists( $this->$property_name, 'set' ) ) {
       $this->$property_name->set( 'value', $value );
-      $this->_updated[] = $property_name;
+      if ( $update ) {
+        $this->_updated[] = $property_name;
+      }
       return;
     }
 
     if ( ScaleUp_Schemas::is_property( $property_name ) ) {
-      $args = get_property_reference( $property_name );
-      if ( is_array( $args ) && !empty( $args ) ) {
-        $property = new ScaleUp_Schema_Property( $args );
-        $property->set( 'value', $value );
-        $this->$property_name = $property;
-        $this->_updated[] = $property_name;
+      if ( is_object( $value ) ) {
+        $this->$property_name = $value;
         return;
+      } else {
+        $args = get_property_reference( $property_name );
+        if ( is_array( $args ) && !empty( $args ) ) {
+          $property = new ScaleUp_Schema_Property( $args );
+          $property->set( 'value', $value );
+          $this->$property_name = $property;
+          if ( $update ) {
+            $this->_updated[] = $property_name;
+          }
+          return;
+        }
       }
     }
 
-    parent::set( $property_name, $value );
+  }
+
+  function get( $property_name ) {
+    $value = null;
+    if ( isset( $this->$property_name ) ) {
+      $value = $this->$property_name;
+    }
+    return $value;
   }
 
   /**
@@ -56,8 +108,9 @@ class ScaleUp_Schema extends ScaleUp_Base implements ArrayAccess {
   function update( $id ) {
 
     foreach ( $this->_updated as $property )
-      if ( isset( $this->$property ) && is_object( $this->$property ) && method_exists( $this->$property, 'update' ) )
+      if ( isset( $this->$property ) && is_object( $this->$property ) && method_exists( $this->$property, 'update' ) ) {
         $this->$property->update( $id );
+      }
 
   }
 

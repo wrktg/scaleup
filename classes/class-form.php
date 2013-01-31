@@ -104,8 +104,15 @@ class ScaleUp_Form {
     while ( $field_args = current( $this->_fields ) ) {
       $field = new ScaleUp_Form_Field( $field_args, $this );  // create an instance of the form field
       $name = $field->get( 'name' );                          // get the name for current field
-      if ( isset( $args[ $name ] ) )                          // if field value was submitted
-        $field->set( 'value', $args[ $name ] );               // set the submitted field's value
+      if ( isset( $args[ $name ] ) ) {                        // if field value was submitted
+        $value = $args[ $name ];
+        if ( is_object( $value ) && method_exists( $value, 'get' ) ) {
+          $field->set( 'value', $value->get( 'value' ) );
+        } else {
+          $field->set( 'value', $value );               // set the submitted field's value
+        }
+      }
+
       $this->_fields[ key( $this->_fields ) ] = $field;       // replace the field's argument array with instantiated object
       next( $this->_fields );                                 // advance to the next field
     }

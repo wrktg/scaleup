@@ -10,6 +10,10 @@ class ScaleUp_Schemas {
 
   protected static $_registered_schemas;
 
+  protected static $_post_types;
+
+  protected static $_custom_properties;
+
   const STORAGE_TRANSIENT = 'scaleup_schemas_storage';
 
   function __construct( $args = null ) {
@@ -21,7 +25,8 @@ class ScaleUp_Schemas {
     self::$_this = $this;
     $this->initialize();
 
-    self::$_registered_schemas = new ScaleUp_Base();
+    self::$_registered_schemas  = new ScaleUp_Base();
+    self::$_post_types          = new ScaleUp_Base();
 
   }
 
@@ -57,7 +62,7 @@ class ScaleUp_Schemas {
    * @param null $properties
    * @return WP_Error|array
    */
-  static function register( $schema_type, $post_type, $args = null, $properties = null ) {
+  static function register_schema( $schema_type, $post_type, $args = null, $properties = null ) {
 
     if ( self::is_registered( $schema_type ) )
       return new WP_Error( 'registration-error', sprintf( __( '%s Schema already registered.', $schema_type ) ) );
@@ -78,46 +83,104 @@ class ScaleUp_Schemas {
     $schema_type_args = array(
       'properties' => $properties
     );
-    $default = self::$_schemas[ 'types' ][ $schema_type ];
+    $default = get_schema( $schema_type, true );
     $schema_type_args = wp_parse_args( $schema_type_args, $default );
     $schema_type_obj = new ScaleUp_Schema_Type( $schema_type_args );
 
-    $registered = array( $schema_type_obj, $post_type_obj );
+    $registered = new ScaleUp_Base( array( 'schema_type' => $schema_type_obj, 'post_type' => $post_type_obj ) );
     self::$_registered_schemas->set( $schema_type, $registered );
+    self::$_post_types->set( $post_type, $schema_type_obj );
 
     return $registered;
   }
 
   /**
-   * Return post type registered for specific schema type
+   * Register custom property against several schema types or
    *
-   * @todo: implement get_post_type
-   * @param $schema_type
+   * @param $property_name
+   * @param array $schema_types
+   * @param array $args
+   * @return ScaleUp_Schema_Property|bool|WP_Error
    */
-  static function get_post_type( $schema_type ) {
+  static function register_property( $property_name, $schema_types = array(), $args = array() ) {
 
+    if ( empty( $property_name ) ) {
+      return new WP_Error( 'empty', __( 'Property name can not be empty' ) );
+    }
+
+    if ( empty( $schema_types ) ) {
+      if ( self::$_custom_properties->has( $property_name ) ) {
+        return new WP_Error( 'exists', sprintf( __( '%s custom property already exists.' ), $property_name ) );
+      } else {
+        $property_obj = new ScaleUp_Schema_Property( $property_name, $args );
+        self::$_custom_properties->set( $property_name, $property_obj );
+        return $property_obj;
+      }
+    }
+
+    $property_obj = new ScaleUp_Schema_Property( $property_name, $args );
+
+    foreach ( $schema_types as $schema_type ) {
+      if ( self::is_registered( $schema_type ) ) {
+        $schema_type_obj = self::$_registered_schemas->get( $schema_type )->get( 'schema_type' );
+        $schema_type_obj->set( $property_name, $property_obj );
+      }
+    }
+
+    return $property_obj;
   }
 
   /**
-   * Return true if schema type is registed, otherwise return false.
+   * Return a new schema object populated with schema properties.
+   * If $reference is true, return schema args from schema definition.
+   * If nothing is found, return false.
    *
    * @param $schema_type
-   * @return bool
+   * @param bool $reference
+   * @return bool|ScaleUp_Schema|array
    */
-  static function is_registered( $schema_type ) {
-    return self::$_registered_schemas->has( $schema_type );
+  static function get_schema( $schema_type, $reference = false ) {
+
+    if ( $reference ) {
+      if ( isset( self::$_schemas[ 'types' ][ $schema_type ] ) ) {
+        return self::$_schemas[ 'types' ][ $schema_type ];
+      }
+    }
+
+    if ( ScaleUp_Schemas::is_registered( $schema_type ) ) {
+      $schema = new ScaleUp_Schema( $schema_type );
+      return $schema;
+    }
+    return false;
+  }
+  
+  /**
+   * Return post type registered for specific schema type
+   *
+   * @param $schema_type
+   * @return bool|string
+   */
+  static function get_post_type( $schema_type ) {
+    $post_type = false;
+    if ( self::is_registered( $schema_type ) ) {
+      $post_type_object = self::$_registered_schemas->get( $schema_type )->get( 'post_type' );
+      $post_type = $post_type_object->name;
+    }
+    return $post_type;
   }
 
   /**
    * Return schema type for specific post type
    *
-   * @todo: Implement get_schema_type function
    * @param $post_type
    * @return bool|string
    */
   static function get_schema_type( $post_type ) {
     $schema_type = false;
-
+    if ( self::$_post_types->has( $post_type ) ) {
+      $schema_type_obj = self::$_post_types->get( $post_type );
+      $schema_type = $schema_type_obj->get( 'schema_type' );
+    }
     return $schema_type;
   }
 
@@ -132,22 +195,47 @@ class ScaleUp_Schemas {
   }
 
   /**
-   * Return property definition from schema type reference
+   * Return true if schema type is registed, otherwise return false.
+   *
+   * @param $schema_type
+   * @return bool
+   */
+  static function is_registered( $schema_type ) {
+    return self::$_registered_schemas->has( $schema_type );
+  }
+
+
+  /**
+   * Return property definition from reference
    *
    * @param $name
    * @return bool|array
    */
-  static function get_property( $name ) {
+  static function get_property_reference( $name ) {
     if ( self::is_property( $name ) )
       return self::$_schemas[ 'properties' ][ $name ];
     return false;
   }
 
-
-  static function get_properties( $schema ) {
+  /**
+   * Return array of properties for a schema.
+   * Set $reference to true if you want to get properties from reference instead of registered schema.
+   *
+   * @param $schema_type
+   * @param bool $reference
+   * @return array|null
+   */
+  static function get_properties( $schema_type, $reference = false ) {
     $properties = null;
-    if ( isset( self::$_schemas[ 'types' ][ $schema ] ) ) {
-      $properties = self::$_schemas[ 'types' ][ $schema ][ 'properties' ];
+    if ( $reference ) {
+      if ( isset( self::$_schemas[ 'types' ][ $schema_type ] ) ) {
+        $properties = self::$_schemas[ 'types' ][ $schema_type ][ 'properties' ];
+      }
+    } else {
+      if ( self::is_registered( $schema_type ) ) {
+        $schema = self::$_registered_schemas->get( $schema_type )->get( 'schema_type' );
+        $properties = $schema->get( 'properties' );
+      }
     }
     return $properties;
   }

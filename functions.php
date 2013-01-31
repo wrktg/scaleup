@@ -65,9 +65,24 @@ if ( !function_exists( 'register_schema' ) ) {
    * @return mixed
    */
   function register_schema( $schema_type, $post_type, $args, $properties ) {
-    return ScaleUp_Schemas::register( $schema_type, $post_type, $args, $properties );
+    return ScaleUp_Schemas::register_schema( $schema_type, $post_type, $args, $properties );
   }
 }
+
+if ( !function_exists( 'register_property' ) ) {
+  /**
+   * Register property and attach it to one or more schema types
+   *
+   * @param $property_name
+   * @param $schema_types
+   * @param $args
+   * @return mixed
+   */
+  function register_property( $property_name, $schema_types, $args ) {
+    return ScaleUp_Schemas::register_property( $property_name, $schema_types, $args );
+  }
+}
+
 
 if ( !function_exists( 'create_post' ) ) {
   /**
@@ -159,7 +174,8 @@ if ( !function_exists( 'update_post' ) ) {
       return $result;
     }
 
-    $schema = new ScaleUp_Schema( $properties );
+    $schema = new ScaleUp_Schema();
+    $schema->load( $properties );
     $schema->update( $post_id );
 
     return true;
@@ -182,47 +198,6 @@ if ( !function_exists( 'update_property' ) ) {
   }
 }
 
-if ( !function_exists( 'get_post_type_from_schema' ) ) {
-  /**
-   * Return post type registered for specific schema type
-   *
-   * @param $schema_type
-   * @internal param $post
-   * @return string
-   */
-  function get_post_type_from_schema( $schema_type ) {
-    return ScaleUp_Schemas::get_post_type( $schema_type );
-  }
-}
-
-if ( !function_exists( 'get_schema_type' ) ) {
-  /**
-   * Return schema type that's registered for specific post type
-   * @param $post_type
-   * @return bool|string
-   */
-  function get_schema_type( $post_type ) {
-    return ScaleUp_Schemas::get_schema_type( $post_type );
-  }
-}
-
-if ( !function_exists( 'get_properties' ) ) {
-  /**
-   * Return array of properties for specific schema
-   *
-   * @param $schema
-   * @return
-   */
-  function get_properties( $schema ) {
-    $properties = null;
-    if ( is_string( $schema ) )
-      $properties = ScaleUp_Schemas::get_properties( $schema );
-    elseif ( is_object( $schema ) && method_exists( $schema, 'get_properties' ) )
-      $properties = $schema->get_properties();
-  return $properties;
-  }
-}
-
 if ( !function_exists( 'get_view' ) ) {
   /**
    * Returns specific view either from global scope or the context
@@ -236,7 +211,21 @@ if ( !function_exists( 'get_view' ) ) {
   }
 }
 
-if ( !function_exists( 'scaleup_string_template' ) ) {
+if ( !function_exists( 'get_schema' ) ) {
+  /**
+   * Return a schema object with its properties.
+   * Set $reference to false to get schema definition from reference
+   *
+   * @param $schema_type
+   * @param bool $reference
+   * @return ScaleUp_Schema|bool
+   */
+  function get_schema( $schema_type, $reference = false ) {
+    return ScaleUp_Schemas::get_schema( $schema_type, $reference );
+  }
+}
+
+if ( !function_exists( 'string_template' ) ) {
   /**
    * Replaces variables in string template that uses {variable_name} syntax.
    * For example, /profile/{username} with array( 'username' => 'taras') produces /profile/taras/
@@ -245,7 +234,7 @@ if ( !function_exists( 'scaleup_string_template' ) ) {
    * @param $args
    * @return string
    */
-  function scaleup_string_template( $template, $args ) {
+  function string_template( $template, $args ) {
 
     $pattern   = $template;
     $len       = strlen( $pattern );
@@ -308,6 +297,7 @@ if ( !function_exists( 'scaleup_string_template' ) ) {
 
     return $result;
   }
+
 }
 
 if ( !function_exists( 'get_property_reference' ) ) {
@@ -318,6 +308,30 @@ if ( !function_exists( 'get_property_reference' ) ) {
    * @return array|bool
    */
   function get_property_reference( $property_name ) {
-    return ScaleUp_Schemas::get_property( $property_name );
+    return ScaleUp_Schemas::get_property_reference( $property_name );
+  }
+}
+
+if ( !function_exists( 'get_post_type_from_schema' ) ) {
+  /**
+   * Return post type registered for specific schema type
+   *
+   * @param $schema_type
+   * @internal param $post
+   * @return string
+   */
+  function get_post_type_from_schema( $schema_type ) {
+    return ScaleUp_Schemas::get_post_type( $schema_type );
+  }
+}
+
+if ( !function_exists( 'get_schema_type' ) ) {
+  /**
+   * Return schema type that's registered for specific post type
+   * @param $post_type
+   * @return bool|string
+   */
+  function get_schema_type( $post_type ) {
+    return ScaleUp_Schemas::get_schema_type( $post_type );
   }
 }

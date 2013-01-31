@@ -30,6 +30,12 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
               'class'     => 'input-block-level',
             ),
             array(
+              'id'        => 'birthDate',
+              'type'      => 'text',
+              'label'     => 'Birth Date',
+              'class'     => 'input-block-level',
+            ),
+            array(
               'id'        => 'email',
               'type'      => 'text',
               'unique'    => true,
@@ -38,9 +44,9 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
               'class'     => 'input-block-level',
             ),
             array(
-              'id'        => 'company',
+              'id'        => 'worksFor',
               'type'      => 'text',
-              'label' => 'Company',
+              'label'     => 'Company',
               'class'     => 'input-block-level',
             ),
             array(
@@ -124,7 +130,9 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
         'publicly_queryable'  => false,
         'rewrite'             => false,
         'capability_type'     => 'page',
-      ), $this->_get_people_properties() );
+      ), $this->_get_person_properties() );
+
+    ScaleUp_Schemas::get_post_type( 'Person' );
 
     $template_path = dirname( dirname( __FILE__ ) ) . '/templates';
     register_template( $template_path, '/profile.php' );
@@ -152,20 +160,42 @@ class ScaleUp_Profile_Addon extends ScaleUp_Addon {
    *
    * @return mixed
    */
-  function _get_people_properties() {
-    $people_property_names  = get_properties( 'Person' );
-    $people_properties      = array();
-    foreach ( $people_property_names as $property_name )
-      $people_properties[ $property_name ] = array( 'meta_type' => 'user' );
-    return $people_properties;
+  function _get_person_properties() {
+    $schema = get_schema( 'Person', true );
+    $properties = array();
+    foreach ( $schema[ 'properties' ] as $property_name )
+      $properties[ $property_name ] = array( 'meta_type' => 'user' );
+    return $properties;
   }
 
   function edit_profile( $args, $view ) {
+
+    if ( is_user_logged_in() ) {
+      $user_id = get_current_user_id();
+      $form = get_form( 'profile' );
+      $schema = get_schema( 'Person' );
+      $schema->read( $user_id );
+      $form->load( $schema );
+    } else {
+      $login = get_view( 'login' );
+    }
+
     get_template_part( '/profile-edit.php' );
   }
 
   function update_profile( $args, $view ) {
-    get_template_part( '/profile-edit.php' );
+
+    if ( is_user_logged_in() ) {
+      $user_id = get_current_user_id();
+      $schema = get_schema( 'Person' );
+      $schema->load( $args );
+      $schema->update( $user_id );
+      $form = get_form( 'profile' );
+      $form->load( $schema );
+      get_template_part( '/profile-edit.php' );
+    } else {
+      $login = get_view( 'login' );
+    }
   }
 
   function view_profile( $args, $view ) {

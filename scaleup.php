@@ -18,6 +18,7 @@ include_once( SCALEUP_DIR . '/classes/class-form-field.php' );
 include_once( SCALEUP_DIR . '/classes/class-view.php' );
 include_once( SCALEUP_DIR . '/classes/class-views.php' );
 include_once( SCALEUP_DIR . '/classes/class-schemas.php' );
+include_once( SCALEUP_DIR . '/classes/class-schema-property.php' );
 include_once( SCALEUP_DIR . '/classes/class-schema-type.php' );
 include_once( SCALEUP_DIR . '/classes/class-schema.php' );
 include_once( SCALEUP_DIR . '/classes/class-app.php' );
