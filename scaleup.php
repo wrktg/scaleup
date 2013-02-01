@@ -30,6 +30,6 @@ include_once( SCALEUP_DIR . '/template_tags.php' );
 
 include_once( SCALEUP_DIR . '/addons/addon-loader.php' );
 
-new ScaleUp_App_Server();
 new ScaleUp_Templates();
 new ScaleUp_Schemas();
+new ScaleUp_App_Server();

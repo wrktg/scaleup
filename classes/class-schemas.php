@@ -296,4 +296,19 @@ class ScaleUp_Schemas {
     return $properties;
   }
 
+  /**
+   * Return a list of schema types
+   * To get them from reference, set $reference = true
+   *
+   * @param bool $reference
+   * @return ScaleUp_Base
+   */
+  static function get_schema_types( $reference = false ) {
+    if ( $reference ) {
+      return ScaleUp_Schemas::$_schemas;
+    } else {
+      return apply_filters( 'registered_schema_types', array() );
+    }
+  }
+
 }

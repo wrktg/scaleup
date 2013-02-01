@@ -183,3 +183,20 @@ if ( !function_exists( 'has_form_field_attr' ) ) {
     return false;
   }
 }
+
+if ( !function_exists( 'get_view_permalink' ) ) {
+  /**
+   * Return url if it could be generated
+   *
+   * @param $name
+   * @param array $args
+   * @return string|bool
+   */
+  function get_view_permalink( $name, $args = array() ) {
+    $view = get_view( $name );
+    if ( is_object( $view ) && method_exists( $view, 'get_url' ) ) {
+      return $view->get_url( $args );
+    }
+  }
+  return false;
+}

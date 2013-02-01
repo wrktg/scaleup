@@ -92,18 +92,25 @@ class ScaleUp_Views {
     return null;
   }
 
-  static function get_view( $slug, $context = null ) {
+  /**
+   * Return view by specific name
+   *
+   * @param $name
+   * @param null $context
+   * @return ScaleUp_View|bool
+   */
+  static function get_view( $name, $context = null ) {
 
     if ( !is_null( $context ) && is_object( $context ) && method_exists( $context, 'get_view' ) )
-      return $context->get_view( $slug );
+      return $context->get_view( $name );
 
     /**
      * Lazy load global views
      */
     if ( is_null( self::$_global_views ) ) {
       self::$_global_views = apply_filters( 'register_view', array() );
-      if ( isset( self::$_global_views[ $slug ] ) )
-        return self::$_global_views[ $slug ];
+      if ( isset( self::$_global_views[ $name ] ) )
+        return self::$_global_views[ $name ];
     }
 
     return false;

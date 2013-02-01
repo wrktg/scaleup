@@ -219,12 +219,12 @@ if ( !function_exists( 'get_view' ) ) {
   /**
    * Returns specific view either from global scope or the context
    *
-   * @param $slug
+   * @param $name
    * @param null $context
-   * @return bool
+   * @return ScaleUp_View|bool
    */
-  function get_view( $slug, $context = null ) {
-    return ScaleUp_Views::get_view( $slug, $context );
+  function get_view( $name, $context = null ) {
+    return ScaleUp_Views::get_view( $name, $context );
   }
 }
 
