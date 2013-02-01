@@ -12,19 +12,19 @@ class ScaleUp_Addons {
   /**
    * Register an addon, return true if successful or return WP_Error on error.
    *
-   * @param $slug
+   * @param $name
    * @param $class
    * @return bool|WP_Error
    */
-  static function register_addon( $slug, $class ) {
+  static function register_addon( $name, $class ) {
 
-    if ( isset( self::$_available_addons[ $slug ] ) )
-      return new WP_Error( 'addon-exists', sprintf( __( '%s already registered' ), $slug ) );
+    if ( isset( self::$_available_addons[ $name ] ) )
+      return new WP_Error( 'addon-exists', sprintf( __( '%s already registered' ), $name ) );
 
     if ( !class_exists( $class ) )
-      return new WP_Error( 'addon-not-available', sprintf( __( '%s could not be registered because %s is not available.', 'scaleup') , $slug, $class ) );
+      return new WP_Error( 'addon-not-available', sprintf( __( '%s could not be registered because %s is not available.', 'scaleup') , $name, $class ) );
 
-      self::$_available_addons[ $slug ] = $class;
+      self::$_available_addons[ $name ] = $class;
 
     return true;
   }
@@ -32,27 +32,32 @@ class ScaleUp_Addons {
   /**
    * Return true if an addon is availble.
    *
-   * @param $slug
+   * @param $name
    * @return bool
    */
-  public static function is_available( $slug ) {
-    return isset( self::$_available_addons[ $slug ] );
+  static function is_available( $name ) {
+    return isset( self::$_available_addons[ $name ] );
   }
 
   /**
    * Return an instance of a requested addon
    *
-   * @param $slug
+   * @param $name
    * @param $args
    * @param $context
    * @return mixed
    */
-  public static function get_addon( $slug, $args, $context = null ) {
+  static function get_addon( $name, $args, $context = null ) {
     /**
      * @todo: Implement get_addon from $context
      */
-    $class = self::$_available_addons[ $slug ];
-    return new $class( $args, $context );
+    $class = self::$_available_addons[ $name ];
+    $args = wp_parse_args(
+      array(
+           'name'     => $name,
+           'context'  => $context,
+      ), $args );
+    return new $class( $args );
   }
 
 }

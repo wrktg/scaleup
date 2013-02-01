@@ -53,7 +53,7 @@ class ScaleUp_Views {
     return self::$_this;
   }
 
-  public static function register_view( $slug, $url, $callbacks, $context = null, $args = array() ) {
+  public static function register_view( $name, $url, $callbacks, $context = null, $args = array() ) {
 
     /**
      * Check if the base object has get_views method.
@@ -61,7 +61,7 @@ class ScaleUp_Views {
      */
     if ( is_object( $context ) && method_exists( $context, 'get_views' ) ) {
       $views    = $context->get_views();
-      $view     = $views->add_view( $slug, $url, $callbacks, $context, $args );
+      $view     = $views->add_view( $name, $url, $callbacks, $context, $args );
       $context->set_views( $views );
       return $view;
     }
@@ -119,15 +119,23 @@ class ScaleUp_Views {
   /**
    * Register a url as a view for an App or Addon
    *
-   * @param $slug
+   * @param $name
    * @param $url
    * @param $callbacks
    * @param null $context
    * @param $args
    * @return ScaleUp_View
    */
-  function add_view( $slug, $url, $callbacks, $context = null, $args = null ) {
-    $view = new ScaleUp_View( $slug, $url, $callbacks, $context, $args );
+  function add_view( $name, $url, $callbacks, $context = null, $args = null ) {
+    $args = wp_parse_args(
+      array(
+       'name'      => $name,
+       'url'       => $url,
+       'callbacks' => $callbacks,
+       'context'   => $context,
+      ), $args );
+    
+    $view = new ScaleUp_View( $args );
     $this->_views[] = $view;
     return $view;
   }
@@ -135,13 +143,20 @@ class ScaleUp_Views {
   /**
    * Register a url as WordPress view
    *
+   * @param $name
    * @param $url
    * @param $callbacks
    * @param $args
    * @return ScaleUp_View
    */
-  public static function add_wp_view( $url, $callbacks, $args ) {
-    self::$_wp_views[] = $view = new ScaleUp_View( $url, $callbacks, $args );
+  public static function add_wp_view( $name, $url, $callbacks, $args ) {
+    $args = wp_parse_args(
+      array(
+      'name'     => $name,
+      'url'      => $url,
+      'callback' => $callbacks
+      ), $args );
+    self::$_wp_views[] = $view = new ScaleUp_View( $args );
     return $view;
   }
 

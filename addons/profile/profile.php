@@ -2,93 +2,96 @@
 class ScaleUp_Profile_Addon extends ScaleUp_Addon {
 
   function get_defaults() {
-    return array(
-      'url'     => '/profile',
-      'forms'   => array(
-        'profile' => array(
-          'fields'=> array(
-            array(
-              'id'        => 'nickName',
-              'type'      => 'text',
-              'validation'  => array( 'required', 'unique' ),
-              'label'     => __( 'Nickname' ),
-              'class'     => 'input-block-level',
+    return wp_parse_args(
+      array(
+        'name'    => 'profile',
+        'url'     => 'profile',
+        'forms'   => array(
+          'profile' => array(
+            'fields'=> array(
+              array(
+                'id'        => 'nickName',
+                'type'      => 'text',
+                'validation'  => array( 'required', 'unique' ),
+                'label'     => __( 'Nickname' ),
+                'class'     => 'input-block-level',
+              ),
+              array(
+                'id'        => 'givenName',
+                'type'      => 'text',
+                'validation'  => array( 'required' ),
+                'label'     => __( 'First Name' ),
+                'class'     => 'input-block-level',
+              ),
+              array(
+                'id'        => 'familyName',
+                'type'      => 'text',
+                'validation'  => array( 'required' ),
+                'label'     => __( 'Last Name' ),
+                'class'     => 'input-block-level',
+              ),
+              array(
+                'id'        => 'birthDate',
+                'type'      => 'text',
+                'label'     => 'Birth Date',
+                'class'     => 'input-block-level',
+              ),
+              array(
+                'id'        => 'email',
+                'type'      => 'text',
+                'validation'  => array( 'required', 'unique' ),
+                'label'     => __( 'Email' ),
+                'class'     => 'input-block-level',
+              ),
+              array(
+                'id'        => 'worksFor',
+                'type'      => 'text',
+                'label'     => 'Company',
+                'class'     => 'input-block-level',
+              ),
+              array(
+                'id'        => 'address',
+                'type'      => 'textarea',
+                'required'  => false,
+                'label'     => __( 'Address' ),
+                'class'     => 'input-block-level',
+              ),
+              array(
+                'id' => 'submit',
+                'type' => 'button',
+                'text' => __( 'Update' ),
+                'value' => 'profile',
+                'class' => 'btn-large'
+              ),
             ),
-            array(
-              'id'        => 'givenName',
-              'type'      => 'text',
-              'validation'  => array( 'required' ),
-              'label'     => __( 'First Name' ),
-              'class'     => 'input-block-level',
-            ),
-            array(
-              'id'        => 'familyName',
-              'type'      => 'text',
-              'validation'  => array( 'required' ),
-              'label'     => __( 'Last Name' ),
-              'class'     => 'input-block-level',
-            ),
-            array(
-              'id'        => 'birthDate',
-              'type'      => 'text',
-              'label'     => 'Birth Date',
-              'class'     => 'input-block-level',
-            ),
-            array(
-              'id'        => 'email',
-              'type'      => 'text',
-              'validation'  => array( 'required', 'unique' ),
-              'label'     => __( 'Email' ),
-              'class'     => 'input-block-level',
-            ),
-            array(
-              'id'        => 'worksFor',
-              'type'      => 'text',
-              'label'     => 'Company',
-              'class'     => 'input-block-level',
-            ),
-            array(
-              'id'        => 'address',
-              'type'      => 'textarea',
-              'required'  => false,
-              'label'     => __( 'Address' ),
-              'class'     => 'input-block-level',
-            ),
-            array(
-              'id' => 'submit',
-              'type' => 'button',
-              'text' => __( 'Update' ),
-              'value' => 'profile',
-              'class' => 'btn-large'
+          ),
+          'password' => array(
+            'fields' => array(
+              array(
+                'id'        => 'password',
+                'type'      => 'password',
+                'validation'  => array( 'required' ),
+                'label'     => __( 'Password' ),
+                'class'     => 'input-block-level',
+              ),
+              array(
+                'id'        => 'confirm',
+                'type'      => 'password',
+                'validation'  => array( 'required' ),
+                'label'     => __( 'Confirm password' ),
+                'class'     => 'input-block-level',
+              ),
+              array(
+                'id' => 'submit',
+                'type' => 'button',
+                'text' => __( 'Update' ),
+                'value' => 'password',
+                'class' => 'btn-large'
+              ),
             ),
           ),
         ),
-        'password' => array(
-          'fields' => array(
-            array(
-              'id'        => 'password',
-              'type'      => 'password',
-              'validation'  => array( 'required' ),
-              'label'     => __( 'Password' ),
-              'class'     => 'input-block-level',
-            ),
-            array(
-              'id'        => 'confirm',
-              'type'      => 'password',
-              'validation'  => array( 'required' ),
-              'label'     => __( 'Confirm password' ),
-              'class'     => 'input-block-level',
-            ),
-            array(
-              'id' => 'submit',
-              'type' => 'button',
-              'text' => __( 'Update' ),
-              'value' => 'password',
-              'class' => 'btn-large'
-            ),
-          ),
-        ),
-      ),
+      ), parent::get_defaults()
     );
   }
 

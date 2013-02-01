@@ -1,39 +1,41 @@
 <?php
-class ScaleUp_View {
+class ScaleUp_View extends ScaleUp_Routable {
 
-  protected $_name;
+  var $_name;
 
-  protected $_url;
+  var $_url;
 
-  protected $_callbacks;
+  var $_context;
 
-  protected $_context;
+  var $_callbacks;
 
-  protected $_args;
+  var $_args;
 
-  protected $_forms = array();
+  var $_forms;
 
-  function __construct( $name, $url, $callbacks, $context = null, $args = null ) {
+  function __construct( $args ) {
 
-    $this->_name      = $name;
-    $this->_url       = $url;
-    $this->_context   = $context;
-    $this->_callbacks = wp_parse_args( $callbacks, array( 'GET' => null, 'POST'=> null ) );
-    $this->_args      = $args;
+    parent::__construct( $args );
 
-    add_filter( 'register_route', array( $this, 'register_route' ) );
     add_filter( 'register_view', array( $this, 'register_view' ) );
+
   }
 
-  /**
-   * Callback function for register_route filter to add this view to routes
-   *
-   * @param $routes
-   * @return array
-   */
-  function register_route( $routes ) {
-    $routes[] = $this;
-    return $routes;
+  function get_defaults() {
+    return array(
+      'name'      =>  '',
+      'url'       =>  '',
+      'callbacks' => array(),
+      'context'   => null,
+      'args'      => array(),
+      'forms'     => array(),
+    );
+  }
+
+  function initialize() {
+    foreach ( $this->_forms as $name => $args ) {
+      $this->_forms[ $name ] = new ScaleUp_Form( $name, $args, $this );
+    }
   }
 
   /**
@@ -45,45 +47,6 @@ class ScaleUp_View {
     if ( !isset( $views[ $this->_name ] ) )
       $views[ $this->_name ] = $this;
     return $views;
-  }
-
-  /**
-   * Return this view's url. Without $args, this function will return url template for this view.
-   *
-   * @param null $args
-   * @return mixed
-   */
-  function get_url( $args = null ) {
-
-    $url = '';
-    if ( is_null( $this->_context ) )
-      $url = $this->_url;
-    elseif ( is_object( $this->_context ) && method_exists( $this->_context, 'get_url' ) )
-      $url = $this->_context->get_url() . $this->_url;
-
-    if ( is_null( $args ) )
-      return $url;
-    else
-      return string_template( $url, $args );
-
-  }
-
-  /**
-   * @param $method
-   * @return bool
-   */
-  function has_callback( $method ) {
-    return isset( $this->_callbacks[ $method ] );
-  }
-
-  /**
-   * @param $method
-   * @return bool
-   */
-  function get_callback( $method ) {
-    if ( isset( $this->_callbacks[ $method ] ) )
-      return $this->_callbacks[ $method ];
-    return false;
   }
 
   /**
@@ -113,42 +76,6 @@ class ScaleUp_View {
    */
   function set_form( $name, $form ) {
     $this->_forms[ $name ] = $form;
-  }
-
-  /**
-   * Return a field attribute
-   *
-   * @param $name
-   * @return mixed|null
-   */
-  function get( $name ) {
-
-    $method_name = "get_$name";
-    if ( method_exists( $this, $method_name ) )
-      return $this->$method_name( $name );
-
-    $property_name = "_$name";
-    if ( property_exists( $this, $property_name ) ) {
-      return $this->$property_name;
-    }
-
-    return null;
-  }
-
-  /**
-   * Set a field attribute
-   *
-   * @param $name
-   * @param $value
-   */
-  function set( $name, $value ) {
-
-    $method_name = "set_$name";
-    if ( method_exists( $this, $method_name ) )
-      $this->$method_name( $name, $value );
-
-    $property_name = "_$name";
-    $this->$property_name = $value;
   }
 
 }

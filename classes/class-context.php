@@ -4,21 +4,18 @@
  */
 class ScaleUp_Context extends ScaleUp_Base {
 
-  function __construct( $context, $args = null ) {
+  var $_context;
 
-    $default = array(
-      'context'   => $context,
+  function get_defaults() {
+    return wp_parse_args(
+      array(
+           'context' => null,
+      ), parent::get_defaults()
     );
-
-    $args = wp_parse_args( $args, $default );
-    parent::__construct( $args );
-
   }
 
   function get_context() {
     return $this->get( 'context' );
   }
-
-
 
 }

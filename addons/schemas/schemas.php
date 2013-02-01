@@ -2,9 +2,9 @@
 class ScaleUp_Schemas_Addon extends ScaleUp_Addon {
 
   function get_defaults() {
-    return array(
-      'url' => '/schemas',
-    );
+    return wp_parse_args( array(
+      'url' => 'schemas',
+    ), parent::get_defaults() );
   }
 
 

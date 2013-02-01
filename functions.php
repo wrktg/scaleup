@@ -35,15 +35,15 @@ if ( !function_exists( 'register_view' ) ) {
    * To register with an Addon or an App, the base must be an instance of the Addon or App.
    * The class for the Addon or App must implement: get_views & set_views methods.
    *
-   * @param $slug string representing new view
+   * @param $name string representing new view
    * @param $url string relative to base
    * @param $callbacks array with method as key and callback as value
    * @param $context string|ScaleUp_App|ScaleUp_Addon
    * @param $args array
    * @return mixed
    */
-  function register_view( $slug, $url, $callbacks, $context = null, $args = array() ) {
-    return ScaleUp_Views::register_view( $slug, $url, $callbacks, $context, $args );
+  function register_view( $name, $url, $callbacks, $context = null, $args = array() ) {
+    return ScaleUp_Views::register_view( $name, $url, $callbacks, $context, $args );
   }
 }
 

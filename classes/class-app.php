@@ -1,34 +1,27 @@
 <?php
-class ScaleUp_App {
+class ScaleUp_App extends ScaleUp_Routable {
 
-  private $_base;
+  var $_url;
 
-  private $_url;
+  var $_views;
 
-  private $_views;
-
-  private $_schemas;
-
-  private $_args;
-
-  private $_active_addons = array();
+  var $_active_addons;
 
   function __construct( $args = array() ) {
 
-    $default = array(
-      'base'    => '',
-      'url'     => '',
-      'addons'  => array(),
-    );
-
-    $args = wp_parse_args( $args, $default );
-
-    $this->_args  = $args;
-    $this->_base  = $args[ 'base' ];
-    $this->_url   = $args[ 'url' ];
-    $this->_views = new ScaleUp_Views( $this );
+    parent::__construct( $args );
 
     add_action( 'scaleup_init', array( $this, 'scaleup_init' ) );
+  }
+
+  function get_defaults() {
+    return wp_parse_args(
+      array(
+        'url'             => '/',
+        'active_addons'   => array(),
+        'views'           => new ScaleUp_Views( $this ),
+        'exclude_route'   => true,
+    ), parent::get_defaults() );
   }
 
   function scaleup_init() {
@@ -52,11 +45,6 @@ class ScaleUp_App {
           $args = array();
         }
 
-        $default = array(
-          'base' => $this,
-        );
-        $args = wp_parse_args( $args, $default );
-
         if ( ScaleUp_Addons::is_available( $name ) ) {
           $this->_active_addons[] = ScaleUp_Addons::get_addon( $name, $args, $this );
         }
@@ -73,11 +61,7 @@ class ScaleUp_App {
   }
 
   function get_url() {
-    if ( is_object( $this->_base ) && method_exists( $this->_base, 'get_url' ) ) {
-      return $this->_base->get_url() . $this->_url;
-    } else {
-      return $this->_base . $this->_url;
-    }
+      return $this->_url;
   }
 
 }

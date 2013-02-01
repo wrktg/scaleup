@@ -2,8 +2,11 @@
 class ScaleUp_Login_Addon extends ScaleUp_Addon {
 
   function get_defaults() {
-    return array(
-      'url' => '/login',
+    return wp_parse_args(
+      array(
+      'name'    => 'login',
+      'url'     => 'login',
+      'context' => null,
       'forms' => array(
         'login' => array(
           'title' => __( 'Login' ),
@@ -81,7 +84,7 @@ class ScaleUp_Login_Addon extends ScaleUp_Addon {
           'confirmation' => __( 'Welcome to community! You might want to checkout your profile.' ),
         ),
       ),
-    );
+    ), parent::get_defaults() );
   }
 
   function initialize() {

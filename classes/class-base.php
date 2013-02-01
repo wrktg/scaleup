@@ -5,13 +5,17 @@ class ScaleUp_Base {
 
   function __construct( $args = array() ) {
 
+    $args = wp_parse_args( $args, $this->get_defaults() );
+
     $this->load( $args );
+    $this->set( 'args', $args );
 
-    if ( !self::$_initialized ) {
-      $this->initialize();
-      self::$_initialized = true;
-    }
+    $this->initialize();
 
+  }
+
+  function get_defaults() {
+    return array();
   }
 
   /**
