@@ -28,10 +28,10 @@ class ScaleUp_App {
     $this->_url   = $args[ 'url' ];
     $this->_views = new ScaleUp_Views( $this );
 
-    add_action( 'init', array( $this, 'init') );
+    add_action( 'scaleup_init', array( $this, 'scaleup_init' ) );
   }
 
-  function init() {
+  function scaleup_init() {
     $this->activate_addons();
   }
 

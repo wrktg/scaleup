@@ -17,6 +17,17 @@ if ( !function_exists( 'create_app') ) {
   }
 }
 
+if ( !function_exists( 'run_server' ) ) {
+  /**
+   * Run server
+   */
+  function run_server() {
+    $app_server = ScaleUp_App_Server::this();
+    $app_server->serve_request();
+  }
+}
+
+
 if ( !function_exists( 'register_view' ) ) {
   /**
    * Register view with WordPress, an Addon or an App

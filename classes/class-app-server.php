@@ -1,17 +1,42 @@
 <?php
 class ScaleUp_App_Server {
 
+  private static $_this;
+
   protected $_routes;
 
   function __construct() {
     if ( !is_admin() ) {
       add_filter( 'do_parse_request', array( $this, 'do_parse_request' ) );
     }
+    self::$_this = $this;
   }
 
+  static function this() {
+    return self::$_this;
+  }
+
+  /**
+   * Callback function for do_parse_request function
+   *
+   * @param $continue
+   * @return bool
+   */
   function do_parse_request( $continue ) {
+    $continue = !$this->serve_request();
+    return $continue;
+  }
+
+
+  /**
+   *
+   * @return bool
+   */
+  function serve_request() {
 
     list( $method, $uri, $args ) = $this->prepare_request();
+
+    do_action( 'scaleup_init' );
 
     /**
      * @todo: add light code to ignore static content
@@ -20,10 +45,10 @@ class ScaleUp_App_Server {
     if ( $this->has_route( $uri, $method ) ) {
       do_action( 'scaleup_initialize' );
       $this->serve( $method, $uri, $args );
-      $continue = false;
+      return true;
     }
 
-    return $continue;
+    return false;
   }
 
   function initialize_routes() {

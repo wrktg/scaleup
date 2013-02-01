@@ -1,7 +1,7 @@
 <?php
 class ScaleUp_View {
 
-  protected $_slug;
+  protected $_name;
 
   protected $_url;
 
@@ -13,9 +13,9 @@ class ScaleUp_View {
 
   protected $_forms = array();
 
-  function __construct( $slug, $url, $callbacks, $context = null, $args = null ) {
+  function __construct( $name, $url, $callbacks, $context = null, $args = null ) {
 
-    $this->_slug      = $slug;
+    $this->_name      = $name;
     $this->_url       = $url;
     $this->_context   = $context;
     $this->_callbacks = wp_parse_args( $callbacks, array( 'GET' => null, 'POST'=> null ) );
@@ -42,8 +42,8 @@ class ScaleUp_View {
    * @param $views
    */
   function register_view ( $views ) {
-    if ( !isset( $views[ $this->_slug ] ) )
-      $views[ $this->_slug ] = $this;
+    if ( !isset( $views[ $this->_name ] ) )
+      $views[ $this->_name ] = $this;
     return $views;
   }
 
