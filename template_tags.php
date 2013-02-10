@@ -3,50 +3,50 @@
 if ( !function_exists( 'get_form' ) ) {
 
   /**
-   * Return form by specific name from the view or global scope
+   * Return form by specific name
    *
    * @param null $name optional name
-   * @param null $view optional view
-   * @return bool|object
+   * @return null|ScaleUp_Form
    */
-  function get_form( $name = null, $view = null ) {
+  function get_form( $name = null ) {
 
     if ( is_null( $name ) ) {           // name is not specified when using get_form in a template
       global $in_scaleup_form, $scaleup_form;
-      if ( $in_scaleup_form && is_object( $scaleup_form ) )
+      if ( $in_scaleup_form && is_object( $scaleup_form ) ) {
         return $scaleup_form;
-      else
-        return false;
+      } else {
+        return null;
+      }
     }
 
-    if ( !is_null( $view ) )
-      return $view->get_form( $name );
-
-    global $scaleup_view;
-
-    if ( is_object( $scaleup_view ) && method_exists( $scaleup_view, 'get_form' ) )
-      return $scaleup_view->get_form( $name );
-
-    return false;
+    return ScaleUp::get_form( $name );
   }
 }
 
 if ( !function_exists( 'the_form' ) ) {
 
   /**
-   * Setup form by name
+   * Output the form by a specific name.
    *
    * @param $name
-   * @param null $view
-   * @return bool
+   * @param array $args
    */
-  function the_form( $name, $view = null ) {
+  function the_form( $name, $args = array() ) {
 
-    $form = get_form( $name, $view );
-    if ( $form && is_object( $form ) && method_exists( $form, 'the_form' ) ) {
-      return $form->the_form();
+    $defaults = array(
+      'echo'      => true,
+      'template'  => '/forms/form.php'
+    );
+
+    $args = wp_parse_args( $args, $defaults );
+
+    $form = get_form( $name );
+    if ( !is_null( $form ) ) {
+      $form->the_form();
+      if ( $args[ 'echo' ] ) {
+        get_template_part( $args[ 'template' ] );
+      }
     }
-    return false;
   }
 }
 
@@ -59,8 +59,9 @@ if ( !function_exists( 'the_form_attr' ) ) {
    */
   function the_form_attr( $name ) {
     $value = get_form_attr( $name );
-    if ( !empty( $value ) )
+    if ( !empty( $value ) ) {
       echo "$name=\"$value\"";
+    }
   }
 
 }
@@ -75,7 +76,7 @@ if ( !function_exists( 'get_form_attr' ) ) {
    */
   function get_form_attr( $name ) {
     $form = get_form();
-    if ( $form && method_exists( $form, 'get' ) ) {
+    if ( is_object( $form ) && method_exists( $form, 'get' ) ) {
       return $form->get( $name );
     }
 
@@ -92,7 +93,7 @@ if ( !function_exists( 'form_has_fields' ) ) {
    */
   function form_has_fields() {
     $form = get_form();
-    if ( $form && method_exists( $form, 'has_fields' ) ) {
+    if ( is_object( $form ) && method_exists( $form, 'has_fields' ) ) {
       return $form->has_fields();
     }
 
@@ -108,7 +109,7 @@ if ( !function_exists( 'the_form_field' ) ) {
    */
   function the_form_field() {
     $form = get_form();
-    if ( $form && method_exists( $form, 'the_field' ) ) {
+    if ( is_object( $form ) && method_exists( $form, 'the_field' ) ) {
       $form->the_field();
     }
   }
@@ -146,7 +147,7 @@ if ( !function_exists( 'get_form_field_attr' ) ) {
   function get_form_field_attr( $name ) {
 
     $form_field = get_form_field();
-    if ( $form_field && method_exists( $form_field, 'get' ) )
+    if ( is_object( $form_field ) && method_exists( $form_field, 'get' ) )
       return $form_field->get( $name );
 
     return null;

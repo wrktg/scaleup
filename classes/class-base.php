@@ -1,13 +1,14 @@
 <?php
 class ScaleUp_Base {
 
-  protected static $_initialized = false;
-
   function __construct( $args = array() ) {
 
     $args = wp_parse_args( $args, $this->get_defaults() );
 
-    $this->load( $args );
+    foreach ( $args as $key => $value ) {
+      $this->set( $key, $value );
+      unset( $value );
+    }
     $this->set( 'args', $args );
 
     $this->initialize();

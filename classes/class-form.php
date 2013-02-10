@@ -1,24 +1,25 @@
 <?php
-class ScaleUp_Form {
+class ScaleUp_Form extends ScaleUp_Contextual {
 
   /**
-   * Flag that prevents form initialization from happening more than once
-   * @var bool
+   * Name of the form
+   *
+   * @var string
    */
-  static $_initialized = false;
+  var $_name;
 
   /**
    * Field position marker
    * @var int
    */
-  protected $_position = 0;
+  var $_position = 0;
 
   /**
    * Stores form's field arguments
    *
    * @var array
    */
-  protected $_fields = array();
+  var $_fields = array();
 
   /**
    * Stores validation errors
@@ -30,37 +31,34 @@ class ScaleUp_Form {
   /**
    * $context is an instance of ScaleUp_View or implements ScaleUp_Context_Interface
    *
-   * @param $name
    * @param $args
-   * @param null $context ScaleUp_View
    */
-  function __construct( $name, $args, $context = null ) {
+  function __construct( $args = array() ) {
 
-    if ( !is_null( $context ) && is_object( $context ) && method_exists( $context, 'get_url' ) )
-      $action = $context->get_url();
-    else
-      $action = '';
+    /**
+     * scaleup_form_args is filter that one should hook to modify the args that are being used to instantiate this form
+     * this is what we will filter when providing UI for forms
+     */
+    parent::__construct( apply_filters( 'scaleup_form_args', $args ) );
 
-    $default = array(
-      'name'          => $name,
-      'method'        => 'post',
-      'enctype'       => '',
-      'action'        => $action,
-      'title'         => '',
-      'before_title'  => '<h2>',
-      'after_title'   => '</h2>',
-      'description'   => '',
-      'fields'        => array(),
-    );
+    $context = $this->get_context();
 
-    $args = wp_parse_args( $args, $default );
-
-    $this->_args = $args;
-
-    foreach ( $args as $key => $value ) {
-      $this->set( $key, $value );
-      unset( $value );
+    if ( !$this->has( 'action' ) ) {
+      if ( is_object( $context ) && method_exists( $context, 'get_url' ) ) {
+        $this->set( 'action', $context->get_url() );
+      } else {
+        $this->set( 'action', $_SERVER['REQUEST_URI'] );
+      }
     }
+
+    /**
+     * Inject scaleup form property
+     */
+    $this->_fields[] = array(
+      'name'        => 'scaleup_form',
+      'type'        => 'hidden',
+      'value'       => $this->get( 'name' )
+    );
 
     /**
      * Inject nonce field into fields
@@ -68,28 +66,25 @@ class ScaleUp_Form {
     $this->_fields[] = array(
       'name'        => '_nonce',
       'type'        => 'hidden',
-      'action'      => "$action/$name",
+      'action'      => sprintf( "%s:%s", $this->get( 'action' ), $this->get( 'name' ) ),
       'validation'  => array( 'required', 'nonce' ),
     );
 
-    if ( !self::$_initialized )
-      self::initialize();
-
   }
 
-  static function initialize() {
-    register_template( SCALEUP_DIR . '/templates', '/forms/button.php' );
-    register_template( SCALEUP_DIR . '/templates', '/forms/form.php' );
-    register_template( SCALEUP_DIR . '/templates', '/forms/form-error.php' );
-    register_template( SCALEUP_DIR . '/templates', '/forms/checkbox.php' );
-    register_template( SCALEUP_DIR . '/templates', '/forms/help.php' );
-    register_template( SCALEUP_DIR . '/templates', '/forms/label.php' );
-    register_template( SCALEUP_DIR . '/templates', '/forms/password.php' );
-    register_template( SCALEUP_DIR . '/templates', '/forms/text.php' );
-    register_template( SCALEUP_DIR . '/templates', '/forms/textarea.php' );
-    register_template( SCALEUP_DIR . '/templates', '/forms/hidden.php' );
-    register_template( SCALEUP_DIR . '/templates', '/forms/confirmation.php' );
-    do_action( 'initialize_scaleup_forms' );
+  function get_defaults() {
+    return apply_filters( 'scaleup_form_defaults', wp_parse_args(
+      array(
+           'name'          => '',
+           'method'        => 'post',
+           'enctype'       => '',
+           'action'        => '',
+           'title'         => '',
+           'before_title'  => '<h2>',
+           'after_title'   => '</h2>',
+           'description'   => '',
+           'fields'        => array(),
+      ), parent::get_defaults() ) );
   }
 
   /**
@@ -109,7 +104,7 @@ class ScaleUp_Form {
         if ( is_object( $value ) && method_exists( $value, 'get' ) ) {
           $field->set( 'value', $value->get( 'value' ) );
         } else {
-          $field->set( 'value', $value );               // set the submitted field's value
+          $field->set( 'value', $value );                     // set the submitted field's value
         }
       }
 
@@ -168,8 +163,8 @@ class ScaleUp_Form {
    */
   function has_fields() {
 
-    // don't count the first one because its nonce
-    if ( 1 < count( $this->_fields ) )
+    // don't count the first one because its nonce & scaleup_form
+    if ( 2 < count( $this->_fields ) )
       if ( 0 == $this->_position ) {
         $this->_position++;
         return true;

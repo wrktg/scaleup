@@ -36,7 +36,7 @@ class ScaleUp_Schemas {
    */
   function initialize() {
     if ( false === ( $schemas = get_transient( self::STORAGE_TRANSIENT ) ) ) {
-      $json = file_get_contents( SCALEUP_DIR . '/schemas.json' );
+      $json = file_get_contents( 'http://schema.rdfs.org/all.json' );
       $schemas = json_decode( $json, true );
       set_transient( self::STORAGE_TRANSIENT, $schemas );
     }

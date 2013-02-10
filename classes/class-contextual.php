@@ -2,7 +2,7 @@
 /**
  * Creates linkable objects that are aware of what they're part of.
  */
-class ScaleUp_Context extends ScaleUp_Base {
+class ScaleUp_Contextual extends ScaleUp_Base {
 
   var $_context;
 
@@ -15,7 +15,7 @@ class ScaleUp_Context extends ScaleUp_Base {
   }
 
   function get_context() {
-    return $this->get( 'context' );
+    return $this->_context;
   }
 
 }
