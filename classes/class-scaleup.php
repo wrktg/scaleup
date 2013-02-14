@@ -22,6 +22,8 @@ class ScaleUp {
       $this->site  = new ScaleUp_Site( array( 'name' => 'WordPress' ) );
     }
 
+    do_action( 'scaleup_init' );
+
   }
 
   static function this() {

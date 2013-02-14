@@ -5,11 +5,12 @@ class ScaleUp_Template extends ScaleUp_Feature {
     if ( isset( $args[ 'template' ] ) ) {
       $hook = "get_template_part_$args[template]";
       add_action( $hook, array( __CLASS__, 'get_template_part' ) );
-
     }
   }
 
   function get_template_part( $template ) {
+    echo $template;
+    
 
   }
 

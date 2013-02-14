@@ -321,6 +321,9 @@ class ScaleUp_Feature extends ScaleUp_Base {
                   $args = array( $value );
                 }
               }
+              if ( !isset( $args[ 'name' ] ) ) {
+                $args[ 'name' ] = $feature_name;
+              }
               if ( $this->is_registered( $feature_type, $feature_name ) ) {
                 $feature = $this->get_feature( $feature_type, $feature_name );
               } else {
