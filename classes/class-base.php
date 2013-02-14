@@ -1,5 +1,5 @@
 <?php
-class ScaleUp_Base {
+class ScaleUp_Base extends stdClass {
 
   function __construct( $args = array() ) {
 
@@ -23,7 +23,7 @@ class ScaleUp_Base {
    * Overload this function in child class to execute code once during instantiation of this object.
    * This is a good place to execute register_* functions and hook to filters and actions.
    */
-  function initialize(){
+  function initialize() {
     // overload this function in child class
   }
 
@@ -41,11 +41,6 @@ class ScaleUp_Base {
    * @return mixed|null
    */
   function get( $name ) {
-
-    $method_name = "get_$name";
-    if ( method_exists( $this, $method_name ) )
-      return $this->$method_name();
-
     $property_name = "_$name";
     if ( property_exists( $this, $property_name ) ) {
       return $this->$property_name;
@@ -61,19 +56,14 @@ class ScaleUp_Base {
    * @param $value
    */
   function set( $name, $value ) {
-
-    $method_name = "set_$name";
-    if ( method_exists( $this, $method_name ) ) {
-      $this->$method_name( $value );
-      return;
-    }
-
     $property_name = "_$name";
+
     $this->$property_name = $value;
   }
 
   function has( $name ) {
     $property_name = "_$name";
+
     return isset( $this->$property_name );
   }
 
