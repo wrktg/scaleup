@@ -8,7 +8,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
 
     $this->_features = new ScaleUp_Base();
 
-    $feature_type = $this->get( '_feature_type' );
+    $feature_type      = $this->get( '_feature_type' );
     $feature_type_args = ScaleUp::get_feature_type( $feature_type );
     $this->load( wp_parse_args( $args, $feature_type_args ) );
 
@@ -27,7 +27,9 @@ class ScaleUp_Feature extends ScaleUp_Base {
     }
 
     if ( isset( $args[ '_activated' ] ) && $this->is( 'global' ) ) {
-      ScaleUp::activate( $feature_type, $args[ 'name' ], $args );
+      $global = ScaleUp::get_site();
+      $storage = $global->get( 'features' )->get( $this->get( '_plural' ) );
+      $storage->set( $this->get( 'name' ), $this );
     }
 
   }
@@ -87,7 +89,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
     // make sure that its a known feature
     if ( ScaleUp::is_registered_feature_type( $feature_type ) ) {
       $feature_type_args = ScaleUp::get_feature_type( $feature_type );
-      $plural = $feature_type_args[ '_plural' ];
+      $plural            = $feature_type_args[ '_plural' ];
     } else {
       return null;
     }
@@ -173,7 +175,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
       $global->register( $feature_type, $args );
     }
 
-      /**
+    /**
      * Call registration function to allow feature specific code to be executed
      * During registration, the feature is not yet instantiated, therefore we must call the static method
      */
@@ -206,11 +208,10 @@ class ScaleUp_Feature extends ScaleUp_Base {
    * object. This activation happens recursively making it possible to instantiate deeply nested features.
    *
    * @param $feature_type
-   * @param $feature
-   * @param array $args
+   * @param array|object $args
    * @return ScaleUp_Feature|WP_Error
    */
-  function activate( $feature_type, $feature, $args = array() ) {
+  function activate( $feature_type, $args = array() ) {
 
     $object = null;
 
@@ -229,42 +230,22 @@ class ScaleUp_Feature extends ScaleUp_Base {
       // convinient object
       $storage = $this->_features->get( $plural );
 
-      if ( is_object( $feature ) ) { // feature was already instantiate it, we just need to store a reference to it in our internal storage
-        if ( method_exists( $feature, 'has' ) && $feature->has( 'name' ) ) {
-          $storage->set( $feature->get( 'name' ), $feature );
-          $object = $feature;
+      if ( is_object( $args ) ) { // feature was already instantiate it, we just need to store a reference to it in our internal storage
+        if ( method_exists( $args, 'has' ) && $args->has( 'name' ) ) {
+          $storage->set( $args->get( 'name' ), $args );
+          $object = $args;
         }
-      } elseif ( is_array( $feature ) ) {
-        if ( isset( $feature[ '__CLASS__' ] ) ) {
-          $class = $feature[ '__CLASS__' ];
+      }
+
+      if ( is_array( $args ) ) {
+        if ( isset( $args[ '__CLASS__' ] ) ) {
+          $class = $args[ '__CLASS__' ];
           if ( class_exists( $class ) ) {
             // set _activated to true to prevent automatical activation in Feature __construct
-            $feature[ '_activated' ] = true;
-            $object                  = new $class( $feature );
+            $args[ '_activated' ] = true;
+            $object               = new $class( $args );
           } else {
             return new WP_Error( 'activation-failed', sprintf( __( '%s class does not exist.' ), $class ) );
-          }
-        }
-      } elseif ( is_string( $feature ) ) { // activation by feature name
-        if ( $storage->has( $feature ) ) { // check that feature has been registered and has arguments
-          $object = $storage->get( $feature );
-          if ( is_array( $object ) ) {
-            $args[ 'name' ] = $feature;
-            $args           = wp_parse_args( $object, $args );
-            if ( isset( $args[ '__CLASS__' ] ) ) {
-              $class = $args[ '__CLASS__' ];
-              if ( class_exists( $class ) ) {
-                // set _activated to true to prevent automatical activation in Feature __construct
-                $args[ '_activated' ] = true;
-                $object               = new $class( $args );
-              } else {
-                return new WP_Error( 'activation-failed', sprintf( __( '%s class does not exist.' ), $class ) );
-              }
-            }
-          } elseif ( is_object( $object ) ) {
-            // do nothing
-          } else {
-            return new WP_Error( 'activation-failed', __( 'Registered feature could not be activated because arguments are not an array or object.' ) );
           }
         }
       }
@@ -290,7 +271,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
   }
 
   /**
-   * Executes after activation is completes successfully
+   * Executes after activation is completed successfully
    */
   function activation() {
 
@@ -301,13 +282,18 @@ class ScaleUp_Feature extends ScaleUp_Base {
       $plural_feature_types = $this->get( '_supports' );
       foreach ( $plural_feature_types as $plural_feature_type ) {
         if ( $this->has( $plural_feature_type ) && is_array( $this->get( $plural_feature_type ) ) ) {
-          $features          = $this->get( $plural_feature_type );
+          $features           = $this->get( $plural_feature_type );
           $found_feature_type = ScaleUp::find_feature_type( '_plural', $plural_feature_type );
           $feature_type_args  = ScaleUp::get_feature_type( $found_feature_type );
           if ( is_array( $feature_type_args ) ) {
             $feature_type = $feature_type_args[ '_feature_type' ];
             foreach ( $features as $key => $value ) {
               if ( is_numeric( $key ) ) {
+                /**
+                 * $key is numeric if the element is not associative
+                 * this might happen if you have an array of elements like addons => array( 'login', 'frontpage' )
+                 * @todo: when item is a string without a key, we should look up args by name
+                 */
                 $feature_name = $value;
                 $args         = array();
               } else {
@@ -327,7 +313,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
               if ( $this->is_registered( $feature_type, $feature_name ) ) {
                 $feature = $this->get_feature( $feature_type, $feature_name );
               } else {
-                $site    = ScaleUp::get_site();
+                $site = ScaleUp::get_site();
                 if ( $site->is_registered( $feature_type, $feature_name ) ) {
                   $feature = $site->get_feature( $feature_type, $feature_name );
                 } else {
@@ -340,16 +326,13 @@ class ScaleUp_Feature extends ScaleUp_Base {
                 } else {
                   $defaults = $feature;
                 }
-                $args = wp_parse_args( $args, $defaults );
-                if ( $this->is_registered( $feature_type, $feature_name ) ) {
-                  $object = $this->activate( $feature_type, $args );
-                } else {
-                  $this->register( $feature_type, $args );
-                  $object = $this->activate( $feature_type, $feature_name );
+                if ( !$this->is_registered( $feature_type, $feature_name ) ) {
+                  $args = $this->register( $feature_type, wp_parse_args( $args, $defaults ) );
                 }
-                $features = $this->get( 'features' );
-                $storage  = $features->get( $plural_feature_type );
-                $storage->set( $feature_name, $object );
+                $activated = $this->activate( $feature_type, $args );
+                $features  = $this->get( 'features' );
+                $storage   = $features->get( $plural_feature_type );
+                $storage->set( $feature_name, $activated );
               }
             }
           }

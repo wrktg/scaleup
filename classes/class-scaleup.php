@@ -125,8 +125,8 @@ class ScaleUp {
     self::$_this->site->register( $feature_type, $args );
   }
 
-  static function activate( $feature_type, $name, $args = array() ) {
-    return self::$_this->site->activate( $feature_type, $name, $args );
+  static function activate( $feature_type, $args ) {
+    return self::$_this->site->activate( $feature_type, $args );
   }
 
 }
