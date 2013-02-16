@@ -263,6 +263,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
           if ( class_exists( $class ) ) {
             // set _activated to true to prevent automatical activation in Feature __construct
             $args[ '_activated' ] = true;
+            /** @var $object ScaleUp_Feature */
             $object               = new $class( $args );
           } else {
             return new WP_Error( 'activation-failed', sprintf( __( '%s class does not exist.' ), $class ) );
@@ -271,11 +272,8 @@ class ScaleUp_Feature extends ScaleUp_Base {
       }
     }
     if ( is_object( $object ) ) {
-      $object->apply_duck_types();
+      $this->apply_duck_types( $object );
       $object->add_support();
-      if ( $object->is( 'contextual' ) ) {
-        $object->set( 'context', $this );
-      }
     }
 
     /**
@@ -299,16 +297,18 @@ class ScaleUp_Feature extends ScaleUp_Base {
   }
 
   /**
-   * Apply duck types to the object
+   * Apply duck types to the feature
+   *
+   * @param $feature ScaleUp_Feature
    */
-  function apply_duck_types() {
+  function apply_duck_types( $feature ) {
 
-    if ( $this->has( '_duck_types' ) ) {
-      $duck_types = $this->get( '_duck_types' );
+    if ( $feature->has( '_duck_types' ) ) {
+      $duck_types = $feature->get( '_duck_types' );
       foreach ( $duck_types as $duck_type_name ) {
         if ( ScaleUp::is_activated_duck_type( $duck_type_name ) ) {
           $duck_type = ScaleUp::get_duck_type( $duck_type_name );
-          $duck_type->apply( $this );
+          $duck_type->apply( $feature, $this );
         }
       }
     }
