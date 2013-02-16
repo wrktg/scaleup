@@ -31,4 +31,5 @@ ScaleUp::register_feature_type( 'site', array(
   '_plural'       => 'sites',
   '_supports'     => array( 'apps', 'addons', 'views', 'forms', 'schemas' ),
   '_duck_types'   => array( 'routable' ),
+  'exclude_route' => true,  // do not include this url when routing
 ) );

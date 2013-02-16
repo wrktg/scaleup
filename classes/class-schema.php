@@ -9,10 +9,8 @@ class ScaleUp_Schema extends ScaleUp_Feature {
   }
 }
 
-ScaleUp::register_feature_type( 'schema',
-  array(
-    '__CLASS__'     => 'ScaleUp_Schema',
-    '_feature_type' => 'schema',
-    '_plural'       => 'schemas',
-    '_supports'     => array( 'properties' ),
-  ) );
+ScaleUp::register_feature_type( 'schema', array(
+  '__CLASS__'     => 'ScaleUp_Schema',
+  '_plural'       => 'schemas',
+  '_supports'     => array( 'properties' ),
+) );

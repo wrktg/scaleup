@@ -9,7 +9,7 @@ class ScaleUp {
    */
   private static $_feature_types = array();
 
-  static $duck_types = array( 'routable', 'contextual' );
+  private static $_duck_types = array();
 
   var $site;
 
@@ -42,19 +42,118 @@ class ScaleUp {
   /**
    * Make a feature type available.
    *
-   * Example:
-   *  $args = array(
-   *    '__CLASS__' => 'ScaleUp_Form',
-   *    '_plural'   => 'forms',
-   *  )
-   * @param $feature_type
-   * @param $args
+   * @param $feature_type string
+   * @param $args array
+   * @return array
    */
-  static function register_feature_type( $feature_type, $args ) {
-    $args[ '_feature_type' ]              = $feature_type;
+  static function register_feature_type( $feature_type, $args = array() ) {
+
+    $default = array(
+      '__CLASS__'     => 'ScaleUp_Feature',
+      '_feature_type' => $feature_type,
+      '_plural'       => "{$feature_type}s",
+      '_supports'     => array(),
+      '_duck_types'   => array(),
+    );
+
+    $args = wp_parse_args( $args, $default );
     self::$_feature_types[ $feature_type ] = $args;
 
     return $args;
+  }
+
+  /**
+   * Register duck type to make it available to ScaleUp
+   *
+   * @param $duck_type
+   * @param array $args
+   * @return array
+   */
+  static function register_duck_type( $duck_type, $args = array() ) {
+
+    $default = array(
+      '__CLASS__'     => 'ScaleUp_Duck_Type',
+      'duck_type'     => $duck_type,
+      'methods'       => array(),
+    );
+
+    if ( self::is_registered_duck_type( $duck_type ) ) {
+      $args = self::get_duck_type( $duck_type );
+    } else {
+      $args = wp_parse_args( $args, $default );
+      self::$_duck_types[ $duck_type ] = $args;
+    }
+
+    return $args;
+  }
+
+  /**
+   * Return true if duck type is registered, otherwise return false.
+   *
+   * *Note*: this function will also return true when the duck type is activated.
+   *
+   * @param $duck_type
+   * @return bool
+   */
+  static function is_registered_duck_type( $duck_type ) {
+    return isset( self::$_duck_types[ $duck_type ] );
+  }
+
+  /**
+   * Return true if duck type was activated.
+   *
+   * @param $duck_type
+   * @return bool
+   */
+  static function is_activated_duck_type( $duck_type ) {
+    return self::is_registered_duck_type( $duck_type ) && is_object( self::get_duck_type( $duck_type ) );
+  }
+
+  /**
+   * Return args array if duck_type is registered, object if its activated or null if its not registered.
+   *
+   * @param $duck_type
+   * @return array|object|null
+   */
+  static function get_duck_type( $duck_type ) {
+
+    $args = null;
+
+    if ( self::is_registered_duck_type( $duck_type ) ) {
+      $args = self::$_duck_types[ $duck_type ];
+    }
+
+    return $args;
+  }
+
+  /**
+   * Return duck type object or null if duck type is not registered
+   *
+   * @param $duck_type string
+   * @return object|null
+   */
+  static function activate_duck_type( $duck_type ) {
+
+    $object = null;
+
+    if ( self::is_activated_duck_type( $duck_type ) ) {
+      // if already activated then return the activated object
+      $object = ScaleUp::get_duck_type( $duck_type );
+    } else {
+
+      if ( self::is_registered_duck_type( $duck_type ) ) {
+        // then activate the registered object
+        $args = ScaleUp::get_duck_type( $duck_type );
+        if ( class_exists( $args[ '__CLASS__' ] ) ) {
+          $class = $args[ '__CLASS__' ];
+          $object = new $class( $args );
+          self::$_duck_types[ $duck_type ] = $object;
+        }
+      }
+
+    }
+
+    return $object;
   }
 
   /**

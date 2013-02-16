@@ -35,6 +35,25 @@ class ScaleUp_Feature extends ScaleUp_Base {
   }
 
   /**
+   * Attempts to execute a callback function if instance has a property with the name that matches called the name of the called method.
+   * This is used by duck typing mechanism to extend features with additional functionality.
+   *
+   * @param $name
+   * @param array $args
+   * @return mixed|null
+   */
+  function __call( $name, $args = array() ) {
+
+    $result = null;
+
+    if ( property_exists( $this, $name ) && is_callable( $this->$name ) ) {
+      $result = call_user_func( $this->$name, $this, $args );
+    }
+
+    return $result;
+  }
+
+  /**
    * Return true if instance is of specified duck type
    *
    * @param $duck_type
@@ -230,7 +249,8 @@ class ScaleUp_Feature extends ScaleUp_Base {
       // convinient object
       $storage = $this->_features->get( $plural );
 
-      if ( is_object( $args ) ) { // feature was already instantiate it, we just need to store a reference to it in our internal storage
+      if ( is_object( $args ) ) {
+      // feature was already instantiate it, we just need to store a reference to it in our internal storage
         if ( method_exists( $args, 'has' ) && $args->has( 'name' ) ) {
           $storage->set( $args->get( 'name' ), $args );
           $object = $args;
@@ -251,6 +271,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
       }
     }
     if ( is_object( $object ) ) {
+      $object->apply_duck_types();
       $object->add_support();
       if ( $object->is( 'contextual' ) ) {
         $object->set( 'context', $this );
@@ -274,6 +295,23 @@ class ScaleUp_Feature extends ScaleUp_Base {
    * Executes after activation is completed successfully
    */
   function activation() {
+
+  }
+
+  /**
+   * Apply duck types to the object
+   */
+  function apply_duck_types() {
+
+    if ( $this->has( '_duck_types' ) ) {
+      $duck_types = $this->get( '_duck_types' );
+      foreach ( $duck_types as $duck_type_name ) {
+        if ( ScaleUp::is_activated_duck_type( $duck_type_name ) ) {
+          $duck_type = ScaleUp::get_duck_type( $duck_type_name );
+          $duck_type->apply( $this );
+        }
+      }
+    }
 
   }
 
@@ -326,9 +364,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
                 } else {
                   $defaults = $feature;
                 }
-                if ( !$this->is_registered( $feature_type, $feature_name ) ) {
-                  $args = $this->register( $feature_type, wp_parse_args( $args, $defaults ) );
-                }
+                $args = wp_parse_args( $args, $defaults );
                 $activated = $this->activate( $feature_type, $args );
                 $features  = $this->get( 'features' );
                 $storage   = $features->get( $plural_feature_type );
@@ -339,23 +375,6 @@ class ScaleUp_Feature extends ScaleUp_Base {
         }
       }
     }
-  }
-
-  function get_url( $args = array() ) {
-    /**
-     * @todo: apply args to url template
-     */
-    if ( $this->is( 'contextual' ) && $this->has( 'context' ) && !is_null( $this->get( 'context' ) ) ) {
-      $context = $this->get( 'context' );
-      if ( $context->is( 'routable' ) ) {
-        return $context->get_url() . '/' . $this->_url;
-      }
-    }
-    if ( property_exists( $this, '_url' ) ) {
-      return $this->_url;
-    }
-
-    return null;
   }
 
 }

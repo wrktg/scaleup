@@ -42,10 +42,9 @@ class ScaleUp_Form extends ScaleUp_Feature {
 
 ScaleUp::register_feature_type( 'form', array(
   '__CLASS__'     => 'ScaleUp_Form',
-  '_feature_type' => 'form',
   '_plural'       => 'forms',
   '_supports'     => array( 'form_fields' ),
-  'duck_types'    => array( 'contextual' ),
+  '_duck_types'    => array( 'contextual' ),
 ) );
 
 add_action( 'scaleup_init', array( 'ScaleUp_Form', 'scaleup_init' ) );

@@ -11,7 +11,7 @@ class ScaleUp_Template extends ScaleUp_Feature {
 
   /**
    * Callback for get_template_part function
-   * 
+   *
    * @param $template
    */
   function get_template_part( $template ) {
