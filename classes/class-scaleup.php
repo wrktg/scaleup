@@ -88,6 +88,15 @@ class ScaleUp {
   }
 
   /**
+   * Return activated duck types
+   *
+   * @return array
+   */
+  static function get_duck_types() {
+    return self::$_duck_types;
+  }
+
+  /**
    * Return true if duck type is registered, otherwise return false.
    *
    * *Note*: this function will also return true when the duck type is activated.

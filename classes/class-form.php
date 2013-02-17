@@ -26,7 +26,8 @@ class ScaleUp_Form extends ScaleUp_Feature {
         'template'  => $template,
         'path'      => SCALEUP_DIR . '/templates'
       );
-      ScaleUp::register( 'template', $args );
+      $args = ScaleUp::register( 'template', $args );
+      ScaleUp::activate( 'template', $args );
     }
 
   }

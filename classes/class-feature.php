@@ -187,14 +187,6 @@ class ScaleUp_Feature extends ScaleUp_Base {
     $storage->set( $name, $args );
 
     /**
-     * Register feature in global scope if it is of 'global' duck type
-     */
-    if ( 'site' != $this->get( '_feature_type' ) && ScaleUp::is_duck_type( $feature_type, 'global' ) ) {
-      $global = ScaleUp::get_site();
-      $global->register( $feature_type, $args );
-    }
-
-    /**
      * Call registration function to allow feature specific code to be executed
      * During registration, the feature is not yet instantiated, therefore we must call the static method
      */
@@ -272,19 +264,21 @@ class ScaleUp_Feature extends ScaleUp_Base {
       }
     }
     if ( is_object( $object ) ) {
+
       $this->apply_duck_types( $object );
       $object->add_support();
+
+      /**
+       * Call activation method allowing feature specific actions after activation is complete
+       */
+      $object->activation();
+
+      /**
+       * Execute activate_feature hook which allows plugins to perform actions when a feature is activated
+       */
+      do_action( 'activate_feature', $feature_type, $object );
+
     }
-
-    /**
-     * Call activation method allowing feature specific actions after activation is complete
-     */
-    $this->activation();
-
-    /**
-     * Execute activate_feature hook which allows plugins to perform actions when a feature is activated
-     */
-    do_action( 'activate_feature', $feature_type, $object );
 
     return $object;
   }
