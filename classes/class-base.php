@@ -9,22 +9,12 @@ class ScaleUp_Base extends stdClass {
       $this->set( $key, $value );
       unset( $value );
     }
-    $this->set( 'args', $args );
-
-    $this->initialize();
+    $this->set( '_args', $args );
 
   }
 
   function get_defaults() {
     return array();
-  }
-
-  /**
-   * Overload this function in child class to execute code once during instantiation of this object.
-   * This is a good place to execute register_* functions and hook to filters and actions.
-   */
-  function initialize() {
-    // overload this function in child class
   }
 
   function load( $args ) {
@@ -65,6 +55,23 @@ class ScaleUp_Base extends stdClass {
     $property_name = "_$name";
 
     return isset( $this->$property_name );
+  }
+
+  /**
+   * Return an array of publicly accessible properties for this object
+   */
+  function get_properties() {
+    $return = array();
+
+    $properties = get_object_vars( $this );
+    foreach ( $properties as $property => $value ) {
+      if ( preg_match( '/^[_]([^_][a-zA-Z0-9_\x7f-\xff]*)$/', $property, $matches ) ) {
+        $return[] = $matches[1];
+      }
+      unset( $value );
+    }
+
+    return $return;
   }
 
 }

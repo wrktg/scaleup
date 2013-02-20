@@ -7,30 +7,30 @@ class ScaleUp_Feature extends ScaleUp_Base {
     parent::__construct( $args );
 
     $this->_features = new ScaleUp_Base();
-
     $feature_type      = $this->get( '_feature_type' );
-    $feature_type_args = ScaleUp::get_feature_type( $feature_type );
-    $this->load( wp_parse_args( $args, $feature_type_args ) );
-
-    if ( $this->is( 'contextual' ) && $this->has( 'context' ) && !is_null( $this->get( 'context' ) ) ) {
-      $context = $this->get( 'context' );
-    } else {
-      $context = ScaleUp::get_site();
+    if ( ScaleUp::is_registered_feature_type( $feature_type ) ) {
+      $feature_type_args = ScaleUp::get_feature_type( $feature_type );
+      $this->load( $feature_type_args );
     }
 
-    // this registers and activates features when developer instantiates a feature with new keyword
-    // _activated args is used to prevent automatic registration and activation of features that are instantiated via
-    // activate method
-    if ( is_object( $context ) && !$context->is_registered( $feature_type, $this ) && !isset( $args[ '_activated' ] ) ) {
-      $context->register( $feature_type, $this );
-      $context->activate( $feature_type, $this );
-    }
+    $this->init();
 
-    if ( isset( $args[ '_activated' ] ) && $this->is( 'global' ) ) {
-      $global = ScaleUp::get_site();
-      $storage = $global->get( 'features' )->get( $this->get( '_plural' ) );
-      $storage->set( $this->get( 'name' ), $this );
-    }
+    $this->register_features( $args );
+    $this->activate_features();
+
+    /**
+     * Call activation method allowing feature specific actions after activation is complete
+     */
+    $this->activation();
+
+    /**
+     * Execute activate_feature hook which allows plugins to perform actions when a feature is activated
+     */
+    do_action( 'activate_feature', $feature_type, $this );
+
+  }
+
+  function init() {
 
   }
 
@@ -127,7 +127,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
    * Registration is storing of feature's configuration array without instantiation.
    *
    * @param $feature_type
-   * @param $args array
+   * @param $args array|object
    * @return array|WP_Error
    */
   function register( $feature_type, $args ) {
@@ -177,6 +177,17 @@ class ScaleUp_Feature extends ScaleUp_Base {
     }
 
     $plural = $feature_type_args[ '_plural' ];
+
+    /**
+     * Check if args were set via instance args
+     */
+    if ( $this->has( $plural ) ) {
+      $instance_plural_args = $this->get( $plural );
+      if ( isset( $instance_plural_args[ $name ] ) ) {
+        $instance_args = $instance_plural_args[ $name ];
+        $args          = wp_parse_args( $instance_args, $args );
+      }
+    }
 
     if ( !$this->_features->has( $plural ) ) {
       $this->_features->set( $plural, new ScaleUp_Base() );
@@ -242,7 +253,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
       $storage = $this->_features->get( $plural );
 
       if ( is_object( $args ) ) {
-      // feature was already instantiate it, we just need to store a reference to it in our internal storage
+        // feature was already instantiate it, we just need to store a reference to it in our internal storage
         if ( method_exists( $args, 'has' ) && $args->has( 'name' ) ) {
           $storage->set( $args->get( 'name' ), $args );
           $object = $args;
@@ -253,10 +264,8 @@ class ScaleUp_Feature extends ScaleUp_Base {
         if ( isset( $args[ '__CLASS__' ] ) ) {
           $class = $args[ '__CLASS__' ];
           if ( class_exists( $class ) ) {
-            // set _activated to true to prevent automatical activation in Feature __construct
-            $args[ '_activated' ] = true;
             /** @var $object ScaleUp_Feature */
-            $object               = new $class( $args );
+            $object = new $class( $args );
           } else {
             return new WP_Error( 'activation-failed', sprintf( __( '%s class does not exist.' ), $class ) );
           }
@@ -264,20 +273,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
       }
     }
     if ( is_object( $object ) ) {
-
       $this->apply_duck_types( $object );
-      $object->add_support();
-
-      /**
-       * Call activation method allowing feature specific actions after activation is complete
-       */
-      $object->activation();
-
-      /**
-       * Execute activate_feature hook which allows plugins to perform actions when a feature is activated
-       */
-      do_action( 'activate_feature', $feature_type, $object );
-
     }
 
     return $object;
@@ -309,62 +305,50 @@ class ScaleUp_Feature extends ScaleUp_Base {
 
   }
 
-  function add_support() {
+  function activate_features() {
+    // check if feature supports features of its own
     if ( $this->has( '_supports' ) && is_array( $this->get( '_supports' ) ) ) {
+      // get array of features that this feature supports
       $plural_feature_types = $this->get( '_supports' );
       foreach ( $plural_feature_types as $plural_feature_type ) {
-        if ( $this->has( $plural_feature_type ) && is_array( $this->get( $plural_feature_type ) ) ) {
-          $features           = $this->get( $plural_feature_type );
-          $found_feature_type = ScaleUp::find_feature_type( '_plural', $plural_feature_type );
-          $feature_type_args  = ScaleUp::get_feature_type( $found_feature_type );
-          if ( is_array( $feature_type_args ) ) {
-            $feature_type = $feature_type_args[ '_feature_type' ];
-            foreach ( $features as $key => $value ) {
-              if ( is_numeric( $key ) ) {
-                /**
-                 * $key is numeric if the element is not associative
-                 * this might happen if you have an array of elements like addons => array( 'login', 'frontpage' )
-                 * @todo: when item is a string without a key, we should look up args by name
-                 */
-                $feature_name = $value;
-                $args         = array();
-              } else {
-                $feature_name = $key;
-                if ( is_array( $value ) ) {
-                  $args = $value;
-                } else {
-                  /**
-                   * @todo: I don't think this scenario would happen because you can't have arguments as 1 element. ME think!
-                   */
-                  $args = array( $value );
-                }
-              }
-              if ( !isset( $args[ 'name' ] ) ) {
-                $args[ 'name' ] = $feature_name;
-              }
-              if ( $this->is_registered( $feature_type, $feature_name ) ) {
-                $feature = $this->get_feature( $feature_type, $feature_name );
-              } else {
-                $site = ScaleUp::get_site();
-                if ( $site->is_registered( $feature_type, $feature_name ) ) {
-                  $feature = $site->get_feature( $feature_type, $feature_name );
-                } else {
-                  $feature = $this->register( $feature_type, $args );
-                }
-              }
-              if ( isset( $feature ) ) {
-                if ( is_object( $feature ) && method_exists( $feature, 'get_defaults' ) ) {
-                  $defaults = $feature->get_defaults();
-                } else {
-                  $defaults = $feature;
-                }
-                $args = wp_parse_args( $args, $defaults );
-                $activated = $this->activate( $feature_type, $args );
-                $features  = $this->get( 'features' );
-                $storage   = $features->get( $plural_feature_type );
-                $storage->set( $feature_name, $activated );
-              }
+        // support features are specified in plural, so lets get a corresponding singular feature_type
+        $found_feature_type = ScaleUp::find_feature_type( '_plural', $plural_feature_type );
+
+        // check if a feature with this feature type was already registered
+        if ( $this->_features->has( $plural_feature_type ) ) {
+          // get a convinience variable
+          /**
+           * @todo: change this to use instance variable instead of getter
+           */
+          $storage = $this->_features->get( $plural_feature_type );
+          // get array of registered features for this feature type
+          $features = $storage->get_properties();
+          foreach ( $features as $feature_name ) {
+            // activate registered features
+            $activated = $this->activate( $found_feature_type, $this->get_feature( $found_feature_type, $feature_name ) );
+            $storage->set( $feature_name, $activated );
+          }
+        }
+      }
+    }
+  }
+
+  function register_features( $args ) {
+    if ( $this->has( '_supports' ) ) {
+      $supported = (array)$this->get( '_supports' );
+      foreach ( $supported as $plural_feature_type ) {
+        if ( isset( $args[ $plural_feature_type ] ) ) {
+          $features     = (array)$args[ $plural_feature_type ];
+          $feature_type = ScaleUp::find_feature_type( '_plural', $plural_feature_type );
+          foreach ( $features as $key => $value ) {
+            $feature_args = array();
+            if ( is_numeric( $key ) ) {
+              $feature_args[ 'name' ] = $value;
+            } else {
+              $feature_args[ 'name' ] = $key;
+              $feature_args = wp_parse_args( $feature_args, $value );
             }
+            $this->register( $feature_type, $feature_args );
           }
         }
       }

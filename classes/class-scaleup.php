@@ -230,7 +230,7 @@ class ScaleUp {
   }
 
   static function register( $feature_type, $args ) {
-    self::$_this->site->register( $feature_type, $args );
+    return self::$_this->site->register( $feature_type, $args );
   }
 
   static function activate( $feature_type, $args ) {
