@@ -16,10 +16,13 @@ class ScaleUp_Template extends ScaleUp_Feature {
 
     // check if template exists in child theme directory
     if ( is_child_theme() && file_exists( get_stylesheet_directory() . $template ) ) {
+      $this->do_action( 'render' );
       include( get_stylesheet_directory() . $template );
     } elseif ( file_exists( get_template_directory() . $template ) ) {
+      $this->do_action( 'render' );
       include( get_template_directory() . $template );
     } else {
+      $this->do_action( 'render' );
       include( $this->get( 'path' ) . $template );
     }
 
@@ -39,4 +42,5 @@ ScaleUp::register_feature_type( 'template',
     '__CLASS__'     => 'ScaleUp_Template',
     '_plural'       => 'templates',
     '_duck_types'   => array( 'global' ),
+    '_supports'     => array( 'assets' ),
   ) );

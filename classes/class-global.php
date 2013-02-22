@@ -5,13 +5,25 @@ class ScaleUp_Global extends ScaleUp_Duck_Type {
    * Add feature into global context
    *
    * @param ScaleUp_Feature $feature
-   * @param null $context
+   * @param array $args
    * @return ScaleUp_Feature|void
    */
-  function apply( $feature, $context ) {
+  function duck_types( $feature, $args = array() ) {
+    parent::duck_types( $feature, $args );
+
     $site = ScaleUp::get_site();
-    $storage = $site->get( 'features' )->get( $feature->get( '_plural' ) );
+    /** @var $storage ScaleUp_Base */
+    $plural = $feature->get( '_plural' );
+    $features = $site->get( 'features' );
+    if ( $features->has( $plural ) ) {
+      $storage = $features->get( $plural );
+    } else {
+      $storage = new ScaleUp_Base();
+      $features->set( $plural, $storage );
+    }
     $storage->set( $feature->get( 'name' ), $feature );
+
+    return $feature;
   }
 
 }

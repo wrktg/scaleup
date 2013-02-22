@@ -6,28 +6,44 @@ class ScaleUp_Feature extends ScaleUp_Base {
   function __construct( $args ) {
     parent::__construct( $args );
 
+    /**
+     * create feature container
+     */
     $this->_features = new ScaleUp_Base();
-    $feature_type      = $this->get( '_feature_type' );
+    /**
+     * _feature_type comes from $this->get_default(), so it can only be ran after ScaleUp_Base instantiation
+     */
+    $feature_type = $this->get( '_feature_type' );
+    /**
+     * load attributes from feature type definition
+     */
     if ( ScaleUp::is_registered_feature_type( $feature_type ) ) {
       $feature_type_args = ScaleUp::get_feature_type( $feature_type );
       $this->load( $feature_type_args );
     }
-
-    $this->init();
-
-    $this->register_features( $args );
-    $this->activate_features();
-
     /**
-     * Call activation method allowing feature specific actions after activation is complete
+     * apply duck type filters to
      */
-    $this->activation();
+    if ( $this->has( '_duck_types' ) ) {
+      $duck_types = ( array )$this->get( '_duck_types' );
+      foreach ( $duck_types as $duck_type ) {
+        if ( ScaleUp::is_activated_duck_type( $duck_type ) ) {
+          $duck_type = ScaleUp::get_duck_type( $duck_type );
+          $this->add_filter( 'duck_types', array( $duck_type, 'duck_types' ) );
+        }
+        unset( $duck_type );
+      }
+    }
 
-    /**
-     * Execute activate_feature hook which allows plugins to perform actions when a feature is activated
-     */
-    do_action( 'activate_feature', $feature_type, $this );
+    $this->add_action( 'registration', array( $this, 'registration' ) );
+    $this->add_action( 'activation', array( $this, 'activation' ) );
+    $this->add_action( 'init', array( $this, 'init' ) );
+    $this->add_action( 'init', array( $this, 'apply_duck_types' ) );
+    $this->add_action( 'init', array( $this, 'register_features' ) );
+    $this->add_action( 'init', array( $this, 'activate_features' ) );
 
+    $this->do_action( 'init', $args );
+    $this->do_action( 'activation' );
   }
 
   function init() {
@@ -264,6 +280,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
         if ( isset( $args[ '__CLASS__' ] ) ) {
           $class = $args[ '__CLASS__' ];
           if ( class_exists( $class ) ) {
+            $args[ 'context' ] = $this;
             /** @var $object ScaleUp_Feature */
             $object = new $class( $args );
           } else {
@@ -271,9 +288,6 @@ class ScaleUp_Feature extends ScaleUp_Base {
           }
         }
       }
-    }
-    if ( is_object( $object ) ) {
-      $this->apply_duck_types( $object );
     }
 
     return $object;
@@ -286,23 +300,63 @@ class ScaleUp_Feature extends ScaleUp_Base {
 
   }
 
+  function add_action( $handle, $callback = null, $priority = 10 ) {
+    if ( is_null( $callback ) ) {
+      $callback = array( $this, $handle );
+    }
+    $object_hash = spl_object_hash( $this );
+    add_action( "{$object_hash}->{$handle}", $callback, $priority, 2 );
+  }
+
+  function do_action( $handle, $args = array() ) {
+    $object_hash = spl_object_hash( $this );
+    do_action( "{$object_hash}->{$handle}", $this, $args );
+  }
+
+  function add_filter( $handle, $callback = null, $priority = 10 ) {
+    if ( is_null( $callback ) ) {
+      $callback = array( $this, $handle );
+    }
+    $object_hash = spl_object_hash( $this );
+    add_filter( "{$object_hash}->{$handle}", $callback, $priority, 2 );
+  }
+
+  function apply_filters( $handle, $args = array() ) {
+    $object_hash = spl_object_hash( $this );
+
+    return apply_filters( "{$object_hash}->{$handle}", $this, $args );
+  }
+
+  function apply_duck_types( $feature, $args) {
+    $this->apply_filters( 'duck_types', $args );
+  }
+
   /**
-   * Apply duck types to the feature
+   * Register features that are passed via an args array
    *
    * @param $feature ScaleUp_Feature
+   * @param $args array
    */
-  function apply_duck_types( $feature ) {
-
-    if ( $feature->has( '_duck_types' ) ) {
-      $duck_types = $feature->get( '_duck_types' );
-      foreach ( $duck_types as $duck_type_name ) {
-        if ( ScaleUp::is_activated_duck_type( $duck_type_name ) ) {
-          $duck_type = ScaleUp::get_duck_type( $duck_type_name );
-          $duck_type->apply( $feature, $this );
+  function register_features( $feature, $args ) {
+    if ( $this->has( '_supports' ) && is_array( $args ) ) {
+      $supported = (array)$this->get( '_supports' );
+      foreach ( $supported as $plural_feature_type ) {
+        if ( isset( $args[ $plural_feature_type ] ) ) {
+          $features     = (array)$args[ $plural_feature_type ];
+          $feature_type = ScaleUp::find_feature_type( '_plural', $plural_feature_type );
+          foreach ( $features as $key => $value ) {
+            $feature_args = array();
+            if ( is_numeric( $key ) ) {
+              $feature_args[ 'name' ] = $value;
+            } else {
+              $feature_args[ 'name' ] = $key;
+              $feature_args           = wp_parse_args( $feature_args, $value );
+            }
+            $this->register( $feature_type, $feature_args );
+          }
         }
       }
     }
-
   }
 
   function activate_features() {
@@ -327,28 +381,6 @@ class ScaleUp_Feature extends ScaleUp_Base {
             // activate registered features
             $activated = $this->activate( $found_feature_type, $this->get_feature( $found_feature_type, $feature_name ) );
             $storage->set( $feature_name, $activated );
-          }
-        }
-      }
-    }
-  }
-
-  function register_features( $args ) {
-    if ( $this->has( '_supports' ) ) {
-      $supported = (array)$this->get( '_supports' );
-      foreach ( $supported as $plural_feature_type ) {
-        if ( isset( $args[ $plural_feature_type ] ) ) {
-          $features     = (array)$args[ $plural_feature_type ];
-          $feature_type = ScaleUp::find_feature_type( '_plural', $plural_feature_type );
-          foreach ( $features as $key => $value ) {
-            $feature_args = array();
-            if ( is_numeric( $key ) ) {
-              $feature_args[ 'name' ] = $value;
-            } else {
-              $feature_args[ 'name' ] = $key;
-              $feature_args = wp_parse_args( $feature_args, $value );
-            }
-            $this->register( $feature_type, $feature_args );
           }
         }
       }

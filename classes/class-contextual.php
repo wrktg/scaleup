@@ -1,14 +1,16 @@
 <?php
 class ScaleUp_Contextual extends ScaleUp_Duck_Type {
 
-  function apply( $feature, $context ) {
-    parent::apply( $feature, $context );
+  function duck_types( $feature, $args = array() ) {
+    parent::duck_types( $feature, $args );
+    if ( isset( $args[ 'context' ] ) && is_object( $args[ 'context' ] ) ) {
+      $feature->set( 'context', $args[ 'context' ] );
+    }
 
-    $feature->set( 'context', $context );
+    return $feature;
   }
 
 }
-
 ScaleUp::register_duck_type( 'contextual', array(
   '__CLASS__'     => 'ScaleUp_Contextual',
 ) );

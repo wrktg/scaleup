@@ -27,6 +27,7 @@ include_once( SCALEUP_DIR . '/classes/class-form-field.php' );
 include_once( SCALEUP_DIR . '/classes/class-schema.php' );
 include_once( SCALEUP_DIR . '/classes/class-property.php' );
 include_once( SCALEUP_DIR . '/classes/class-template.php' );
+include_once( SCALEUP_DIR . '/classes/class-asset.php' );
 
 /**
  * Activate ScaleUp functionality within the site

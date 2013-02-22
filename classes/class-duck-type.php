@@ -4,12 +4,17 @@ class ScaleUp_Duck_Type extends ScaleUp_Base implements ArrayAccess {
   /**
    * Add methods for this duck type into the object as properties as callbacks
    *
+   * Callback for $feature->duck_types filter
+   *
    * @param $feature ScaleUp_Feature
-   * @param null $context
+   * @param $args
    * @return ScaleUp_Feature
    */
-  function apply( $feature, $context = null ) {
+  function duck_types( $feature, $args = array() ) {
 
+    /**
+     * $this refers to instance of check of ScaleUp_Duck_Type object.
+     */
     $methods = $this->get( 'methods' );
     foreach ( $methods as $method ) {
       if ( method_exists( $this, $method ) ) {
