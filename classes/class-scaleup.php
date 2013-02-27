@@ -17,11 +17,12 @@ class ScaleUp {
 
     if ( isset( self::$_this ) ) {
       return new WP_Error( 'instantiation-error', 'ScaleUp class is a singleton and can only be instantiated once.' );
-    } else {
-      self::$_this = $this;
-      $this->site  = new ScaleUp_Site( array( 'name' => 'WordPress' ) );
     }
 
+    self::$_this = $this;
+    $this->site  = new ScaleUp_Site( array( 'name' => 'WordPress' ) );
+
+    add_action( 'scaleup_init', array( $this, '_activate_bundled' ) );
     do_action( 'scaleup_init' );
 
   }
@@ -54,6 +55,7 @@ class ScaleUp {
       '_plural'       => "{$feature_type}s",
       '_supports'     => array(),
       '_duck_types'   => array(),
+      '_bundled'      => array(),
     );
 
     $args = wp_parse_args( $args, $default );
@@ -237,4 +239,26 @@ class ScaleUp {
     return self::$_this->site->activate( $feature_type, $args );
   }
 
+  /**
+   * Activate features that are bundled with feature types
+   */
+  function _activate_bundled() {
+    $feature_types = self::$_feature_types;
+    $site = self::get_site();
+
+    foreach ( $feature_types as $args ) {
+      if ( isset( $args[ '_bundled' ] ) && !empty( $args[ '_bundled' ] ) ) {
+        foreach ( $args[ '_bundled' ] as $plural_feature_type => $features ) {
+          $feature_type = ScaleUp::find_feature_type( '_plural', $plural_feature_type );
+          if ( ScaleUp::is_registered_feature_type( $feature_type ) ) {
+            foreach ( $features as $feature_name => $feature_args ) {
+              $feature_args[ 'name' ] = $feature_name;
+              $feature_args = $site->register( $feature_type, $feature_args );
+              $site->activate( $feature_type, $feature_args );
+            }
+          }
+        }
+      }
+    }
+  }
 }

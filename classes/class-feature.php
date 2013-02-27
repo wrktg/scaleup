@@ -139,6 +139,41 @@ class ScaleUp_Feature extends ScaleUp_Base {
   }
 
   /**
+   * Return associative array of specific kinds of features
+   *
+   * @param $plural_name string
+   * @return array
+   */
+  function get_features( $plural_name ) {
+
+    $return = array();
+
+    $features = $this->get( 'features' );
+    $storage = $features->get( $plural_name );
+    if ( is_object( $storage ) ) {
+      $names = $storage->get_properties();
+      foreach ( $names as $name ) {
+        $return[ $name ] = $storage->get( $name );
+      }
+    }
+
+    return $return;
+  }
+
+  /**
+   * Return true if feature has features of specific kind
+   *
+   * @param $plural_name string
+   * @return bool
+   */
+  function has_features( $plural_name ) {
+
+    $features = $this->get( 'features' );
+
+    return !is_null( $features->get( $plural_name ) );
+  }
+
+  /**
    * Register feature and return complete arguments array for this feature.
    * Registration is storing of feature's configuration array without instantiation.
    *
@@ -158,10 +193,14 @@ class ScaleUp_Feature extends ScaleUp_Base {
     if ( is_array( $args ) ) {
 
       $args = wp_parse_args( $args, $feature_type_args );
-      if ( isset( $args[ 'name' ] ) ) {
-        $name = $args[ 'name' ];
+      if ( !isset( $args[ 'name' ] ) ) {
+        /**
+         * Give this object a name. This name is a hash, but gives this object some resemblance of identity
+         * @see http://stackoverflow.com/questions/2254220/php-best-way-to-md5-multi-dimensional-array
+         */
+        $args[ 'name' ] = md5( json_encode( $args ) );
       }
-      $class = $args[ '__CLASS__' ];
+      $name = $args[ 'name' ];
 
     } else {
 
@@ -172,9 +211,11 @@ class ScaleUp_Feature extends ScaleUp_Base {
         /**
          * When registering an object that was instantiated manually without using activate() function
          */
-        $name = $args->get( 'name' );
-        if ( $args->has( '__CLASS__' ) ) {
-          $class = $args->get( '__CLASS__' );
+        if ( $args->has( 'name' ) ) {
+          $name = $args->get( 'name' );
+        } else {
+          $name = spl_object_hash( $args );
+          $args->set( 'name', $name );
         }
 
       } else {
@@ -213,18 +254,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
 
     $storage->set( $name, $args );
 
-    /**
-     * Call registration function to allow feature specific code to be executed
-     * During registration, the feature is not yet instantiated, therefore we must call the static method
-     */
-    if ( method_exists( $class, 'registration' ) ) {
-      $args = $class::registration( $args );
-    }
-
-    /**
-     * Execute register_feature hook to allow 3rd party plugins to execute code during registration
-     */
-    do_action( 'register_feature', $feature_type, $args );
+    $this->do_action( 'register', $args );
 
     return $args;
   }

@@ -11,23 +11,30 @@ define( 'SCALEUP_MIN_WP', '3.4' );
 /**
  * Core & Parent classes
  */
-require_once( SCALEUP_DIR . '/classes/class-scaleup.php' );
-require_once( SCALEUP_DIR . '/classes/class-base.php' );
-require_once( SCALEUP_DIR . '/classes/class-duck-type.php' );
-require_once( SCALEUP_DIR . '/classes/class-feature.php' );
-require_once( SCALEUP_DIR . '/classes/class-global.php' );
-require_once( SCALEUP_DIR . '/classes/class-contextual.php' );
+require( SCALEUP_DIR . '/classes/class-scaleup.php' );
+require( SCALEUP_DIR . '/classes/class-base.php' );
+require( SCALEUP_DIR . '/classes/class-duck-type.php' );
+require( SCALEUP_DIR . '/classes/class-feature.php' );
+require( SCALEUP_DIR . '/classes/class-global.php' );
+require( SCALEUP_DIR . '/classes/class-contextual.php' );
 
 /**
  * Core Features
  */
-include_once( SCALEUP_DIR . '/classes/class-site.php' );
-include_once( SCALEUP_DIR . '/classes/class-form.php' );
-include_once( SCALEUP_DIR . '/classes/class-form-field.php' );
-include_once( SCALEUP_DIR . '/classes/class-schema.php' );
-include_once( SCALEUP_DIR . '/classes/class-property.php' );
-include_once( SCALEUP_DIR . '/classes/class-template.php' );
-include_once( SCALEUP_DIR . '/classes/class-asset.php' );
+include( SCALEUP_DIR . '/classes/class-site.php' );
+include( SCALEUP_DIR . '/classes/class-form.php' );
+include( SCALEUP_DIR . '/classes/class-form-field.php' );
+include( SCALEUP_DIR . '/classes/class-schema.php' );
+include( SCALEUP_DIR . '/classes/class-property.php' );
+include( SCALEUP_DIR . '/classes/class-template.php' );
+include( SCALEUP_DIR . '/classes/class-asset.php' );
+include( SCALEUP_DIR . '/classes/class-alert.php' );
+
+/**
+ * API
+ */
+include( SCALEUP_DIR . '/functions.php' );
+include( SCALEUP_DIR . '/template-tags.php' );
 
 /**
  * Activate ScaleUp functionality within the site

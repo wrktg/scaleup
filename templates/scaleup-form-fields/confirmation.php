@@ -1,0 +1,1 @@
+<?php echo scaleup_get_form_attr( 'confirmation' );

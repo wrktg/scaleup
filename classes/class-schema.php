@@ -13,4 +13,5 @@ ScaleUp::register_feature_type( 'schema', array(
   '__CLASS__'     => 'ScaleUp_Schema',
   '_plural'       => 'schemas',
   '_supports'     => array( 'properties' ),
+  '_duck_types'   => array( 'global' ),
 ) );
