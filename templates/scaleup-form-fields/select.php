@@ -2,7 +2,7 @@
   <?php get_template_part( "/scaleup-form-fields/label.php" ); ?>
   <div class="controls">
 
-    <select id="<?php echo $id ?>" <?php echo scaleup_the_form_field_attr( 'name' ) ?> <?php scaleup_the_form_field_attr( "class" ); ?>>
+    <select <?php scaleup_the_form_field_attr( 'id' ) ?> <?php echo scaleup_the_form_field_attr( 'name' ) ?> <?php scaleup_the_form_field_attr( "class" ); ?>>
 
       <?php if ( scaleup_has_form_field_attr( 'options' ) ) : $options = scaleup_get_form_field_attr( 'options' ); ?>
 

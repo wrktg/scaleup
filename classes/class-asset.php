@@ -35,9 +35,15 @@ class ScaleUp_Asset extends ScaleUp_Feature {
    * @param $args
    */
   function enqueue( $feature, $args ) {
-    $type = $this->get( 'type' );
-    $function = "wp_enqueue_$type";
-    $function( $this->get( 'name' ) );
+
+    switch( $this->get( 'type' ) ):
+      case 'script':
+        wp_enqueue_script( $this->get( 'name' ) );
+        break;
+      case 'style':
+        wp_enqueue_style( $this->get( 'name' ) );
+        break;
+    endswitch;
   }
 
   function get_defaults() {

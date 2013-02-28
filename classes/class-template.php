@@ -3,7 +3,7 @@ class ScaleUp_Template extends ScaleUp_Feature {
 
   function activation() {
     $template = $this->get( 'template' );
-    $hook      = "get_template_part_{$template}";
+    $hook     = "get_template_part_{$template}";
     add_action( $hook, array( $this, 'get_template_part' ) );
   }
 
@@ -39,8 +39,16 @@ class ScaleUp_Template extends ScaleUp_Feature {
 
 ScaleUp::register_feature_type( 'template',
   array(
-    '__CLASS__'     => 'ScaleUp_Template',
-    '_plural'       => 'templates',
-    '_duck_types'   => array( 'global' ),
-    '_supports'     => array( 'assets' ),
+    '__CLASS__'   => 'ScaleUp_Template',
+    '_plural'     => 'templates',
+    '_duck_types' => array( 'global' ),
+    '_supports'   => array( 'assets' ),
+    '_bundled'    => array(
+      'assets' => array(
+        'bootstrap_base'   => array(
+          'type' => 'style',
+          'src'  => '/scaleup/templates/libraries/bootstrap/bootstrap-base.css',
+        ),
+      )
+    )
   ) );

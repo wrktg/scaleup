@@ -15,37 +15,7 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
 
     // set default template incase one was not specified
     if ( !$this->has( 'template' ) ) {
-      switch ( $this->get( 'type' ) ) :
-        case 'text':
-        case 'submit':
-        case 'email':
-        case 'password':
-        case 'file':
-        case 'hidden':
-          $template = 'input';
-          break;
-        case 'checkbox':
-          $template = 'checkbox';
-          break;
-        case 'button':
-          $template = 'button';
-          break;
-        case 'textarea':
-          $template = 'textarea';
-          break;
-        case 'radio':
-          $template = 'radio';
-          break;
-        case 'select':
-        case 'dropdown':
-          $template = 'select';
-          break;
-        case 'html':
-          $template = 'html_field';
-          break;
-        default:
-          $template = null;
-      endswitch;
+      $template = $this->get_default_template();
       $this->set( 'template', $template );
     }
 
@@ -200,6 +170,47 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
     }
   }
 
+  /**
+   * Return default template for specific type
+   *
+   * @return null|string
+   */
+  function get_default_template() {
+    switch ( $this->get( 'type' ) ) :
+      case 'text':
+      case 'submit':
+      case 'email':
+      case 'password':
+      case 'file':
+      case 'hidden':
+        $template = 'input';
+        break;
+      case 'checkbox':
+        $template = 'checkbox';
+        break;
+      case 'button':
+        $template = 'button';
+        break;
+      case 'textarea':
+        $template = 'textarea';
+        break;
+      case 'radio':
+        $template = 'radio';
+        break;
+      case 'select':
+      case 'dropdown':
+        $template = 'select';
+        break;
+      case 'html':
+        $template = 'html_field';
+        break;
+      default:
+        $template = null;
+    endswitch;
+    return $template;
+  }
+
+
   function get_defaults() {
     return wp_parse_args(
       array(
@@ -252,10 +263,25 @@ ScaleUp::register_feature_type( 'form_field', array(
         'template' => '/scaleup-form-fields/select.php',
         'path'     => SCALEUP_DIR . '/templates'
       ),
+      'select2'       => array(
+        'template' => '/scaleup-form-fields/select2.php',
+        'path'     => SCALEUP_DIR . '/templates',
+        'assets'   => array(
+          'select2_css' => array(
+            'type' => 'style',
+            'src'  => '/scaleup/templates/libraries/select2/select2.css',
+          ),
+          'select2_js' => array(
+            'type' => 'script',
+            'src'  => '/scaleup/templates/libraries/select2/select2.js',
+            'deps' => array( 'jquery' )
+          ),
+        ),
+      ),
       'radio'        => array(
         'template' => '/scaleup-form-fields/radio.php',
         'path'     => SCALEUP_DIR . '/templates'
       ),
     ),
   ),
-) );
+));

@@ -8,8 +8,11 @@
 
         <?php foreach ( $options as $value => $text ) : $id = scaleup_get_form_field_attr( "id" ) . '_' . sanitize_title( $value ) ?>
 
-          <input id="<?php echo $id ?>" name="<?php echo scaleup_get_form_field_attr( 'name' ) ?>[]" <?php scaleup_the_form_field_attr( "type" ); ?> <?php scaleup_the_form_field_attr( "class" ); ?> value="<?php echo $value ?>">
-          <label for="<?php echo $id ?>"><?php echo $text ?></label><br>
+          <label for="<?php echo $id ?>" class="checkbox">
+            <input id="<?php echo $id ?>"
+                   name="<?php echo scaleup_get_form_field_attr( 'name' ) ?>[]" <?php scaleup_the_form_field_attr( "type" ); ?> <?php scaleup_the_form_field_attr( "class" ); ?>
+                   value="<?php echo $value ?>">
+            <?php echo $text ?></label>
 
         <?php endforeach; ?>
 
@@ -17,8 +20,11 @@
 
     <?php else: ?>
 
-      <input <?php scaleup_the_form_field_attr( "id" ); ?> <?php scaleup_the_form_field_attr( "name" ); ?> <?php scaleup_the_form_field_attr( "type" ); ?> <?php scaleup_the_form_field_attr( "class" ); ?> value="<?php echo $value ?>">
-      <label for="<?php echo scaleup_get_form_field_attr( "id" ); ?>"><?php echo scaleup_get_form_field_attr( "text" ); ?></label>
+      <label for="<?php echo scaleup_get_form_field_attr( "id" ); ?>">
+        <input <?php scaleup_the_form_field_attr( "id" ); ?> <?php scaleup_the_form_field_attr( "name" ); ?> <?php scaleup_the_form_field_attr( "type" ); ?> <?php scaleup_the_form_field_attr( "class" ); ?>
+          value="<?php echo $value ?>">
+        <?php echo scaleup_get_form_field_attr( "text" ); ?>
+      </label>
 
     <?php endif; ?>
 
