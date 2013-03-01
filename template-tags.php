@@ -114,7 +114,7 @@ function scaleup_the_form_field( $name = null ) {
 
   $site = ScaleUp::get_site();
   $feature = $site->get_feature( 'template', $template_name );
-  if ( is_object( $feature ) && $feature->has( 'template' )) {
+  if ( is_object( $feature ) && $feature->has( 'template' ) ) {
     $template = $feature->get( 'template' );
     get_template_part( $template );
   }
