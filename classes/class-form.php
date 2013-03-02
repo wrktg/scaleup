@@ -7,8 +7,6 @@ class ScaleUp_Form extends ScaleUp_Feature {
    */
   var $_current_field = null;
 
-  var $_valid = true;
-
   var $_error = false;
 
   function init() {
@@ -188,6 +186,57 @@ class ScaleUp_Form extends ScaleUp_Feature {
     }
 
     return $validates;
+  }
+
+  /**
+   * Store the submission
+   *
+   * @param $form ScaleUp_Form
+   * @param $args array
+   * @return bool
+   */
+  function store( $form, $args = array() ) {
+
+    return true;
+  }
+
+  /**
+   * Notify those who care
+   *
+   * @param $form
+   * @param array $args
+   * @return bool
+   */
+  function notify( $form, $args = array() ) {
+
+    /**
+     * @todo: need to make this hookable
+     */
+    $notify = $form->get( 'notify' );
+    if ( is_array( $notify ) ) {
+      foreach ( $notify as $notice ) {
+        if ( isset( $notice[ 'method' ] ) && 'email' == $notice[ 'method' ] ) {
+          $this->notify_email( $form, $notice );
+        }
+      }
+    }
+
+    return true;
+  }
+
+  function notify_email( $form, $args ) {
+
+    /**
+     * @todo: this needs to be redone properly, right now too hardcody
+     */
+    if ( isset( $args[ 'to' ] ) ) {
+      $to = $args[ 'to' ];
+      if ( is_callable( $to ) ) {
+        $to = call_user_func( $to, $form );
+      }
+      wp_mail( $to, $args[ 'subject' ], $args[ 'message' ] );
+    }
+
   }
 
   /**

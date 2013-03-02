@@ -80,7 +80,7 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
   function validate_required( $field ) {
 
     $value = $field->get( 'value' );
-    if ( empty( $value ) ) {
+    if ( '' === trim( $value ) || is_null( $value ) ) {
       $field->register( 'alert', array(
         'type' => 'error',
         'msg'  => __( 'This field can not be empty.' )
