@@ -134,7 +134,7 @@ function scaleup_get_form_field_attr( $attr ) {
   $value = null;
 
   if ( is_object( $scaleup_form_field ) && method_exists( $scaleup_form_field, 'get' ) ) {
-    $value = $scaleup_form_field->get( $attr );
+    $value = apply_filters( "scaleup_form_field_{$attr}", $scaleup_form_field->get( $attr ), $scaleup_form_field );
   }
 
   return $value;

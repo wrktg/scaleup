@@ -101,7 +101,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
    *
    * @param $feature_type
    * @param $feature
-   * @return null|ScaleUp_Feature
+   * @return ScaleUp_Feature|null
    */
   function get_feature( $feature_type, $feature ) {
 

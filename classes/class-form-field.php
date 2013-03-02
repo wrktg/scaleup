@@ -46,16 +46,18 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
    */
   function get( $name ) {
 
+    $value = null;
+
     $property_name = "_$name";
-    if ( property_exists( $this, $property_name ) ) {
+    if ( is_null( $value ) && property_exists( $this, $property_name ) ) {
       if ( is_array( $this->$property_name ) && is_callable( $this->$property_name ) ) {
-        return call_user_func( $this->$property_name );
+        $value = call_user_func( $this->$property_name );
       } else {
-        return $this->$property_name;
+        $value = $this->$property_name;
       }
     }
 
-    return null;
+    return $value;
   }
 
   /**
@@ -64,6 +66,7 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
    * @return bool
    */
   function validates() {
+
     $this->apply_filters( 'validation' );
 
     return $this->get( 'valid' );
@@ -98,7 +101,7 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
   function validate_email( $field ) {
 
     $value = $field->get( 'value' );
-    if ( 1 != preg_match( '/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/', $value ) ) {
+    if ( !empty( $value ) && 1 != preg_match( '/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/', $value ) ) {
       $field->set( 'valid', false );
       $field->register( 'alert', array(
         'type' => 'error',

@@ -35,6 +35,7 @@ include( SCALEUP_DIR . '/classes/class-alert.php' );
  */
 include( SCALEUP_DIR . '/functions.php' );
 include( SCALEUP_DIR . '/template-tags.php' );
+include( SCALEUP_DIR . '/filters.php' );
 
 /**
  * Activate ScaleUp functionality within the site
