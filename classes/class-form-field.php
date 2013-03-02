@@ -3,7 +3,7 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
 
   var $_type = 'text';
 
-  var $_valid = true;
+  var $_error = false;
 
   function init() {
 
@@ -23,18 +23,17 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
       $validations = (array)$this->get( 'validation' );
       foreach ( $validations as $validation ) {
         if ( is_callable( $validation ) ) {
-          $this->add_filter( 'validation', $validation );
+          $this->add_filter( 'validate', $validation );
         } else {
           $method_name = "validate_$validation";
           if ( is_string( $validation ) && is_callable( array( $this, $method_name ) ) ) {
-            $this->add_filter( 'validation', array( $this, $method_name ) );
+            $this->add_filter( 'validate', array( $this, $method_name ) );
           }
         }
       }
     }
 
-    $this->add_action( 'register', array( $this, 'set_error_flag' ) );
-    $this->add_action( 'register', array( $this, 'add_error_class' ) );
+    $this->add_action( 'register', array( $this, 'add_error_class' ), 20 );
   }
 
   /**
@@ -65,11 +64,11 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
    *
    * @return bool
    */
-  function validates() {
+  function validate() {
 
-    $this->apply_filters( 'validation' );
+    $this->apply_filters( 'validate' );
 
-    return $this->get( 'valid' );
+    return true !== $this->get( 'error' );
   }
 
   /**
@@ -82,7 +81,6 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
 
     $value = $field->get( 'value' );
     if ( empty( $value ) ) {
-      $field->set( 'valid', false );
       $field->register( 'alert', array(
         'type' => 'error',
         'msg'  => __( 'This field can not be empty.' )
@@ -102,7 +100,6 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
 
     $value = $field->get( 'value' );
     if ( !empty( $value ) && 1 != preg_match( '/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/', $value ) ) {
-      $field->set( 'valid', false );
       $field->register( 'alert', array(
         'type' => 'error',
         'msg'  => __( "Must be a valid email address." )
@@ -122,33 +119,19 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
 
     $passed = wp_verify_nonce( $field->get( 'value' ), $field->get( 'action' ) );
     if ( false == $passed ) {
-      $field->set( 'valid', false );
-      $form = $field->get( 'context' );
-      $form->set( 'valid', false );
-      $form->register( 'alert', array(
+      $error_args = array(
         'type' => 'error',
         'msg'  => __( 'Nonce could not be verified. What are you trying to do?' )
-      ) );
+      );
+      $field->register( 'alert', $error_args );
+      /**
+       * Nonce fields are usually hidden, so let's add this error alert to the form
+       */
+      $form = $field->get( 'context' );
+      $form->register( 'alert', $error_args );
     }
 
     return $field;
-  }
-
-  /**
-   * Checks if an error alert is being registered to a feature and sets feature's errors flag to true
-   *
-   * This is callback function for $this->register hook.
-   * errors flag when displaying forms
-   *
-   * @param $feature ScaleUp_Form_Field
-   * @param $args array
-   */
-  function set_error_flag( $feature, $args = array() ) {
-    if ( isset( $args[ '_feature_type' ] ) && 'alert' == $args[ '_feature_type' ] ) {
-      if ( isset( $args[ 'type' ] ) && 'error' == $args[ 'type' ] ) {
-        $feature->set( 'errors', true );
-      }
-    }
   }
 
   /**

@@ -1,5 +1,15 @@
 <?php
 class ScaleUp_Alert {
+
+  function registration( $feature, $args ) {
+    /**
+     * If an error alert is being registered then set the feature's error flag to true
+     */
+    if ( isset( $args[ 'type' ] ) && 'error' == $args[ 'type' ] ) {
+      $feature->set( 'error', true );
+    }
+  }
+
   function get_defaults() {
     return wp_parse_args(
       array(

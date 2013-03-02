@@ -35,7 +35,6 @@ class ScaleUp_Feature extends ScaleUp_Base {
       }
     }
 
-    $this->add_action( 'registration', array( $this, 'registration' ) );
     $this->add_action( 'activation', array( $this, 'activation' ) );
     $this->add_action( 'init', array( $this, 'init' ) );
     $this->add_action( 'init', array( $this, 'apply_duck_types' ) );
@@ -201,6 +200,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
         $args[ 'name' ] = md5( json_encode( $args ) );
       }
       $name = $args[ 'name' ];
+      $class = $args[ '__CLASS__' ];
 
     } else {
 
@@ -218,10 +218,6 @@ class ScaleUp_Feature extends ScaleUp_Base {
           $args->set( 'name', $name );
         }
 
-      } else {
-
-        return new WP_Error( 'invalid-args', sprintf( __( '%s is not a valid args type. ', $class ) ) );
-
       }
 
     }
@@ -231,6 +227,10 @@ class ScaleUp_Feature extends ScaleUp_Base {
      */
     if ( empty( $name ) ) {
       return new WP_Error( 'name-missing', __( 'Feature name is required.' ) );
+    }
+
+    if ( method_exists( $class, 'registration' ) ) {
+      $this->add_action( 'register', array( $class, 'registration' ) );
     }
 
     $plural = $feature_type_args[ '_plural' ];

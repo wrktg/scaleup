@@ -34,8 +34,13 @@ include( SCALEUP_DIR . '/classes/class-alert.php' );
  * API
  */
 include( SCALEUP_DIR . '/functions.php' );
-include( SCALEUP_DIR . '/template-tags.php' );
-include( SCALEUP_DIR . '/filters.php' );
+function scaleup_after_setup_theme() {
+  include( SCALEUP_DIR . '/template-tags.php' );
+  include( SCALEUP_DIR . '/filters.php' );
+  include( SCALEUP_DIR . '/actions.php' );
+}
+add_action( 'after_setup_theme', 'scaleup_after_setup_theme' );
+
 
 /**
  * Activate ScaleUp functionality within the site

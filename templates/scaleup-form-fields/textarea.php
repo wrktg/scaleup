@@ -1,4 +1,4 @@
-<div class="control-group <?php echo ( scaleup_has_form_field_attr( 'errors' ) ) ? 'error' : ''; ?>">
+<div class="control-group <?php echo ( scaleup_get_form_field_attr( 'error' ) ) ? 'error' : ''; ?>">
   <?php get_template_part( "/scaleup-form-fields/label.php" ); ?>
   <div class="controls">
     <?php get_template_part( "/scaleup-form-fields/help.php" ); ?>

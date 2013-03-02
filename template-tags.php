@@ -12,7 +12,15 @@ function scaleup_the_form( $name ) {
 
   if ( !is_null( $form ) ) {
     $scaleup_form = $form;
+
+    /**
+     * Show alerts above the form
+     */
+    $scaleup_form->add_action( 'header', 'scaleup_form_header_alerts' );
+
+    $scaleup_form->do_action( 'header' );
     get_template_part( '/scaleup-form.php' );
+    $scaleup_form->do_action( 'footer' );
   }
 
 }

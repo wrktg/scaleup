@@ -9,6 +9,8 @@ class ScaleUp_Form extends ScaleUp_Feature {
 
   var $_valid = true;
 
+  var $_error = false;
+
   function init() {
 
     if ( !$this->has( 'action' ) ) {
@@ -110,25 +112,82 @@ class ScaleUp_Form extends ScaleUp_Feature {
   }
 
   /**
-   * Return weather or not form field validates
+   * Take the form through the 4 form stages and return if
+   *   1. validate fields
+   *   2. store data
+   *   3. notify users
+   *   4. confirm submission
+   *
+   * @param array $args
+   * @return bool
+   */
+  function process( $args = array() ) {
+
+    $steps = array( 'populate', 'validate', 'store', 'notify', 'confirm' );
+
+    foreach ( $steps as $step ) {
+      $this->add_action( $step, array( $this, $step ) );
+    }
+    reset( $steps );
+
+    while( false === $this->get( 'error' ) && ( $step = current( $steps ) ) ) {
+      $this->do_action( $step, $args );
+      next( $steps );
+    }
+
+    return false !== $this->get( 'error' );
+  }
+
+  /**
+   * Populate form field from $args array
+   *
+   * @param $form ScaleUp_Form
+   * @param array $args
    *
    * @return bool
    */
-  function validates() {
+  function populate( $form,  $args = array() ) {
+
+    $field_names = $form->_get_field_names();
+    foreach ( $field_names as $field_name ) {
+      if ( isset( $args[ $field_name ] ) ) {
+        /** @var $field ScaleUp_Form_Field */
+        $field = $form->get_feature( 'form_field', $field_name );
+        $field->set( 'value', $args[ $field_name ] );
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Return weather or not form field validates
+   *
+   * @param $form ScaleUp_Form
+   * @param array $args
+   * @return bool
+   */
+  function validate( $form, $args = array()) {
 
     $validates = true;
 
-    $field_names = $this->_get_field_names();
-
+    $field_names = $form->_get_field_names();
     foreach ( $field_names as $field_name ) {
-      $field = $this->get_feature( 'form_field', $field_name );
-      $field->set( 'value', $this->get( $field_name ) );
-      if ( !$field->validates() ) {
+      /** @var $field ScaleUp_Form_Field */
+      $field = $form->get_feature( 'form_field', $field_name );
+      if ( !$field->validate() ) {
         $validates = false;
       }
     }
 
-    return $validates && $this->get( 'valid' );
+    if ( !$validates ) {
+      $form->register( 'alert', array(
+        'msg'  => 'Your submission did not pass validation. Please, verify your entry and resubmit.',
+        'type' => 'error'
+      ) );
+    }
+
+    return $validates;
   }
 
   /**
