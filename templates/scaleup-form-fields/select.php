@@ -6,7 +6,7 @@
       <?php if ( has_form_field_attr( 'options' ) ) : $options = get_form_field_attr( 'options' ); ?>
         <?php if ( is_array( $options ) ) : ?>
           <?php foreach ( $options as $value => $text ) : ?>
-            <option value="<?php echo $value ?>"><?php echo $text ?></option>
+            <option value="<?php echo $value ?>" <?php echo ( !is_null( get_form_field_attr( 'value' ) ) && $value == get_form_field_attr( 'value' ) ) ? 'selected' : ''; ?>><?php echo $text ?></option>
           <?php endforeach; ?>
         <?php endif; ?>
       <?php endif; ?>

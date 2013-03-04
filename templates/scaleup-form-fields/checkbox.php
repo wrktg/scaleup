@@ -7,7 +7,7 @@
           <label for="<?php echo $id ?>" class="checkbox">
             <input id="<?php echo $id ?>"
                    name="<?php echo get_form_field_attr( 'name' ) ?>[]" <?php the_form_field_attr( "type" ); ?> <?php the_form_field_attr( "class" ); ?>
-                   value="<?php echo $value ?>">
+                   value="<?php echo $value ?>" <?php echo ( in_array( $value, get_form_field_attr( "value" ) ) ) ? 'checked' : ''; ?>>
             <?php echo $text ?></label>
         <?php endforeach; ?>
       <?php endif ?>

@@ -39,6 +39,9 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
   /**
    * Return a property value.
    * If value is a callable, then execute the callable and return the result
+   * Otherwise return the value of the property
+   * If property value is null
+   * Return value from get_default_$name method ( if one exists )
    *
    * @param $name
    * @return mixed|null
@@ -48,11 +51,21 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
     $value = null;
 
     $property_name = "_$name";
-    if ( is_null( $value ) && property_exists( $this, $property_name ) ) {
+    if ( property_exists( $this, $property_name ) ) {
       if ( is_array( $this->$property_name ) && is_callable( $this->$property_name ) ) {
         $value = call_user_func( $this->$property_name );
       } else {
         $value = $this->$property_name;
+      }
+    }
+
+    /**
+     * Try to get value from default getter method
+     */
+    if ( is_null( $value ) ) {
+      $default_method = "get_default_$name";
+      if ( method_exists( $this, $default_method ) ) {
+        $value = $this->$default_method();
       }
     }
 
@@ -141,7 +154,11 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
    * @param $args array
    */
   function add_error_class( $feature, $args = array() ) {
-    if ( $feature->has( 'errors' ) && true == $feature->get( 'errors' ) ) {
+    /**
+     * If an error alert is being registered then set the feature's error flag to true
+     */
+    if ( isset( $args[ 'type' ] ) && 'error' == $args[ 'type' ] ) {
+      $feature->set( 'error', true );
       $classes = array();
       $class   = $feature->get( 'class' );
       if ( is_string( $class ) ) {
@@ -196,6 +213,16 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
     return $template;
   }
 
+  function get_default_value() {
+    switch( $this->get( 'type' ) ) {
+      case 'checkbox':
+        $value = array();
+        break;
+      default:
+        $value = null;
+    }
+    return $value;
+  }
 
   function get_defaults() {
     return wp_parse_args(
