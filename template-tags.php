@@ -4,11 +4,11 @@
  *
  * @param $name string
  */
-function scaleup_the_form( $name ) {
+function the_form( $name ) {
 
   global $scaleup_form;
 
-  $form = scaleup_get_form( $name );
+  $form = get_form( $name );
 
   if ( !is_null( $form ) ) {
     $scaleup_form = $form;
@@ -31,7 +31,7 @@ function scaleup_the_form( $name ) {
  * @param $name
  * @return null|ScaleUp_Form
  */
-function scaleup_get_form( $name ) {
+function get_form( $name ) {
 
   $site = ScaleUp::get_site();
 
@@ -46,9 +46,9 @@ function scaleup_get_form( $name ) {
  *
  * @param $name
  */
-function scaleup_the_form_attr( $name ) {
+function the_form_attr( $name ) {
 
-  $value = scaleup_get_form_attr( $name );
+  $value = get_form_attr( $name );
   if ( !is_null( $value ) ) {
     echo "$name=\"$value\"";
   }
@@ -61,7 +61,7 @@ function scaleup_the_form_attr( $name ) {
  * @param $attr
  * @return mixed|null
  */
-function scaleup_get_form_attr( $attr ) {
+function get_form_attr( $attr ) {
 
   global $scaleup_form;
 
@@ -80,7 +80,7 @@ function scaleup_get_form_attr( $attr ) {
  *
  * @return bool
  */
-function scaleup_form_has_fields(){
+function form_has_fields(){
 
   global $scaleup_form;
 
@@ -96,7 +96,7 @@ function scaleup_form_has_fields(){
 /**
  * Set form field by specific name into global scope
  */
-function scaleup_setup_form_field( $name = null ) {
+function setup_form_field_data( $name = null ) {
 
   global $scaleup_form, $scaleup_form_field;
 
@@ -112,9 +112,9 @@ function scaleup_setup_form_field( $name = null ) {
  *
  * @param null $name
  */
-function scaleup_the_form_field( $name = null ) {
+function the_form_field( $name = null ) {
 
-  scaleup_setup_form_field( $name );
+  setup_form_field_data( $name );
 
   global $scaleup_form_field;
 
@@ -135,7 +135,7 @@ function scaleup_the_form_field( $name = null ) {
  * @param $attr
  * @return string
  */
-function scaleup_get_form_field_attr( $attr ) {
+function get_form_field_attr( $attr ) {
 
   global $scaleup_form_field;
 
@@ -153,9 +153,9 @@ function scaleup_get_form_field_attr( $attr ) {
  *
  * @param $attr
  */
-function scaleup_the_form_field_attr( $attr ) {
+function the_form_field_attr( $attr ) {
 
-  $value = scaleup_get_form_field_attr( $attr );
+  $value = get_form_field_attr( $attr );
 
   if ( !is_null( $value ) ) {
     echo "$attr=\"$value\"";
@@ -169,6 +169,6 @@ function scaleup_the_form_field_attr( $attr ) {
  * @param $attr
  * @return bool
  */
-function scaleup_has_form_field_attr( $attr ) {
-  return !is_null( scaleup_get_form_field_attr( $attr ) );
+function has_form_field_attr( $attr ) {
+  return !is_null( get_form_field_attr( $attr ) );
 }

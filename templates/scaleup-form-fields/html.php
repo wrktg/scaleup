@@ -1,1 +1,1 @@
-<?php echo scaleup_get_form_field_attr( 'content' );
+<?php echo get_form_field_attr( 'content' );

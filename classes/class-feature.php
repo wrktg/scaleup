@@ -63,6 +63,9 @@ class ScaleUp_Feature extends ScaleUp_Base {
 
     if ( property_exists( $this, $name ) && is_callable( $this->$name ) ) {
       $result = call_user_func( $this->$name, $this, $args );
+    } elseif ( preg_match( '/^add_([a-zA-Z0-9_\x7f-\xff]*)$/', $name, $matches ) ) {
+      $feature_type = $matches[ 1 ];
+      $result = $this->add( $feature_type, $args );
     }
 
     return $result;
@@ -93,6 +96,26 @@ class ScaleUp_Feature extends ScaleUp_Base {
    */
   function is_registered( $feature_type, $feature ) {
     return !is_null( $this->get_feature( $feature_type, $feature ) );
+  }
+
+  /**
+   * Register and activate a feature type to the current feature
+   *
+   * @param $feature_type
+   * @param array $args
+   * @return bool
+   */
+  function add( $feature_type, $args = array() ) {
+
+    $result = false;
+
+    if ( false !== ( $registered = $this->register( $feature_type, $args ) ) ) {
+      if ( false !== ( $activated = $this->activate( $feature_type, $registered ) ) ) {
+        $result = $activated;
+      }
+    }
+
+    return $result;
   }
 
   /**
@@ -148,7 +171,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
     $return = array();
 
     $features = $this->get( 'features' );
-    $storage = $features->get( $plural_name );
+    $storage  = $features->get( $plural_name );
     if ( is_object( $storage ) ) {
       $names = $storage->get_properties();
       foreach ( $names as $name ) {
@@ -178,85 +201,90 @@ class ScaleUp_Feature extends ScaleUp_Base {
    *
    * @param $feature_type
    * @param $args array|object
-   * @return array|WP_Error
+   * @return array|bool
    */
   function register( $feature_type, $args ) {
 
-    // make sure that its known feature
-    if ( !ScaleUp::is_registered_feature_type( $feature_type ) ) {
-      return new WP_Error( 'invalid-feature-type', sprintf( __( '%s is not a valid feature type.' ), $feature_type ) );
-    }
+    $result = false;
 
-    $feature_type_args = ScaleUp::get_feature_type( $feature_type );
+    if ( ScaleUp::is_registered_feature_type( $feature_type ) ) {
 
-    if ( is_array( $args ) ) {
+      /**
+       * Get feature type declaration from ScaleUp
+       */
+      $feature_type_args = ScaleUp::get_feature_type( $feature_type );
 
-      $args = wp_parse_args( $args, $feature_type_args );
-      if ( !isset( $args[ 'name' ] ) ) {
-        /**
-         * Give this object a name. This name is a hash, but gives this object some resemblance of identity
-         * @see http://stackoverflow.com/questions/2254220/php-best-way-to-md5-multi-dimensional-array
-         */
-        $args[ 'name' ] = md5( json_encode( $args ) );
-      }
-      $name = $args[ 'name' ];
-      $class = $args[ '__CLASS__' ];
-
-    } else {
-
-      $class = get_class( $args );
-
-      if ( is_object( $args ) ) {
+      if ( is_array( $args ) ) {
 
         /**
-         * When registering an object that was instantiated manually without using activate() function
+         * Merge passed args with feature type declaration
          */
-        if ( $args->has( 'name' ) ) {
-          $name = $args->get( 'name' );
-        } else {
-          $name = spl_object_hash( $args );
-          $args->set( 'name', $name );
+        $args = wp_parse_args( $args, $feature_type_args );
+        if ( !isset( $args[ 'name' ] ) || is_null( $args[ 'name' ] ) ) {
+          /**
+           * Give this object a name. This name is a hash, but gives this object some resemblance of identity
+           * @see http://stackoverflow.com/questions/2254220/php-best-way-to-md5-multi-dimensional-array
+           */
+          $args[ 'name' ] = md5( json_encode( $args ) );
+        }
+        $name  = $args[ 'name' ];
+        $class = $args[ '__CLASS__' ];
+
+      } elseif ( is_object( $args ) ) {
+
+        $class = get_class( $args );
+
+        if ( is_object( $args ) ) {
+          /**
+           * When registering an object that was instantiated manually without using activate() function
+           */
+          if ( $args->has( 'name' ) ) {
+            $name = $args->get( 'name' );
+          } else {
+            $name = spl_object_hash( $args );
+            $args->set( 'name', $name );
+          }
+
         }
 
+      } else {
+        add_alert( 'warning', sprintf( "Passed invalid args value while attempting to register $feature_type to %s feature.", $this->get( 'name' ) ), array( 'debug' => true, 'wrong' => $args ) );
       }
 
-    }
-
-    /**
-     * @todo: Add validation here. Validation should happen based on '_requires' argument in $_feature_types declaration
-     */
-    if ( empty( $name ) ) {
-      return new WP_Error( 'name-missing', __( 'Feature name is required.' ) );
-    }
-
-    if ( method_exists( $class, 'registration' ) ) {
-      $this->add_action( 'register', array( $class, 'registration' ) );
-    }
-
-    $plural = $feature_type_args[ '_plural' ];
-
-    /**
-     * Check if args were set via instance args
-     */
-    if ( $this->has( $plural ) ) {
-      $instance_plural_args = $this->get( $plural );
-      if ( isset( $instance_plural_args[ $name ] ) ) {
-        $instance_args = $instance_plural_args[ $name ];
-        $args          = wp_parse_args( $instance_args, $args );
+      if ( method_exists( $class, 'registration' ) ) {
+        $this->add_action( 'register', array( $class, 'registration' ) );
       }
+
+      $plural = $feature_type_args[ '_plural' ];
+
+      /**
+       * Check if args were set via instance args
+       */
+      if ( $this->has( $plural ) ) {
+        $instance_plural_args = $this->get( $plural );
+        if ( isset( $instance_plural_args[ $name ] ) ) {
+          $instance_args = $instance_plural_args[ $name ];
+          $args          = wp_parse_args( $instance_args, $args );
+        }
+      }
+
+      if ( !$this->_features->has( $plural ) ) {
+        $this->_features->set( $plural, new ScaleUp_Base() );
+      }
+
+      $storage = $this->_features->get( $plural );
+
+      $storage->set( $name, $args );
+
+      $this->do_action( 'register', $args );
+
+      $result = $args;
+
+    } else {
+      add_alert( 'warning', "Attempting to register a feature of unknown feature type.", array( 'debug' => true, 'wrong' => $feature_type ) );
     }
 
-    if ( !$this->_features->has( $plural ) ) {
-      $this->_features->set( $plural, new ScaleUp_Base() );
-    }
-
-    $storage = $this->_features->get( $plural );
-
-    $storage->set( $name, $args );
-
-    $this->do_action( 'register', $args );
-
-    return $args;
+    return $result;
   }
 
   /**
@@ -277,11 +305,11 @@ class ScaleUp_Feature extends ScaleUp_Base {
    *
    * @param $feature_type
    * @param array|object $args
-   * @return ScaleUp_Feature|WP_Error
+   * @return ScaleUp_Feature|bool
    */
   function activate( $feature_type, $args = array() ) {
 
-    $object = null;
+    $result = null;
 
     // make sure that feature type is available
     if ( ScaleUp::is_registered_feature_type( $feature_type ) ) {
@@ -302,7 +330,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
         // feature was already instantiate it, we just need to store a reference to it in our internal storage
         if ( method_exists( $args, 'has' ) && $args->has( 'name' ) ) {
           $storage->set( $args->get( 'name' ), $args );
-          $object = $args;
+          $result = $args;
         }
       }
 
@@ -311,16 +339,18 @@ class ScaleUp_Feature extends ScaleUp_Base {
           $class = $args[ '__CLASS__' ];
           if ( class_exists( $class ) ) {
             $args[ 'context' ] = $this;
-            /** @var $object ScaleUp_Feature */
-            $object = new $class( $args );
+            /** @var $result ScaleUp_Feature */
+            $result = new $class( $args );
           } else {
-            return new WP_Error( 'activation-failed', sprintf( __( '%s class does not exist.' ), $class ) );
+            add_alert( 'warning', "Attempting to activate a feature with a class that doesn't exist.", array( 'debug' => true, 'wrong' => $class ) );
           }
         }
       }
+    } else {
+      add_alert( 'warning', "Attempting to activate a feature of unknown feature type.", array( 'debug' => true, 'wrong' => $feature_type ) );
     }
 
-    return $object;
+    return $result;
   }
 
   /**
@@ -330,6 +360,13 @@ class ScaleUp_Feature extends ScaleUp_Base {
 
   }
 
+  /**
+   * Add action to this feature
+   *
+   * @param $handle
+   * @param null $callback
+   * @param int $priority
+   */
   function add_action( $handle, $callback = null, $priority = 10 ) {
     if ( is_null( $callback ) ) {
       $callback = array( $this, $handle );
@@ -338,11 +375,28 @@ class ScaleUp_Feature extends ScaleUp_Base {
     add_action( "{$object_hash}->{$handle}", $callback, $priority, 2 );
   }
 
+  /**
+   * @todo: Add proper docs to action and filter methods
+   */
+
+  /**
+   * Do action associated with this feature
+   *
+   * @param $handle
+   * @param array $args
+   */
   function do_action( $handle, $args = array() ) {
     $object_hash = spl_object_hash( $this );
     do_action( "{$object_hash}->{$handle}", $this, $args );
   }
 
+  /**
+   * Add filter to this feature
+   *
+   * @param $handle
+   * @param null $callback
+   * @param int $priority
+   */
   function add_filter( $handle, $callback = null, $priority = 10 ) {
     if ( is_null( $callback ) ) {
       $callback = array( $this, $handle );
@@ -357,7 +411,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
     return apply_filters( "{$object_hash}->{$handle}", $this, $args );
   }
 
-  function apply_duck_types( $feature, $args) {
+  function apply_duck_types( $feature, $args ) {
     $this->apply_filters( 'duck_types', $args );
   }
 

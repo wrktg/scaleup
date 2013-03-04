@@ -14,8 +14,8 @@ if ( is_object( $scaleup_form_field ) ) {
 
 <script type="text/javascript">
   jQuery(document).ready(function ($) {
-    $("#<?php echo scaleup_get_form_field_attr( 'id' ) ?>").select2(
-      <?php echo json_encode( wp_parse_args( (array) scaleup_get_form_field_attr( 'params' ), array( 'width' => 'resolve' ) ) ); ?>
+    $("#<?php echo get_form_field_attr( 'id' ) ?>").select2(
+      <?php echo json_encode( wp_parse_args( (array) get_form_field_attr( 'params' ), array( 'width' => 'resolve' ) ) ); ?>
     );
   });
 </script>

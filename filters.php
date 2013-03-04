@@ -10,7 +10,7 @@ function scaleup_form_field_label_asterisk( $label, $form_field ) {
   if ( $form_field->has( 'validation' ) && is_array( $form_field->get( 'validation' ) ) ) {
     $validations = $form_field->get( 'validation' );
     if ( is_array( $validations ) && in_array( 'required', $validations ) && !empty( $label ) ) {
-      $label = "$label<span class=\"asterisk\">&#42;</span>";
+      $label .= '<span class="asterisk">&#42;</span>';
     }
   }
   return $label;
