@@ -11,6 +11,10 @@ class ScaleUp_Global extends ScaleUp_Duck_Type {
   function duck_types( $feature, $args = array() ) {
     parent::duck_types( $feature, $args );
 
+    /**
+     * @todo: refactor to use $site->add( $feature_type, $feature )
+     */
+
     $site = ScaleUp::get_site();
     /** @var $storage ScaleUp_Base */
     $plural = $feature->get( '_plural' );
