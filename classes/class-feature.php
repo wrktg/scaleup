@@ -103,7 +103,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
    *
    * @param $feature_type
    * @param array $args
-   * @return bool
+   * @return ScaleUp_Feature|bool
    */
   function add( $feature_type, $args = array() ) {
 
@@ -278,6 +278,8 @@ class ScaleUp_Feature extends ScaleUp_Base {
 
       $this->do_action( 'register', $args );
 
+      do_action( 'register_feature' );
+
       $result = $args;
 
     } else {
@@ -346,6 +348,11 @@ class ScaleUp_Feature extends ScaleUp_Base {
           }
         }
       }
+
+      $this->do_action( 'activate', $result );
+
+      do_action( 'register_feature', $result );
+
     } else {
       add_alert( 'warning', "Attempting to activate a feature of unknown feature type.", array( 'debug' => true, 'wrong' => $feature_type ) );
     }
@@ -383,9 +390,9 @@ class ScaleUp_Feature extends ScaleUp_Base {
    * Do action associated with this feature
    *
    * @param $handle
-   * @param array $args
+   * @param null $args
    */
-  function do_action( $handle, $args = array() ) {
+  function do_action( $handle, $args = null ) {
     $object_hash = spl_object_hash( $this );
     do_action( "{$object_hash}->{$handle}", $this, $args );
   }
