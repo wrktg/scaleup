@@ -78,73 +78,73 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
    * @return bool
    */
   function validate() {
-
-    $this->apply_filters( 'validate' );
-
-    return true !== $this->get( 'error' );
+    return $this->apply_filters( 'validate', true );
   }
 
   /**
    * Apply required validation to field
    *
-   * @param $field ScaleUp_Form_Field
-   * @return ScaleUp_Form_Field
+   * @param $valid bool
+   * @return bool
    */
-  function validate_required( $field ) {
+  function validate_required( $valid ) {
 
-    $value = $field->get( 'value' );
+    $value = $this->get( 'value' );
     if ( '' === trim( $value ) || is_null( $value ) ) {
-      $field->register( 'alert', array(
+      $this->register( 'alert', array(
         'type' => 'error',
         'msg'  => __( 'This field can not be empty.' )
       ) );
+      $valid = false;
     }
 
-    return $field;
+    return $valid;
   }
 
   /**
    * Apply email validation to field
    *
-   * @param $field ScaleUp_Form_Field
+   * @param $valid bool
    * @return ScaleUp_Form_Field
    */
-  function validate_email( $field ) {
+  function validate_email( $valid ) {
 
-    $value = $field->get( 'value' );
+    $value = $this->get( 'value' );
     if ( !empty( $value ) && 1 != preg_match( '/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/', $value ) ) {
-      $field->register( 'alert', array(
+      $this->register( 'alert', array(
         'type' => 'error',
         'msg'  => __( "Must be a valid email address." )
       ) );
+      $valid = false;
     }
 
-    return $field;
+    return $valid;
   }
 
   /**
    * Return true if nonce is valid
    *
-   * @param $field ScaleUp_Form_Field
-   * @return ScaleUp_Form_Field
+   * @param $valid bool
+   * @return bool
    */
-  function validate_nonce( $field ) {
+  function validate_nonce( $valid ) {
 
-    $passed = wp_verify_nonce( $field->get( 'value' ), $field->get( 'action' ) );
+    $passed = wp_verify_nonce( $this->get( 'value' ), $this->get( 'action' ) );
     if ( false == $passed ) {
       $error_args = array(
         'type' => 'error',
         'msg'  => __( 'Nonce could not be verified. What are you trying to do?' )
       );
-      $field->register( 'alert', $error_args );
+      $this->register( 'alert', $error_args );
       /**
        * Nonce fields are usually hidden, so let's add this error alert to the form
        */
-      $form = $field->get( 'context' );
+      $form = $this->get( 'context' );
       $form->register( 'alert', $error_args );
+      $valid = false;
     }
 
-    return $field;
+    return $valid;
   }
 
   /**
@@ -228,6 +228,7 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
     return wp_parse_args(
       array(
         '_feature_type' => 'form_field',
+        'format'        => 'string',
       ), parent::get_defaults()
     );
   }

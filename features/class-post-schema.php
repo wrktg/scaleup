@@ -3,6 +3,15 @@ class ScaleUp_Post_Schema extends ScaleUp_Schema {
 
   var $_error = false;
 
+  static function scaleup_init() {
+    ScaleUp::register( 'schema',
+      array(
+        'name'      => 'post',
+        '__CLASS__' => 'ScaleUp_Post_Schema',
+      )
+    );
+  }
+
   function activation() {
     /** @var $context ScaleUp_Item */
     $context = $this->get( 'context' );
@@ -190,10 +199,4 @@ class ScaleUp_Post_Schema extends ScaleUp_Schema {
   }
 
 }
-
-ScaleUp::register_schema(
-  array(
-    'name'      => 'post',
-    '__CLASS__' => 'ScaleUp_Post_Schema',
-  )
-);
+add_action( 'scaleup_init', array( 'ScaleUp_Post_Schema', 'scaleup_init' ) );

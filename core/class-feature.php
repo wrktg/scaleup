@@ -412,14 +412,13 @@ class ScaleUp_Feature extends ScaleUp_Base {
     add_filter( "{$object_hash}->{$handle}", $callback, $priority, 2 );
   }
 
-  function apply_filters( $handle, $args = array() ) {
+  function apply_filters( $handle, $value, $args = array() ) {
     $object_hash = spl_object_hash( $this );
-
-    return apply_filters( "{$object_hash}->{$handle}", $this, $args );
+    return apply_filters( "{$object_hash}->{$handle}", $value, $args );
   }
 
   function apply_duck_types( $feature, $args ) {
-    $this->apply_filters( 'duck_types', $args );
+    $this->apply_filters( 'duck_types', $feature, $args );
   }
 
   /**

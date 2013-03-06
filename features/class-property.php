@@ -5,10 +5,19 @@ class ScaleUp_Property extends ScaleUp_Feature {
 
   function activation() {
     $context = $this->get( 'context' );
+    $context->add_action( 'create', array( $this, 'setup' ) );
     $context->add_action( 'create', array( $this, 'create' ) );
-    $context->add_action( 'read', array( $this, 'read' ) );
+    $context->add_action( 'read',   array( $this, 'setup' ) );
+    $context->add_action( 'read',   array( $this, 'read' ) );
+    $context->add_action( 'update', array( $this, 'setup' ) );
     $context->add_action( 'update', array( $this, 'update' ) );
-    $this->set( 'id', $context->get( 'id' ) );
+  }
+
+  function setup( $schema, $args = array() ) {
+    if ( !$this->has( 'id' ) || is_null( $this->has( 'id' ) ) ) {
+      $id = (int) $args[ 'id' ];
+      $this->set( 'id', $id );
+    }
   }
 
   /**
@@ -19,12 +28,7 @@ class ScaleUp_Property extends ScaleUp_Feature {
    * @return bool
    */
   function create( $schema, $args = array() ) {
-    if ( !$this->has( 'id' ) || is_null( $this->has( 'id' ) ) ) {
-      $id = (int) $args[ 'id' ];
-      $this->set( 'id', $id );
-    } else {
-      $id = $this->get( 'id' );
-    }
+    $id = $this->get( 'id' );
     $name = $this->get( 'name' );
     if ( isset( $args[ $name ] ) ) {
       $value = $args[ $name ];
@@ -40,12 +44,7 @@ class ScaleUp_Property extends ScaleUp_Feature {
    * @return array|string
    */
   function read( $schema, $args = array() ) {
-    if ( !$this->has( 'id' ) || is_null( $this->has( 'id' ) ) ) {
-      $id = (int) $args[ 'id' ];
-      $this->set( 'id', $id );
-    } else {
-      $id = $this->get( 'id' );
-    }
+    $id = $this->get( 'id' );
     $value = get_metadata( $this->get( 'meta_type' ), $id, $this->get_meta_key() );
     $this->get( 'value', $value );
     return $value;
@@ -59,12 +58,7 @@ class ScaleUp_Property extends ScaleUp_Feature {
    * @param array $args
    */
   function update( $schema, $args = array() ) {
-    if ( !$this->has( 'id' ) || is_null( $this->has( 'id' ) ) ) {
-      $id = (int) $args[ 'id' ];
-      $this->set( 'id', $id );
-    } else {
-      $id = $this->get( 'id' );
-    }
+    $id = $this->get( 'id' );
     if ( isset( $args[ $this->get( 'name' ) ] ) ) {
       $value = $args[ $this->get( 'name' ) ];
       if ( is_null( $value ) ) {

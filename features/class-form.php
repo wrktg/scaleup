@@ -121,7 +121,7 @@ class ScaleUp_Form extends ScaleUp_Feature {
    */
   function process( $args = array() ) {
 
-    $steps = array( 'populate', 'validate', 'store', 'notify', 'confirm' );
+    $steps = array( 'populate', 'validate', 'normalize','store', 'notify', 'confirm' );
 
     foreach ( $steps as $step ) {
       $this->add_action( $step, array( $this, $step ) );
