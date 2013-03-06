@@ -29,6 +29,7 @@ include( SCALEUP_DIR . '/features/class-site.php' );
 include( SCALEUP_DIR . '/features/class-form.php' );
 include( SCALEUP_DIR . '/features/class-form-field.php' );
 include( SCALEUP_DIR . '/features/class-schema.php' );
+include( SCALEUP_DIR . '/features/class-post-schema.php' );
 include( SCALEUP_DIR . '/features/class-property.php' );
 include( SCALEUP_DIR . '/features/class-taxonomy.php' );
 include( SCALEUP_DIR . '/features/class-relationship.php' );
