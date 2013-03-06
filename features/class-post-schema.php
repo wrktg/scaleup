@@ -1,6 +1,8 @@
 <?php
 class ScaleUp_Post_Schema extends ScaleUp_Schema {
 
+  var $_error = false;
+
   function activation() {
     /** @var $context ScaleUp_Item */
     $context = $this->get( 'context' );

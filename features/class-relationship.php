@@ -1,6 +1,8 @@
 <?php
 class ScaleUp_Relationship extends ScaleUp_Feature {
 
+  var $_error = false;
+
   function activation() {
     $context = $this->get( 'context' );
     $context->add_action( 'create', array( $this, 'create' ) );
