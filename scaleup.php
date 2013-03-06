@@ -9,26 +9,32 @@ define( 'SCALEUP_MIN_PHP', '5.2.4' );
 define( 'SCALEUP_MIN_WP', '3.4' );
 
 /**
- * Core & Parent classes
+ * Core
  */
-require( SCALEUP_DIR . '/classes/class-scaleup.php' );
-require( SCALEUP_DIR . '/classes/class-base.php' );
-require( SCALEUP_DIR . '/classes/class-duck-type.php' );
-require( SCALEUP_DIR . '/classes/class-feature.php' );
-require( SCALEUP_DIR . '/classes/class-global.php' );
-require( SCALEUP_DIR . '/classes/class-contextual.php' );
+require( SCALEUP_DIR . '/core/class-scaleup.php' );
+require( SCALEUP_DIR . '/core/class-base.php' );
+require( SCALEUP_DIR . '/core/class-duck-type.php' );
+require( SCALEUP_DIR . '/core/class-feature.php' );
 
 /**
- * Core Features
+ * Duck types
  */
-include( SCALEUP_DIR . '/classes/class-site.php' );
-include( SCALEUP_DIR . '/classes/class-form.php' );
-include( SCALEUP_DIR . '/classes/class-form-field.php' );
-include( SCALEUP_DIR . '/classes/class-schema.php' );
-include( SCALEUP_DIR . '/classes/class-property.php' );
-include( SCALEUP_DIR . '/classes/class-template.php' );
-include( SCALEUP_DIR . '/classes/class-asset.php' );
-include( SCALEUP_DIR . '/classes/class-alert.php' );
+require( SCALEUP_DIR . '/duck-types/class-global.php' );
+require( SCALEUP_DIR . '/duck-types/class-contextual.php' );
+
+/**
+ * Features
+ */
+include( SCALEUP_DIR . '/features/class-site.php' );
+include( SCALEUP_DIR . '/features/class-form.php' );
+include( SCALEUP_DIR . '/features/class-form-field.php' );
+include( SCALEUP_DIR . '/features/class-schema.php' );
+include( SCALEUP_DIR . '/features/class-property.php' );
+include( SCALEUP_DIR . '/features/class-taxonomy.php' );
+include( SCALEUP_DIR . '/features/class-relationship.php' );
+include( SCALEUP_DIR . '/features/class-template.php' );
+include( SCALEUP_DIR . '/features/class-asset.php' );
+include( SCALEUP_DIR . '/features/class-alert.php' );
 
 /**
  * API

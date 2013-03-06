@@ -52,6 +52,122 @@ class ScaleUp {
   }
 
   /**
+   * Register schema with this site
+   *
+   * @param $args
+   * @return array|bool
+   */
+  static function register_schema( $args ) {
+    $site = ScaleUp::get_site();
+    return $site->register( 'schema', $args );
+  }
+
+  /**
+   * Create an item in the database from the passed arguments and return the created item
+   *
+   * @param $args
+   * @return ScaleUp_Item
+   */
+  static function create_item( $args ) {
+    $site = ScaleUp::get_site();
+    /*** @var $item ScaleUp_Item */
+    $item = $site->add( 'item', $args );
+    $item->create( $args );
+
+    $id = $item->get( 'id' );
+
+    if ( is_int( $id ) && $id > 0 ) {
+      /**
+       * Let's replace item name in site's item feature storage with a property name that we can reference in the future
+       */
+      $new_id = "item_$id";
+      $name = $item->get( 'name' );
+      $items = $site->get_features( 'items' );
+      /**
+       * Remove reference to the old hashed name
+       */
+      unset( $items->$name );
+      /**
+       * Set new refence using item's id
+       */
+      $items->set( $new_id, $item );
+    } else {
+      $item = null;
+      /**
+       * @todo: an error to return
+       */
+    }
+
+    return $item;
+  }
+
+  /**
+   * Get item by id
+   *
+   * @param int $id
+   * @return ScaleUp_Item|false
+   */
+  static function get_item( int $id ) {
+
+    $item = false;
+
+    if ( $id > 0 ) {
+      $property_name = "item_$id";
+      $site = ScaleUp::get_site();
+      /** @var $items ScaleUp_Base */
+      $items = $site->get_features( 'items' );
+      $item = $items->get( $property_name );
+      if ( is_null( $item ) ) {
+        /** @var $item ScaleUp_Item */
+        $item = $site->add( 'item' );
+        $item->read( $id );
+      }
+    } else {
+      ScaleUp::add_alert( array( 'type' => 'warning', 'debug' => true, 'wrong' => $id, 'msg' => "Could not get the item because item id is invalid" ) );
+    }
+
+    return $item;
+  }
+
+  /**
+   * Update item with values from $args
+   *
+   * @param $id
+   * @param $args
+   * @return bool
+   */
+  static function update_item( $id, $args = array() ) {
+
+    $result = false;
+
+    $item = ScaleUp::get_item( $id );
+
+    if ( $item ) {
+      $result = $item->update( $args );
+    }
+
+    return $result;
+  }
+
+  /**
+   * Delete item with $id and return true on success or false on fail
+   *
+   * @param $id
+   * @return bool
+   */
+  static function delete_item( $id ) {
+
+    $success = true;
+
+    $item = ScaleUp::get_item( $id );
+    if ( $item ) {
+      $success = $item->delete();
+    }
+
+    return $success;
+  }
+
+  /**
    * Make a feature type available.
    *
    * @param $feature_type string
