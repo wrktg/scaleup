@@ -102,6 +102,17 @@ class ScaleUp {
   }
 
   /**
+   * Create an empty instance of an item ( the database is untouched )
+   *
+   * @param $args
+   * @return bool|ScaleUp_Feature
+   */
+  static function new_item( $args ) {
+    $site = ScaleUp::get_site();
+    return $site->add( 'item', $args );
+  }
+
+  /**
    * Get item by id
    *
    * @param int $id
@@ -159,9 +170,10 @@ class ScaleUp {
 
     $success = true;
 
+    /** @var $item ScaleUp_Item */
     $item = ScaleUp::get_item( $id );
     if ( $item ) {
-      $success = $item->delete();
+      $success = $item->delete( $id );
     }
 
     return $success;
@@ -223,6 +235,14 @@ class ScaleUp {
    */
   static function get_duck_types() {
     return self::$_duck_types;
+  }
+
+  /**
+   * Return registered feature types
+   * @return array
+   */
+  static function get_feature_types() {
+    return self::$_feature_types;
   }
 
   /**

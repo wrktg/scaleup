@@ -9,6 +9,8 @@ class ScaleUp_Form extends ScaleUp_Feature {
 
   var $_error = false;
 
+  var $_continue;
+
   function init() {
 
     if ( !$this->has( 'action' ) ) {
@@ -111,128 +113,106 @@ class ScaleUp_Form extends ScaleUp_Feature {
 
   /**
    * Take the form through the 4 form stages and return if
-   *   1. validate fields
-   *   2. store data
-   *   3. notify users
-   *   4. confirm submission
    *
    * @param array $args
    * @return bool
    */
   function process( $args = array() ) {
 
-    $steps = array( 'populate', 'validate', 'normalize','store', 'notify', 'confirm' );
+    $this->add_filter( 'process', array( $this, 'populate' ) );
+    $this->add_filter( 'process', array( $this, 'normalize' ) );
+    $this->add_filter( 'process', array( $this, 'validate' ) );
+    $this->add_filter( 'process', array( $this, 'store' ) );
+    $this->add_filter( 'process', array( $this, 'notify' ) );
+    $this->add_filter( 'process', array( $this, 'confirm' ) );
 
-    foreach ( $steps as $step ) {
-      $this->add_action( $step, array( $this, $step ) );
-    }
-    reset( $steps );
-
-    while( false === $this->get( 'error' ) && ( $step = current( $steps ) ) ) {
-      $this->do_action( $step, $args );
-      next( $steps );
-    }
-
-    return false !== $this->get( 'error' );
+    return $this->apply_filters( 'process', $args );
   }
 
   /**
    * Populate form field from $args array
    *
-   * @param $form ScaleUp_Form
    * @param array $args
-   *
    * @return bool
    */
-  function populate( $form,  $args = array() ) {
+  function populate( $args = array() ) {
+    return $this->apply_filters( 'populate', $args );
+  }
 
-    $field_names = $form->_get_field_names();
-    foreach ( $field_names as $field_name ) {
-      if ( isset( $args[ $field_name ] ) ) {
-        /** @var $field ScaleUp_Form_Field */
-        $field = $form->get_feature( 'form_field', $field_name );
-        $field->set( 'value', $args[ $field_name ] );
-      }
-    }
 
-    return true;
+  /**
+   * Deal with intricacies of different value formats and convert them to standard string or array and populate the
+   * array with normalized values.
+   *
+   * @param array $args
+   * @return mixed|void
+   */
+  function normalize( $args = array() ) {
+    return $this->apply_filters( 'normalize', $args );
   }
 
   /**
    * Return weather or not form field validates
    *
-   * @param $form ScaleUp_Form
    * @param array $args
    * @return bool
    */
-  function validate( $form, $args = array()) {
+  function validate( $args = array() ) {
 
-    $validates = true;
-
-    $field_names = $form->_get_field_names();
-    foreach ( $field_names as $field_name ) {
-      /** @var $field ScaleUp_Form_Field */
-      $field = $form->get_feature( 'form_field', $field_name );
-      if ( !$field->validate() ) {
-        $validates = false;
-      }
-    }
-
-    if ( !$validates ) {
-      $form->register( 'alert', array(
+    if ( !$this->apply_filters( 'validate', true ) ) {
+      $this->register( 'alert', array(
         'msg'  => 'Your submission did not pass validation. Please, verify your entry and resubmit.',
         'type' => 'error'
       ) );
+      $this->set( 'continue', false );
     }
 
-    return $validates;
+    return $args;
   }
 
   /**
    * Store the submission
    *
-   * @param $form ScaleUp_Form
    * @param $args array
    * @return bool
    */
-  function store( $form, $args = array() ) {
+  function store( $args = array() ) {
 
-    return true;
+    if ( $this->get( 'continue' ) ) {
+      $this->do_action( 'store', $args );
+    }
+
+    return $args;
   }
 
   /**
    * Notify those who care
    *
-   * @param $form
    * @param array $args
    * @return bool
    */
-  function notify( $form, $args = array() ) {
+  function notify( $args = array() ) {
 
-    /**
-     * @todo: need to make this hookable
-     */
-    $notify = $form->get( 'notify' );
-    if ( is_array( $notify ) ) {
-      foreach ( $notify as $notice ) {
-        if ( isset( $notice[ 'method' ] ) && 'email' == $notice[ 'method' ] ) {
-          $this->notify_email( $form, $notice );
+    if ( $this->get( 'continue' ) ) {
+      $notify = $this->get( 'notify' );
+      if ( is_array( $notify ) ) {
+        foreach ( $notify as $notice ) {
+          if ( isset( $notice[ 'method' ] ) && 'email' == $notice[ 'method' ] ) {
+            $this->notify_email( $notice );
+          }
         }
       }
     }
 
-    return true;
+    return $args;
   }
 
-  function notify_email( $form, $args ) {
+  function notify_email( $args ) {
 
-    /**
-     * @todo: this needs to be redone properly, right now too hardcody
-     */
     if ( isset( $args[ 'to' ] ) ) {
       $to = $args[ 'to' ];
       if ( is_callable( $to ) ) {
-        $to = call_user_func( $to, $form );
+        $to = call_user_func( $to, $this );
       }
       wp_mail( $to, $args[ 'subject' ], $args[ 'message' ] );
     }

@@ -33,6 +33,13 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
       }
     }
 
+    if ( $this->has( 'context' ) ) {
+      $form = $this->get( 'context' );
+      $form->add_filter( 'populate',  array( $this, 'populate' ) );
+      $form->add_filter( 'normalize', array( $this, 'normalize' ) );
+      $form->add_filter( 'validate',  array( $this, 'validate' ) );
+    }
+
     $this->add_action( 'register', array( $this, 'add_error_class' ), 20 );
   }
 
@@ -73,21 +80,58 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
   }
 
   /**
+   * Take value from $args and load it into this form field
+   *
+   * @param array $args
+   * @return array
+   */
+  function populate( $args = array() ) {
+    $name = $this->get( 'name' );
+    if ( isset( $args[ $name ] ) ) {
+      $value = $args[ $name ];
+      $this->set( 'value', $value );
+    }
+    return $args;
+  }
+
+  /**
+   * Deal with intricacies of different field formats
+   *
+   * @param array $args
+   * @return array
+   */
+  function normalize( $args = array() ) {
+    $value  = $this->get( 'value' );
+    $name   = $this->get( 'name' );
+    if ( isset( $args[ $name ] ) ) {
+      switch ( $this->get( 'format' ) ):
+        case 'args_string':
+          $value = wp_parse_args( $value );
+        break;
+      endswitch;
+      $args[ $name ] = $value;
+    }
+
+    return $args;
+  }
+
+  /**
    * Run validation filters on this form field and return true if validation passed, otherwise return false.
    *
+   * @param $pass bool
    * @return bool
    */
-  function validate() {
-    return $this->apply_filters( 'validate', true );
+  function validate( $pass ) {
+    return $this->apply_filters( 'validate', $pass );
   }
 
   /**
    * Apply required validation to field
    *
-   * @param $valid bool
+   * @param $pass bool
    * @return bool
    */
-  function validate_required( $valid ) {
+  function validate_required( $pass ) {
 
     $value = $this->get( 'value' );
     if ( '' === trim( $value ) || is_null( $value ) ) {
@@ -95,19 +139,19 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
         'type' => 'error',
         'msg'  => __( 'This field can not be empty.' )
       ) );
-      $valid = false;
+      $pass = false;
     }
 
-    return $valid;
+    return $pass;
   }
 
   /**
    * Apply email validation to field
    *
-   * @param $valid bool
+   * @param $pass bool
    * @return ScaleUp_Form_Field
    */
-  function validate_email( $valid ) {
+  function validate_email( $pass ) {
 
     $value = $this->get( 'value' );
     if ( !empty( $value ) && 1 != preg_match( '/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/', $value ) ) {
@@ -115,22 +159,21 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
         'type' => 'error',
         'msg'  => __( "Must be a valid email address." )
       ) );
-      $valid = false;
+      $pass = false;
     }
 
-    return $valid;
+    return $pass;
   }
 
   /**
    * Return true if nonce is valid
    *
-   * @param $valid bool
+   * @param $pass bool
    * @return bool
    */
-  function validate_nonce( $valid ) {
+  function validate_nonce( $pass ) {
 
-    $passed = wp_verify_nonce( $this->get( 'value' ), $this->get( 'action' ) );
-    if ( false == $passed ) {
+    if ( false === wp_verify_nonce( $this->get( 'value' ), $this->get( 'action' ) ) ) {
       $error_args = array(
         'type' => 'error',
         'msg'  => __( 'Nonce could not be verified. What are you trying to do?' )
@@ -141,10 +184,10 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
        */
       $form = $this->get( 'context' );
       $form->register( 'alert', $error_args );
-      $valid = false;
+      $pass = false;
     }
 
-    return $valid;
+    return $pass;
   }
 
   /**

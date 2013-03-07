@@ -230,6 +230,18 @@ class ScaleUp_Feature extends ScaleUp_Base {
         $name  = $args[ 'name' ];
         $class = $args[ '__CLASS__' ];
 
+        /**
+         * Special situation when a feature is both global and contextual like a schema
+         * The features in global scope are not instantiatable @todo: add code to make this configurable and enforced
+         */
+        if ( in_array( 'global', $feature_type_args[ '_duck_types' ] ) && in_array( 'contextual', $feature_type_args[ '_duck_types' ] ) ) {
+          $site = ScaleUp::get_site();
+          if ( $site->is_registered( $feature_type, $name ) && is_array( $site->get_feature( $feature_type, $name ) ) ) {
+            $registered_feature_args = $site->get_feature( $feature_type, $name );
+            $args = wp_parse_args( $args, $registered_feature_args );
+          }
+        }
+
       } elseif ( is_object( $args ) ) {
 
         $class = get_class( $args );
@@ -283,7 +295,13 @@ class ScaleUp_Feature extends ScaleUp_Base {
       $result = $args;
 
     } else {
-      add_alert( 'warning', "Attempting to register a feature of unknown feature type.", array( 'debug' => true, 'wrong' => $feature_type ) );
+      ScaleUp::add( 'alert',
+        array(
+          'type' => 'warning',
+          'msg'  => 'Attempting to register a feature of unknown feature type.',
+          'debug' => true,
+          'wrong' => $feature_type
+        ));
     }
 
     return $result;
@@ -351,7 +369,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
 
       $this->do_action( 'activate', $result );
 
-      do_action( 'register_feature', $result );
+      do_action( 'activate_feature', $result );
 
     } else {
       add_alert( 'warning', "Attempting to activate a feature of unknown feature type.", array( 'debug' => true, 'wrong' => $feature_type ) );

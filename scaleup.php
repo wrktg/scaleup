@@ -26,13 +26,14 @@ require( SCALEUP_DIR . '/duck-types/class-contextual.php' );
  * Features
  */
 include( SCALEUP_DIR . '/features/class-site.php' );
-include( SCALEUP_DIR . '/features/class-form.php' );
-include( SCALEUP_DIR . '/features/class-form-field.php' );
+include( SCALEUP_DIR . '/features/class-item.php' );
 include( SCALEUP_DIR . '/features/class-schema.php' );
 include( SCALEUP_DIR . '/features/class-post-schema.php' );
 include( SCALEUP_DIR . '/features/class-property.php' );
 include( SCALEUP_DIR . '/features/class-taxonomy.php' );
 include( SCALEUP_DIR . '/features/class-relationship.php' );
+include( SCALEUP_DIR . '/features/class-form.php' );
+include( SCALEUP_DIR . '/features/class-form-field.php' );
 include( SCALEUP_DIR . '/features/class-template.php' );
 include( SCALEUP_DIR . '/features/class-asset.php' );
 include( SCALEUP_DIR . '/features/class-alert.php' );

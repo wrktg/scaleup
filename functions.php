@@ -137,16 +137,15 @@ if ( !function_exists( 'register_schema' ) ) {
           $feature_type = 'property';
         }
         switch ( $feature_type ) :
-          case 'property':
-            $properties[ $prop_name ] = $prop_args;
-            break;
-          case 'taxonomy':
+          case 'taxonomy' :
             $taxonomies[ $prop_name ] = $prop_args;
             break;
-          case 'relationships':
+          case 'relationships' :
             $relationships[ $prop_name ] = $prop_args;
             break;
+          case 'property' :
           default:
+            $properties[ $prop_name ] = $prop_args;
         endswitch;
         unset( $args[ $prop_name ] );
       }
@@ -183,7 +182,7 @@ if ( !function_exists( 'create_item' ) ) {
    */
   function create_item( $schema, $args = array() ) {
 
-    $schema = ( array ) $schema;
+    $schema = ( array )$schema;
 
     $default = array(
       'schemas' => array_merge( array( 'post' ), $schema )
@@ -200,7 +199,6 @@ if ( !function_exists( 'create_item' ) ) {
     )
   );
 }
-
 
 if ( !function_exists( 'get_item' ) ) {
   /**
@@ -261,6 +259,35 @@ if ( !function_exists( 'delete_item' ) ) {
     array(
       'type'  => 'warning',
       'msg'   => sprintf( "delete_item function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
+      'debug' => true,
+    )
+  );
+}
+
+if ( !function_exists( 'new_item' ) ) {
+  /**
+   * Return an empty instance of an item without modifying the database.
+   * To create an item in the database use create_item function instead.
+   *
+   * @param $schema
+   * @param array $args
+   * @return bool|ScaleUp_Feature
+   */
+  function new_item( $schema, $args = array() ) {
+
+    $schema = ( array )$schema;
+
+    $default = array(
+      'schemas' => array_merge( array( 'post' ), $schema )
+    );
+
+    return ScaleUp::new_item( wp_parse_args( $args, $default ) );
+  }
+} else {
+  ScaleUp::add_alert(
+    array(
+      'type'  => 'warning',
+      'msg'   => sprintf( "new_item function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
       'debug' => true,
     )
   );
