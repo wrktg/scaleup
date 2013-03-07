@@ -7,9 +7,6 @@ class ScaleUp_Item extends ScaleUp_Feature {
    * @param $args array
    */
   function create( $args = array() ) {
-    if ( isset( $args[ 'ID' ] ) ) {
-      unset( $args[ 'ID' ] );
-    }
     $this->do_action( 'create', $args );
     /**
      * @todo: check if errors occured and return
@@ -51,6 +48,35 @@ class ScaleUp_Item extends ScaleUp_Feature {
   function delete( $id, $force_delete = false ) {
     $this->set( 'id', $id );
     $this->do_action( 'delete', array( 'id' => $id, 'force_delete' => $force_delete ) );
+  }
+
+  /**
+   * Callback function to be used when hooking to forms
+   *
+   * @param $caller
+   * @param $args
+   */
+  function store( $caller, $args ) {
+
+    $id = null;
+
+    $this->set( 'caller', $caller );
+    if ( isset( $args[ 'id' ] ) ) {
+      $id = $args[ 'id' ];
+    }
+    if ( isset( $args[ 'ID' ] ) ) {
+      $id = $args[ 'ID' ];
+    }
+
+    $id = (int) $id;
+
+    if ( 0 == $id ) {
+      $this->create( $args );
+    } elseif ( $id > 0 ) {
+      $args[ 'ID' ] = $id;
+      $this->update( $args );
+    }
+
   }
 
   function get_defaults() {

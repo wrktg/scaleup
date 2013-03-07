@@ -264,6 +264,12 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
       default:
         $value = null;
     }
+    switch( $this->get( 'name' ) ):
+      case 'nonce':
+        $value = wp_create_nonce( $this->get( 'action' ) );
+      break;
+    endswitch;
+
     return $value;
   }
 

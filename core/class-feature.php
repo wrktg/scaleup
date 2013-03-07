@@ -216,10 +216,6 @@ class ScaleUp_Feature extends ScaleUp_Base {
 
       if ( is_array( $args ) ) {
 
-        /**
-         * Merge passed args with feature type declaration
-         */
-        $args = wp_parse_args( $args, $feature_type_args );
         if ( !isset( $args[ 'name' ] ) || is_null( $args[ 'name' ] ) ) {
           /**
            * Give this object a name. This name is a hash, but gives this object some resemblance of identity
@@ -228,7 +224,6 @@ class ScaleUp_Feature extends ScaleUp_Base {
           $args[ 'name' ] = md5( json_encode( $args ) );
         }
         $name  = $args[ 'name' ];
-        $class = $args[ '__CLASS__' ];
 
         /**
          * Special situation when a feature is both global and contextual like a schema
@@ -241,6 +236,12 @@ class ScaleUp_Feature extends ScaleUp_Base {
             $args = wp_parse_args( $args, $registered_feature_args );
           }
         }
+        /**
+         * Merge passed args with feature type declaration
+         */
+        $args = wp_parse_args( $args, $feature_type_args );
+
+        $class = $args[ '__CLASS__' ];
 
       } elseif ( is_object( $args ) ) {
 

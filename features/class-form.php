@@ -9,7 +9,11 @@ class ScaleUp_Form extends ScaleUp_Feature {
 
   var $_error = false;
 
-  var $_continue;
+  /**
+   * This flag is set to false when form fails a step in $form->process
+   * @var bool
+   */
+  var $_continue = true;
 
   function init() {
 
@@ -25,12 +29,10 @@ class ScaleUp_Form extends ScaleUp_Feature {
     ));
 
     $nonce_action = $this->get( 'action' ) . $this->get( 'name' );
-    $nonce = wp_create_nonce( $nonce_action );
 
     $this->register( 'form_field', array(
       'name'        => 'nonce',
       'type'        => 'hidden',
-      'value'       => $nonce,
       'action'      => $nonce_action,
       'validation'  => array( 'required', 'nonce' ),
     ));

@@ -4,13 +4,10 @@ class ScaleUp_Property extends ScaleUp_Feature {
   var $_error = false;
 
   function activation() {
-    $context = $this->get( 'context' );
-    $context->add_action( 'create', array( $this, 'setup' ) );
-    $context->add_action( 'create', array( $this, 'create' ) );
-    $context->add_action( 'read',   array( $this, 'setup' ) );
-    $context->add_action( 'read',   array( $this, 'read' ) );
-    $context->add_action( 'update', array( $this, 'setup' ) );
-    $context->add_action( 'update', array( $this, 'update' ) );
+    $schema = $this->get( 'context' );
+    $schema->add_action( 'create', array( $this, 'create' ) );
+    $schema->add_action( 'read',   array( $this, 'read' ) );
+    $schema->add_action( 'update', array( $this, 'update' ) );
   }
 
   function setup( $schema, $args = array() ) {
@@ -28,6 +25,7 @@ class ScaleUp_Property extends ScaleUp_Feature {
    * @return bool
    */
   function create( $schema, $args = array() ) {
+    $this->setup( $args );
     $id = $this->get( 'id' );
     $name = $this->get( 'name' );
     if ( isset( $args[ $name ] ) ) {

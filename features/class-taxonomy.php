@@ -3,7 +3,7 @@ class ScaleUp_Taxonomy extends ScaleUp_Feature {
 
   function activation() {
     $schema = $this->get( 'context' );
-    $schema->add_action( 'on_item_create', array( $this, 'on_item_create' ) );
+    $schema->add_action( 'on_item_create', array( $this, 'on_item_update' ) );
     $schema->add_action( 'on_item_read', array( $this, 'on_item_read' ) );
     $schema->add_action( 'on_item_update', array( $this, 'on_item_update' ) );
   }
@@ -73,13 +73,13 @@ class ScaleUp_Taxonomy extends ScaleUp_Feature {
   }
 
   /**
-   * Add a newly created item to taxonomy.
-   * This method is a callback for ScaleUp_Item "create" hook.
+   * Add this item to the taxonomy.
+   * This method is a callback for ScaleUp_Item "create" & "update" hooks.
    *
    * @param $schema
    * @param array $args
    */
-  function on_item_create( $schema, $args = array() ) {
+  function on_item_update( $schema, $args = array() ) {
     $result  = null;
     $item_id = $this->get( 'item_id' );
     if ( $this->setup( $args ) && $item_id ) {
@@ -128,16 +128,6 @@ class ScaleUp_Taxonomy extends ScaleUp_Feature {
     }
     $this->set( 'value', $result );
   }
-
-  function on_item_update( $schema, $args = array() ) {
-    $result = null;
-    if ( $this->setup( $args ) ) {
-      $item_id  = $this->get( 'item_id' );
-      $taxonomy = $this->get( 'taxonomy' );
-      $value    = $this->get( 'value' );
-    }
-  }
-
 
   function get_defaults() {
     return wp_parse_args(
