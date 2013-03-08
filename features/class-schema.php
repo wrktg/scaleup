@@ -5,11 +5,11 @@ class ScaleUp_Schema extends ScaleUp_Feature {
 
   function activation() {
     /** @var $context ScaleUp_Item */
-    $context = $this->get( 'context' );
-    $context->add_action( 'create', array( $this, 'on_item_create' ) );
-    $context->add_action( 'read',   array( $this, 'on_item_read' ) );
-    $context->add_action( 'update', array( $this, 'on_item_update' ) );
-    $context->add_action( 'delete', array( $this, 'on_item_delete' ) );
+    $item = $this->get( 'context' );
+    $item->add_action( 'create', array( $this, 'on_item_create' ) );
+    $item->add_action( 'read',   array( $this, 'on_item_read' ) );
+    $item->add_action( 'update', array( $this, 'on_item_update' ) );
+    $item->add_action( 'delete', array( $this, 'on_item_delete' ) );
   }
 
   /**
@@ -17,7 +17,6 @@ class ScaleUp_Schema extends ScaleUp_Feature {
    *
    * @param $item ScaleUp_Item
    * @param array $args
-   * @return bool
    */
   function on_item_create( $item, $args = array() ) {
     $id = (int) $item->get( 'id' );
@@ -25,9 +24,8 @@ class ScaleUp_Schema extends ScaleUp_Feature {
       $this->set( 'error', false );   // reset error flag
       $args[ 'item' ] = $item;
       $args[ 'id' ]   = $id;
-      $this->do_action( 'create', $args );
+      $this->do_action( 'on_item_create', $args );
     }
-    return $this->get( 'error' );
   }
 
   /**
@@ -43,9 +41,8 @@ class ScaleUp_Schema extends ScaleUp_Feature {
       $this->set( 'error', false );   // reset error flag
       $args[ 'item' ] = $item;
       $args[ 'id' ]   = $id;
-      $this->do_action( 'read', $id );
+      $this->do_action( 'on_item_read', $id );
     }
-    return $this->get( 'error' );
   }
 
   /**
@@ -61,9 +58,8 @@ class ScaleUp_Schema extends ScaleUp_Feature {
       $this->set( 'error', false );   // reset error flag
       $args[ 'item' ] = $item;
       $args[ 'id' ]   = $id;
-      $this->do_action( 'update', $args );
+      $this->do_action( 'on_item_update', $args );
     }
-    return $this->get( 'error' );
   }
 
   /**
@@ -78,9 +74,8 @@ class ScaleUp_Schema extends ScaleUp_Feature {
       $this->set( 'error', false );   // reset error flag
       $args[ 'item' ] = $item;
       $args[ 'id' ]   = $id;
-      $this->do_action( 'delete', $args );
+      $this->do_action( 'on_item_delete', $args );
     }
-    return $this->get( 'error' );
   }
 
   function get_defaults() {

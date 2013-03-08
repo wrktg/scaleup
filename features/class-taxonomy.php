@@ -81,8 +81,7 @@ class ScaleUp_Taxonomy extends ScaleUp_Feature {
    */
   function on_item_update( $schema, $args = array() ) {
     $result  = null;
-    $item_id = $this->get( 'item_id' );
-    if ( $this->setup( $args ) && $item_id ) {
+    if ( $this->setup( $args ) && ( $item_id = $this->get( 'item_id' ) ) ) {
       $term = wp_set_post_terms( $item_id, $this->get( 'value' ), $this->get( 'taxonomy' ), $this->get( 'append' ) );
       if ( is_array( $term ) ) {
         /**

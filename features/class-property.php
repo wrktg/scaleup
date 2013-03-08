@@ -10,11 +10,20 @@ class ScaleUp_Property extends ScaleUp_Feature {
     $schema->add_action( 'update', array( $this, 'update' ) );
   }
 
-  function setup( $schema, $args = array() ) {
-    if ( !$this->has( 'id' ) || is_null( $this->has( 'id' ) ) ) {
-      $id = (int) $args[ 'id' ];
-      $this->set( 'id', $id );
+  /**
+   *
+   * @param array $args
+   * @return bool
+   */
+  function setup( $args = array() ) {
+    $successful = false;
+
+    if ( isset( $args[ 'id' ] ) && $args[ 'id' ] > 0 ) {
+      $this->set( 'item_id', $args[ 'id' ] );
+      $successful = true;
     }
+
+    return $successful;
   }
 
   /**
@@ -22,15 +31,26 @@ class ScaleUp_Property extends ScaleUp_Feature {
    *
    * @param $schema ScaleUp_Schema
    * @param $args array
-   * @return bool
    */
   function create( $schema, $args = array() ) {
-    $this->setup( $args );
-    $id = $this->get( 'id' );
-    $name = $this->get( 'name' );
-    if ( isset( $args[ $name ] ) ) {
-      $value = $args[ $name ];
-      add_metadata( $this->get( 'meta_type' ), $id, $this->get_meta_key(), $value );
+    if ( $this->setup( $args ) ) {
+      $item_id    = $this->get( 'item_id' );
+      $name       = $this->get( 'name' );
+      $meta_key   = $this->get_meta_key();
+      $meta_type  = $this->get( 'meta_type' );
+      if ( isset( $args[ $name ] ) ) {
+        $value = $args[ $name ];
+        $successful = add_metadata( $meta_type, $item_id, $meta_key, $value );
+        if ( !$successful ) {
+          $this->add( 'alert',
+            array(
+              'type'  => 'warning',
+              'msg'   => "Failed to update $meta_type meta $meta_key with $value",
+              'debug' => true,
+            )
+          );
+        }
+      }
     }
   }
 
@@ -39,13 +59,13 @@ class ScaleUp_Property extends ScaleUp_Feature {
    *
    * @param $schema ScaleUp_Schema
    * @param array $args
-   * @return array|string
    */
   function read( $schema, $args = array() ) {
-    $id = $this->get( 'id' );
-    $value = get_metadata( $this->get( 'meta_type' ), $id, $this->get_meta_key() );
+    $item_id    = $this->get( 'item_id' );
+    $meta_type  = $this->get( 'meta_type' );
+    $meta_key   = $this->get_meta_key();
+    $value = get_metadata( $meta_type, $item_id, $meta_key );
     $this->get( 'value', $value );
-    return $value;
   }
 
   /**
@@ -56,15 +76,20 @@ class ScaleUp_Property extends ScaleUp_Feature {
    * @param array $args
    */
   function update( $schema, $args = array() ) {
-    $id = $this->get( 'id' );
-    if ( isset( $args[ $this->get( 'name' ) ] ) ) {
-      $value = $args[ $this->get( 'name' ) ];
-      if ( is_null( $value ) ) {
-        delete_metadata( $this->get( 'meta_type' ), $id, $this->get_meta_key() );
-      } else {
-        update_metadata( $this->get( 'meta_type' ), $id, $this->get_meta_key(), $value );
+    $item_id    = $this->get( 'item_id' );
+    $meta_type  = $this->get( 'meta_type' );
+    $meta_key   = $this->get_meta_key();
+    $name       = $this->get( 'name' );
+    if ( $this->setup( $args ) ) {
+      if ( isset( $args[ $name ] ) ) {
+        $value = $args[ $this->get( 'name' ) ];
+        if ( is_null( $value ) ) {
+          delete_metadata( $meta_type, $item_id, $meta_key );
+        } else {
+          update_metadata( $meta_type, $item_id, $meta_key, $value );
+        }
+        $this->set( 'value', $value );
       }
-      $this->set( 'value', $value );
     }
   }
 
