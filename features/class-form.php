@@ -121,12 +121,12 @@ class ScaleUp_Form extends ScaleUp_Feature {
    */
   function process( $args = array() ) {
 
-    $this->add_filter( 'process', array( $this, 'populate' ) );
-    $this->add_filter( 'process', array( $this, 'normalize' ) );
-    $this->add_filter( 'process', array( $this, 'validate' ) );
-    $this->add_filter( 'process', array( $this, 'store' ) );
-    $this->add_filter( 'process', array( $this, 'notify' ) );
-    $this->add_filter( 'process', array( $this, 'confirm' ) );
+    $this->add_filter( 'process', array( $this, 'populate' ),   10 );
+    $this->add_filter( 'process', array( $this, 'normalize' ),  20 );
+    $this->add_filter( 'process', array( $this, 'validate' ),   30 );
+    $this->add_filter( 'process', array( $this, 'store' ),      40 );
+    $this->add_filter( 'process', array( $this, 'notify' ),     50 );
+    $this->add_filter( 'process', array( $this, 'confirm' ),    60 );
 
     return $this->apply_filters( 'process', $args );
   }

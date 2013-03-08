@@ -387,23 +387,32 @@ class ScaleUp_Feature extends ScaleUp_Base {
   }
 
   /**
+   * @todo: Add proper docs to action and filter methods
+   */
+
+  /**
    * Add action to this feature
    *
    * @param $handle
    * @param null $callback
    * @param int $priority
    */
-  function add_action( $handle, $callback = null, $priority = 10 ) {
-    if ( is_null( $callback ) ) {
-      $callback = array( $this, $handle );
-    }
+  function add_action( $handle, $callback, $priority = 10 ) {
     $object_hash = spl_object_hash( $this );
     add_action( "{$object_hash}->{$handle}", $callback, $priority, 2 );
   }
 
   /**
-   * @todo: Add proper docs to action and filter methods
+   * Remove callback from this feature
+   *
+   * @param $handle
+   * @param $callback
+   * @param int $priority
    */
+  function remove_action( $handle, $callback, $priority = 10 ) {
+    $object_hash = spl_object_hash( $this );
+    remove_action( "{$object_hash}->{$handle}", $callback, $priority, 2 );
+  }
 
   /**
    * Do action associated with this feature
@@ -424,11 +433,26 @@ class ScaleUp_Feature extends ScaleUp_Base {
    * @param int $priority
    */
   function add_filter( $handle, $callback = null, $priority = 10 ) {
+    /**
+     * @todo: remove this callback = null stuff
+     */
     if ( is_null( $callback ) ) {
       $callback = array( $this, $handle );
     }
     $object_hash = spl_object_hash( $this );
     add_filter( "{$object_hash}->{$handle}", $callback, $priority, 2 );
+  }
+
+  /**
+   * Remove filter for this feature
+   *
+   * @param $handle
+   * @param $callback
+   * @param int $priority
+   */
+  function remove_filter( $handle, $callback, $priority = 10 ) {
+    $object_hash = spl_object_hash( $this );
+    remove_filter( "{$object_hash}->{$handle}", $callback, $priority, 2 );
   }
 
   function apply_filters( $handle, $value, $args = array() ) {

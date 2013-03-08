@@ -22,14 +22,7 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
     if ( $this->has( 'validation' ) ) {
       $validations = (array)$this->get( 'validation' );
       foreach ( $validations as $validation ) {
-        if ( is_callable( $validation ) ) {
-          $this->add_filter( 'validate', $validation );
-        } else {
-          $method_name = "validate_$validation";
-          if ( is_string( $validation ) && is_callable( array( $this, $method_name ) ) ) {
-            $this->add_filter( 'validate', array( $this, $method_name ) );
-          }
-        }
+        $this->add_validation( $validation );
       }
     }
 
@@ -123,6 +116,38 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
    */
   function validate( $pass ) {
     return $this->apply_filters( 'validate', $pass );
+  }
+
+  /**
+   * Add validation to this field
+   *
+   * @param $validation string|callable
+   */
+  function add_validation( $validation ) {
+    if ( is_callable( $validation ) ) {
+      $this->add_filter( 'validate', $validation );
+    } else {
+      $method_name = "validate_$validation";
+      if ( is_string( $validation ) && is_callable( array( $this, $method_name ) ) ) {
+        $this->add_filter( 'validate', array( $this, $method_name ) );
+      }
+    }
+  }
+
+  /**
+   * Remove validation from this field
+   *
+   * @param $validation string|callable
+   */
+  function remove_validation( $validation ) {
+    if ( is_callable( $validation ) ) {
+      $this->remove_filter( 'validate', $validation );
+    } else {
+      $method_name = "validate_$validation";
+      if ( is_string( $validation ) && is_callable( array( $this, $method_name ) ) ) {
+        $this->remove_filter( 'validate', array( $this, $method_name ) );
+      }
+    }
   }
 
   /**
