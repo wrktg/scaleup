@@ -13,18 +13,47 @@ class ScaleUp_Schema extends ScaleUp_Feature {
   }
 
   /**
+   * Extract id from args and setup this schema
+   *
+   * @param $args
+   * @return bool
+   */
+  function setup( $args ) {
+    $successful = true;
+
+    $id = null;
+
+    if ( !$this->has( 'item_id' ) || is_null( $this->has( 'item_id' ) ) ) {
+      if ( isset( $args[ 'id' ] ) ) {
+        $id = (int)$args[ 'id' ];
+      } elseif ( isset( $args[ 'ID' ] ) ) {
+        $id = (int)$args[ 'ID' ];
+      } else {
+        $successful = false;
+      }
+    }
+
+    if ( !is_null( $id ) && $id > 0 ) {
+      $this->set( 'item_id', $id );
+    } else {
+      $successful = false;
+    }
+
+    return $successful;
+  }
+
+  /**
    * Execute create action which causes all properties, taxonomies and relationships to execute create
    *
    * @param $item ScaleUp_Item
    * @param array $args
    */
   function on_item_create( $item, $args = array() ) {
-    $id         = (int) $item->get( 'id' );
     $post_type  = $this->get( 'post_type' );
-    if ( 0 < $id ) {
+    if ( $this->setup( $args ) ) {
+      $id = $item->get( 'item_id' );
       $this->set( 'error', false );   // reset error flag
       $args[ 'item' ] = $item;
-      $args[ 'id' ]   = $id;
       if ( $post_type ) {
         set_post_type( $id, $post_type );
       }
@@ -40,12 +69,10 @@ class ScaleUp_Schema extends ScaleUp_Feature {
    * @return bool
    */
   function on_item_read( $item, $args = array() ) {
-    $id = (int) $item->get( 'id' );
-    if ( 0 < $id ) {
+    if ( $this->setup( $args ) ) {
       $this->set( 'error', false );   // reset error flag
       $args[ 'item' ] = $item;
-      $args[ 'id' ]   = $id;
-      $this->do_action( 'on_item_read', $id );
+      $this->do_action( 'on_item_read', $args );
     }
   }
 
@@ -57,11 +84,9 @@ class ScaleUp_Schema extends ScaleUp_Feature {
    * @return mixed|null
    */
   function on_item_update( $item, $args ) {
-    $id = (int) $item->get( 'id' );
-    if ( 0 < $id ) {
+    if ( $this->setup( $args ) ) {
       $this->set( 'error', false );   // reset error flag
       $args[ 'item' ] = $item;
-      $args[ 'id' ]   = $id;
       $this->do_action( 'on_item_update', $args );
     }
   }
@@ -73,11 +98,9 @@ class ScaleUp_Schema extends ScaleUp_Feature {
    * @return mixed|null
    */
   function on_item_delete( $item, $args ) {
-    $id = (int) $item->get( 'id' );
-    if ( 0 < $id ) {
+    if ( $this->setup( $args ) ) {
       $this->set( 'error', false );   // reset error flag
       $args[ 'item' ] = $item;
-      $args[ 'id' ]   = $id;
       $this->do_action( 'on_item_delete', $args );
     }
   }

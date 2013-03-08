@@ -11,11 +11,12 @@ class ScaleUp_Property extends ScaleUp_Feature {
     switch ( $context->get( '_feature_type' ) ) :
       case 'schema':
         $context->add_action( 'on_item_create', array( $this, 'create' ) );
-        $context->add_action( 'on_item_read', array( $this, 'read' ) );
+        $context->add_action( 'on_item_read',   array( $this, 'read' ) );
         $context->add_action( 'on_item_update', array( $this, 'update' ) );
         break;
       case 'item':
         $context->add_action( 'create', array( $this, 'create' ) );
+        $context->add_action( 'update', array( $this, 'update' ) );
         break;
     endswitch;
   }
@@ -96,24 +97,32 @@ class ScaleUp_Property extends ScaleUp_Feature {
    * Update the value of this property. The new value is taken from the $args array.
    * If value is null then this method will remove the current value of the metadata.
    *
-   * @param $schema ScaleUp_Schema
+   * @param $feature ScaleUp_Schema
    * @param array $args
    */
-  function update( $schema, $args = array() ) {
-    $item_id   = $this->get( 'item_id' );
+  function update( $feature, $args = array() ) {
+    $item_id   = null;
     $meta_type = $this->get( 'meta_type' );
     $meta_key  = $this->get_meta_key();
     $name      = $this->get( 'name' );
     if ( $this->setup( $args ) ) {
-      if ( isset( $args[ $name ] ) ) {
-        $value = $args[ $this->get( 'name' ) ];
-        if ( is_null( $value ) ) {
-          delete_metadata( $meta_type, $item_id, $meta_key );
-        } else {
-          update_metadata( $meta_type, $item_id, $meta_key, $value );
-        }
-        $this->set( 'value', $value );
+      $item_id   = $this->get( 'item_id' );
+    } else {
+      /**
+       * This property is a item property
+       */
+      if ( $feature->get( 'id' ) && $this->get( 'value' ) ) {
+        $item_id = $feature->get( 'id' );
       }
+    }
+    if ( isset( $args[ $name ] ) ) {
+      $value = $args[ $this->get( 'name' ) ];
+    } else {
+      $value = $this->get( 'value' );
+    }
+    if ( !is_null( $value ) ) {
+      update_metadata( $meta_type, $item_id, $meta_key, $value );
+      $this->set( 'value', $value );
     }
   }
 

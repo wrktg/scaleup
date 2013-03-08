@@ -6,7 +6,7 @@ class ScaleUp_Relationship extends ScaleUp_Feature {
   function activation() {
     $context = $this->get( 'context' );
     $context->add_action( 'create', array( $this, 'create' ) );
-    $context->add_action( 'read', array( $this, 'read' ) );
+    $context->add_action( 'read',   array( $this, 'read' ) );
     $context->add_action( 'update', array( $this, 'update' ) );
     $context->add_action( 'delete', array( $this, 'delete' ) );
   }

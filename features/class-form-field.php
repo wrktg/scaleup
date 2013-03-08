@@ -81,8 +81,7 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
   function populate( $args = array() ) {
     $name = $this->get( 'name' );
     if ( isset( $args[ $name ] ) ) {
-      $value = $args[ $name ];
-      $this->set( 'value', $value );
+      $this->set( 'value', $args[ $name ] );
     }
     return $args;
   }
@@ -115,7 +114,8 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
    * @return bool
    */
   function validate( $pass ) {
-    return $this->apply_filters( 'validate', $pass );
+    $result = $this->apply_filters( 'validate', $pass );
+    return $result;
   }
 
   /**

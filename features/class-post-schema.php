@@ -1,26 +1,6 @@
 <?php
 class ScaleUp_Post_Schema extends ScaleUp_Schema {
 
-  var $_error = false;
-
-  static function scaleup_init() {
-    ScaleUp::register( 'schema',
-      array(
-        'name'      => 'post',
-        '__CLASS__' => 'ScaleUp_Post_Schema',
-      )
-    );
-  }
-
-  function activation() {
-    /** @var $context ScaleUp_Item */
-    $context = $this->get( 'context' );
-    $context->add_action( 'create', array( $this, 'create' ) );
-    $context->add_action( 'read',   array( $this, 'read' ) );
-    $context->add_action( 'update', array( $this, 'update' ) );
-    $context->add_action( 'delete', array( $this, 'delete' ) );
-  }
-
   /**
    * Create post from provided args
    *
@@ -28,7 +8,7 @@ class ScaleUp_Post_Schema extends ScaleUp_Schema {
    * @param array $args
    * @return bool
    */
-  function create( $item, $args = array() ) {
+  function on_item_create( $item, $args = array() ) {
 
     $success = false;
 
@@ -76,7 +56,7 @@ class ScaleUp_Post_Schema extends ScaleUp_Schema {
    * @param $id
    * @return bool
    */
-  function read( $item, $id ) {
+  function on_item_read( $item, $id ) {
     $success = false;
     $post = get_post( $id, ARRAY_A);
     if ( is_null( $post ) ) {
@@ -102,14 +82,14 @@ class ScaleUp_Post_Schema extends ScaleUp_Schema {
    * @param $args
    * @return bool
    */
-  function update( $item, $args ) {
+  function on_item_update( $item, $args ) {
 
     $success = false;
 
     /**
      * If ID was passed but it doesn't match this post's ID then unset it
      */
-    if ( isset( $args[ 'ID' ] ) && !is_null( $this->get( 'ID' ) ) && $this->get( 'ID') != $args[ 'ID' ] ) {
+    if ( isset( $args[ 'ID' ] ) && 0 != (int) $this->get( 'ID' ) ) {
       unset( $args[ 'ID' ] );
     }
 
@@ -118,23 +98,29 @@ class ScaleUp_Post_Schema extends ScaleUp_Schema {
      */
     $wp_post_args = array_intersect_key( $args, $this->get_defaults() );
 
-    $id = wp_update_post( $wp_post_args, true );
+    if ( sizeof( $wp_post_args ) > 1 ) {
+      $id = wp_update_post( $wp_post_args, true );
 
-    if ( is_wp_error( $id ) ) {
-      $error = array(
-        'type'  => 'error',
-        'msg'   => $id->get_error_message(),
-        'debug' => true,
-        'data'  => $id,
-      );
-      $this->add( 'alert', $error );
-      $item->add( 'alert', $error );
+      if ( is_wp_error( $id ) ) {
+        $error = array(
+          'type'  => 'error',
+          'msg'   => $id->get_error_message(),
+          'debug' => true,
+          'data'  => $id,
+        );
+        $this->add( 'alert', $error );
+        $item->add( 'alert', $error );
+      } else {
+        $item->add( 'alert', array(
+          'type'  => 'info',
+          'msg'   => "Item was updated."
+        ));
+        $success = true;
+      }
     } else {
-      $item->add( 'alert', array(
-        'type'  => 'info',
-        'msg'   => "Item was updated."
-      ));
-      $success = true;
+      /**
+       * nothing to be done because there is only 1 parameter, which I assume is ID
+       */
     }
 
     return $success;
@@ -148,7 +134,7 @@ class ScaleUp_Post_Schema extends ScaleUp_Schema {
    * @param $args array
    * @return bool
    */
-  function delete( $item, $args ) {
+  function on_item_delete( $item, $args ) {
 
     $success = false;
 
@@ -201,6 +187,15 @@ class ScaleUp_Post_Schema extends ScaleUp_Schema {
         'post_mime_type'        => '',
         'comment_count'         => '',
       ), parent::get_defaults()
+    );
+  }
+
+  static function scaleup_init() {
+    ScaleUp::register( 'schema',
+      array(
+        'name'      => 'post',
+        '__CLASS__' => 'ScaleUp_Post_Schema',
+      )
     );
   }
 

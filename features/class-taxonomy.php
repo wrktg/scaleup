@@ -4,7 +4,7 @@ class ScaleUp_Taxonomy extends ScaleUp_Feature {
   function activation() {
     $schema = $this->get( 'context' );
     $schema->add_action( 'on_item_create', array( $this, 'on_item_update' ) );
-    $schema->add_action( 'on_item_read', array( $this, 'on_item_read' ) );
+    $schema->add_action( 'on_item_read',   array( $this, 'on_item_read' ) );
     $schema->add_action( 'on_item_update', array( $this, 'on_item_update' ) );
   }
 

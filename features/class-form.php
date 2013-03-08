@@ -138,7 +138,8 @@ class ScaleUp_Form extends ScaleUp_Feature {
    * @return bool
    */
   function populate( $args = array() ) {
-    return $this->apply_filters( 'populate', $args );
+    $result = $this->apply_filters( 'populate', $args );
+    return $result;
   }
 
 
@@ -150,7 +151,8 @@ class ScaleUp_Form extends ScaleUp_Feature {
    * @return mixed|void
    */
   function normalize( $args = array() ) {
-    return $this->apply_filters( 'normalize', $args );
+    $result = $this->apply_filters( 'normalize', $args );
+    return $result;
   }
 
   /**
@@ -161,6 +163,9 @@ class ScaleUp_Form extends ScaleUp_Feature {
    */
   function validate( $args = array() ) {
 
+    /**
+     * Run validate on all fields that are hooked to this filter
+     */
     if ( !$this->apply_filters( 'validate', true ) ) {
       $this->register( 'alert', array(
         'msg'  => 'Your submission did not pass validation. Please, verify your entry and resubmit.',

@@ -61,6 +61,10 @@ class ScaleUp_Feature extends ScaleUp_Base {
 
     $result = null;
 
+    if ( sizeof( $args ) == 1 ) {
+      $args = array_pop( $args );
+    }
+
     if ( property_exists( $this, $name ) && is_callable( $this->$name ) ) {
       $result = call_user_func( $this->$name, $this, $args );
     } elseif ( preg_match( '/^add_([a-zA-Z0-9_\x7f-\xff]*)$/', $name, $matches ) ) {
@@ -111,6 +115,11 @@ class ScaleUp_Feature extends ScaleUp_Base {
 
     if ( false !== ( $registered = $this->register( $feature_type, $args ) ) ) {
       if ( false !== ( $activated = $this->activate( $feature_type, $registered ) ) ) {
+        if ( $activated->is( 'contextual' ) ) {
+          $feature_type_args = ScaleUp::get_feature_type( $activated->get( '_feature_type' ) );
+          $storage = $this->_features->get( $feature_type_args[ '_plural' ] );
+          $storage->set( $activated->get( 'name' ), $activated );
+        }
         $result = $activated;
       }
     }
@@ -440,7 +449,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
       $callback = array( $this, $handle );
     }
     $object_hash = spl_object_hash( $this );
-    add_filter( "{$object_hash}->{$handle}", $callback, $priority, 2 );
+    add_filter( "{$object_hash}->{$handle}", $callback, $priority );
   }
 
   /**
@@ -452,12 +461,12 @@ class ScaleUp_Feature extends ScaleUp_Base {
    */
   function remove_filter( $handle, $callback, $priority = 10 ) {
     $object_hash = spl_object_hash( $this );
-    remove_filter( "{$object_hash}->{$handle}", $callback, $priority, 2 );
+    remove_filter( "{$object_hash}->{$handle}", $callback, $priority );
   }
 
-  function apply_filters( $handle, $value, $args = array() ) {
+  function apply_filters( $handle, $value ) {
     $object_hash = spl_object_hash( $this );
-    return apply_filters( "{$object_hash}->{$handle}", $value, $args );
+    return apply_filters( "{$object_hash}->{$handle}", $value );
   }
 
   function apply_duck_types( $feature, $args ) {
