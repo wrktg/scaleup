@@ -19,11 +19,15 @@ class ScaleUp_Schema extends ScaleUp_Feature {
    * @param array $args
    */
   function on_item_create( $item, $args = array() ) {
-    $id = (int) $item->get( 'id' );
+    $id         = (int) $item->get( 'id' );
+    $post_type  = $this->get( 'post_type' );
     if ( 0 < $id ) {
       $this->set( 'error', false );   // reset error flag
       $args[ 'item' ] = $item;
       $args[ 'id' ]   = $id;
+      if ( $post_type ) {
+        set_post_type( $id, $post_type );
+      }
       $this->do_action( 'on_item_create', $args );
     }
   }

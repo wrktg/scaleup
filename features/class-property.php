@@ -4,10 +4,20 @@ class ScaleUp_Property extends ScaleUp_Feature {
   var $_error = false;
 
   function activation() {
-    $schema = $this->get( 'context' );
-    $schema->add_action( 'create', array( $this, 'create' ) );
-    $schema->add_action( 'read',   array( $this, 'read' ) );
-    $schema->add_action( 'update', array( $this, 'update' ) );
+    $context = $this->get( 'context' );
+    /**
+     * @todo: this kind of thing should not happen. refactor how events happen so there aren't these kinds of exceptions.
+     */
+    switch ( $context->get( '_feature_type' ) ) :
+      case 'schema':
+        $context->add_action( 'on_item_create', array( $this, 'create' ) );
+        $context->add_action( 'on_item_read', array( $this, 'read' ) );
+        $context->add_action( 'on_item_update', array( $this, 'update' ) );
+        break;
+      case 'item':
+        $context->add_action( 'create', array( $this, 'create' ) );
+        break;
+    endswitch;
   }
 
   /**
@@ -29,27 +39,41 @@ class ScaleUp_Property extends ScaleUp_Feature {
   /**
    * Create the value of this property when the value for this property is passed in args array.
    *
-   * @param $schema ScaleUp_Schema
+   * @param $feature ScaleUp_Feature
    * @param $args array
    */
-  function create( $schema, $args = array() ) {
+  function create( $feature, $args = array() ) {
+    $item_id   = null;
+    $name      = $this->get( 'name' );
+    $meta_key  = $this->get_meta_key();
+    $meta_type = $this->get( 'meta_type' );
     if ( $this->setup( $args ) ) {
-      $item_id    = $this->get( 'item_id' );
-      $name       = $this->get( 'name' );
-      $meta_key   = $this->get_meta_key();
-      $meta_type  = $this->get( 'meta_type' );
+      /**
+       * This property is a schema property
+       */
+      $item_id = $this->get( 'item_id' );
       if ( isset( $args[ $name ] ) ) {
         $value = $args[ $name ];
-        $successful = add_metadata( $meta_type, $item_id, $meta_key, $value );
-        if ( !$successful ) {
-          $this->add( 'alert',
-            array(
-              'type'  => 'warning',
-              'msg'   => "Failed to update $meta_type meta $meta_key with $value",
-              'debug' => true,
-            )
-          );
-        }
+      }
+    } else {
+      /**
+       * This property is a item property
+       */
+      if ( $feature->get( 'id' ) && $this->get( 'value' ) ) {
+        $item_id = $feature->get( 'id' );
+      }
+      $value = $this->get( 'value' );
+    }
+    if ( !is_null( $item_id ) ) {
+      $successful = add_metadata( $meta_type, $item_id, $meta_key, $value );
+      if ( !$successful ) {
+        $this->add( 'alert',
+          array(
+            'type'  => 'warning',
+            'msg'   => "Failed to update $meta_type meta $meta_key with $value",
+            'debug' => true,
+          )
+        );
       }
     }
   }
@@ -61,10 +85,10 @@ class ScaleUp_Property extends ScaleUp_Feature {
    * @param array $args
    */
   function read( $schema, $args = array() ) {
-    $item_id    = $this->get( 'item_id' );
-    $meta_type  = $this->get( 'meta_type' );
-    $meta_key   = $this->get_meta_key();
-    $value = get_metadata( $meta_type, $item_id, $meta_key );
+    $item_id   = $this->get( 'item_id' );
+    $meta_type = $this->get( 'meta_type' );
+    $meta_key  = $this->get_meta_key();
+    $value     = get_metadata( $meta_type, $item_id, $meta_key );
     $this->get( 'value', $value );
   }
 
@@ -76,10 +100,10 @@ class ScaleUp_Property extends ScaleUp_Feature {
    * @param array $args
    */
   function update( $schema, $args = array() ) {
-    $item_id    = $this->get( 'item_id' );
-    $meta_type  = $this->get( 'meta_type' );
-    $meta_key   = $this->get_meta_key();
-    $name       = $this->get( 'name' );
+    $item_id   = $this->get( 'item_id' );
+    $meta_type = $this->get( 'meta_type' );
+    $meta_key  = $this->get_meta_key();
+    $name      = $this->get( 'name' );
     if ( $this->setup( $args ) ) {
       if ( isset( $args[ $name ] ) ) {
         $value = $args[ $this->get( 'name' ) ];
@@ -103,6 +127,7 @@ class ScaleUp_Property extends ScaleUp_Feature {
     if ( $this->has( 'meta_key' ) ) {
       $meta_key = $this->get( 'meta_key' );
     }
+
     return $meta_key;
   }
 
@@ -117,7 +142,7 @@ class ScaleUp_Property extends ScaleUp_Feature {
 }
 
 ScaleUp::register_feature_type( 'property', array(
-  '__CLASS__' => 'ScaleUp_Property',
-  '_plural'   => 'properties',
-  '_duck_types'   => array( 'global', 'contextual' ),
+  '__CLASS__'   => 'ScaleUp_Property',
+  '_plural'     => 'properties',
+  '_duck_types' => array( 'global', 'contextual' ),
 ) );

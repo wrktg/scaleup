@@ -1,6 +1,17 @@
 <?php
 class ScaleUp_Item extends ScaleUp_Feature {
 
+  function init() {
+    $this->add_action( 'activation', array( $this, 'activation' ) );
+  }
+
+  function activation() {
+    $this->add( 'property', array(
+      'name'  => 'schemas',
+      'value' => $this->get_schemas(),
+    ));
+  }
+
   /**
    * Create item with values from $args array
    *
@@ -79,6 +90,16 @@ class ScaleUp_Item extends ScaleUp_Feature {
 
   }
 
+  /**
+   * Return schemas for this item
+   *
+   * @return array
+   */
+  function get_schemas() {
+    $schemas = $this->get_features( 'schemas' );
+    return array_keys( $schemas );
+  }
+
   function get_defaults() {
     return wp_parse_args(
       array(
@@ -91,6 +112,6 @@ class ScaleUp_Item extends ScaleUp_Feature {
 ScaleUp::register_feature_type( 'item', array(
   '__CLASS__'     => 'ScaleUp_Item',
   '_plural'       => 'items',
-  '_supports'     => array( 'schemas' ),
+  '_supports'     => array( 'schemas', 'properties' ),
   '_duck_types'   => array( 'global' ),
 ) );
