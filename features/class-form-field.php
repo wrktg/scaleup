@@ -36,6 +36,20 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
     $this->add_action( 'register', array( $this, 'add_error_class' ), 20 );
   }
 
+  function activation() {
+
+    /**
+     * Change form action if activating a field file
+     */
+    if ( 'file' == $this->get( 'type' ) && $this->has( 'context' ) ) {
+      $form = $this->get( 'context' );
+      $form->set( 'enctype', 'multipart/form-data' );
+      $form->add_action( 'store',   array( $this, 'handle_upload' ) );
+      $form->add_filter( 'process', array( $this, 'update_args' ), 45 );
+    }
+
+  }
+
   /**
    * Return a property value.
    * If value is a callable, then execute the callable and return the result
@@ -116,6 +130,33 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
   function validate( $pass ) {
     $result = $this->apply_filters( 'validate', $pass );
     return $result;
+  }
+
+  /**
+   * Callback for form store action
+   *
+   * @param $args
+   */
+  function handle_upload( $args ) {
+
+    $name = $this->get( 'name' );
+    if ( isset( $_FILES[ $name ] ) ) {
+      $upload = $_FILES[ $name ];
+      if ( 0 == $upload[ 'error' ] ) {
+        $result = wp_handle_upload( $upload );
+        if ( isset( $result[ 'error' ] ) ) {
+          ScaleUp::add_alert(
+            array(
+              'type'  => 'warning',
+              'msg'   => $result[ 'error' ],
+              'debug' => true,
+            ));
+        } else {
+          $this->set( 'uploaded_file', $result );
+        }
+      }
+    }
+
   }
 
   /**
@@ -213,6 +254,17 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
     }
 
     return $pass;
+  }
+
+  /**
+   * Insert newly created
+   *
+   * @param $args
+   * @return mixed
+   */
+  function update_args( $args ) {
+
+    return $args;
   }
 
   /**

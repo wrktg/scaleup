@@ -8,8 +8,10 @@ if ( !function_exists( 'add_form' ) ) {
    * Adds a form to the site that can be displayed in templates using the_form( $form_name )
    * @see template-tags.php for more information on how to use this form in your theme
    *
-   * @param $name
-   * @param array $fields array @see add_form_field for array format
+   * @todo: refactor to have 2nd parameter as $args
+   *
+   * @param string $name
+   * @param array $fields @see add_form_field for array format
    *
    * @return bool $form ScaleUp_Form
    */
@@ -49,10 +51,9 @@ if ( !function_exists( 'add_form_field' ) ) {
    * - options: array of values to show in fields with multiple options like checkbox, radio & select
    * - help:    help information to show after the field
    *
-   * @param $form
-   * @param $field_name
+   * @param string|ScaleUp_Form $form
+   * @param string $field_name
    * @param array $args
-   *
    * @return ScaleUp_Form_Field|bool
    */
   function add_form_field( $form, $field_name, $args = array() ) {

@@ -186,6 +186,7 @@ class ScaleUp_Post_Schema extends ScaleUp_Schema {
         'post_type'             => 'post',
         'post_mime_type'        => '',
         'comment_count'         => '',
+        'post_thumbnail'        => 0,
       ), parent::get_defaults()
     );
   }
