@@ -1,6 +1,16 @@
 <?php
 class ScaleUp_Post_Schema extends ScaleUp_Schema {
 
+  function activation() {
+    parent::activation();
+
+    /** @var $context ScaleUp_Item */
+    $item = $this->get( 'context' );
+    $item->add_filter( 'create', array( $this, 'set_post_thumbnail' ) );
+    $item->add_filter( 'read',   array( $this, 'get_post_thumbnail' ) );
+    $item->add_filter( 'update', array( $this, 'set_post_thumbnail' ) );
+  }
+
   /**
    * Create post from provided args
    *
@@ -146,6 +156,30 @@ class ScaleUp_Post_Schema extends ScaleUp_Schema {
         $item->add( 'alert', $error );
         $this->add( 'alert', $error );
       }
+    }
+
+    return $args;
+  }
+
+  function set_post_thumbnail( $args ) {
+
+    if ( $this->setup( $args ) && isset( $args[ 'post_thumbnail' ] ) ) {
+      $ID = $this->get( 'ID' );
+      $upload = $args[ 'post_thumbnail' ];
+
+      $wp_upload_dir = wp_upload_dir();
+      $attachment = array(
+        'guid' => $wp_upload_dir[ 'url' ] . '/' . basename( $upload[ 'file' ] ),
+        'post_mime_type' => $upload[ 'type' ],
+        'post_title' => preg_replace( '/\.[^.]+$/', '', basename( $upload[ 'file' ] ) ),
+        'post_content' => '',
+        'post_status' => 'inherit'
+      );
+      $id = wp_insert_attachment( $attachment, $upload[ 'file' ], $ID );
+      require_once(ABSPATH . 'wp-admin/includes/image.php');
+      $attach_data = wp_generate_attachment_metadata( $id, $upload[ 'file' ] );
+      wp_update_attachment_metadata( $id, $attach_data );
+      $args[ 'post_thumbnail' ][ 'id' ] = $id;
     }
 
     return $args;

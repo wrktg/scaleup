@@ -134,9 +134,12 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
 
     $name = $this->get( 'name' );
     if ( isset( $_FILES[ $name ] ) ) {
+      if ( ! function_exists( 'wp_handle_upload' ) ) {
+        require_once( ABSPATH . 'wp-admin/includes/file.php' );
+      }
       $upload = $_FILES[ $name ];
       if ( 0 == $upload[ 'error' ] ) {
-        $result = wp_handle_upload( $upload );
+        $result = wp_handle_upload( $upload, array( 'test_form' => false ) );
         if ( isset( $result[ 'error' ] ) ) {
           ScaleUp::add_alert(
             array(
@@ -145,11 +148,13 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
               'debug' => true,
             ));
         } else {
+          $args[ $name ] = $result;
           $this->set( 'file', $result );
         }
       }
     }
 
+    return $args;
   }
 
   /**
