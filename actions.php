@@ -9,11 +9,11 @@ if ( !function_exists( 'scaleup_form_header_alerts' ) ) {
   function scaleup_form_header_alerts( $form, $args = array() ) {
     $alerts = $form->get_features( 'alerts' );
     if ( $alerts ) : ?>
-      <span class="help-block">
+      <div class="help-block">
       <?php foreach ( $alerts as $alert ) : ?>
-          <span class="alert alert-<?php echo $alert[ 'type' ]; ?>"><?php echo $alert[ 'msg' ]; ?></span>
+          <div class="alert alert-<?php echo $alert[ 'type' ]; ?>"><?php echo $alert[ 'msg' ]; ?></div>
         <?php endforeach; ?>
-      </span>
+      </div>
     <?php endif;
   }
 }

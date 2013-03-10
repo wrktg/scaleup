@@ -44,6 +44,8 @@ class ScaleUp_Schema extends ScaleUp_Feature {
         set_post_type( $ID, $post_type );
       }
       $args = $this->apply_filters( 'on_item_create', $args );
+      $name       = $this->get( 'name' );
+      $args[ "ID" ][ $name ] = $this;
     }
     return $args;
   }

@@ -161,14 +161,16 @@ class ScaleUp_Form extends ScaleUp_Feature {
    * @return bool
    */
   function validate( $args = array() ) {
-    $args = $this->apply_filters( 'validate', true );
-    if ( false === $args ) {
+
+    $result = $this->apply_filters( 'validate', true );
+    if ( false === $result ) {
       $this->register( 'alert', array(
         'msg'  => 'Your submission did not pass validation. Please, verify your entry and resubmit.',
         'type' => 'error'
       ) );
       $this->set( 'continue', false );
     }
+
     return $args;
   }
 

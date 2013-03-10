@@ -1,5 +1,5 @@
 <?php
-class ScaleUp_Alert {
+class ScaleUp_Alert extends ScaleUp_Feature {
 
   function registration( $feature, $args ) {
     /**

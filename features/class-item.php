@@ -49,10 +49,12 @@ class ScaleUp_Item extends ScaleUp_Feature {
    * Delete item with $id.
    * Set $force_delete to true if you want the item be deleted without going into the Trash.
    *
-   * @param bool $args
+   * @param   array $args
+   * @return  array
    */
   function delete( $args ) {
     $args = $this->apply_filters( 'read', $args );
+    return $args;
   }
 
   /**

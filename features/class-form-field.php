@@ -45,7 +45,6 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
       $form = $this->get( 'context' );
       $form->set( 'enctype', 'multipart/form-data' );
       $form->add_action( 'store',   array( $this, 'handle_upload' ) );
-      $form->add_filter( 'process', array( $this, 'update_args' ), 45 );
     }
 
   }
@@ -146,7 +145,7 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
               'debug' => true,
             ));
         } else {
-          $this->set( 'uploaded_file', $result );
+          $this->set( 'file', $result );
         }
       }
     }
@@ -328,18 +327,22 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
   }
 
   function get_default_value() {
-    switch( $this->get( 'type' ) ) {
-      case 'checkbox':
-        $value = array();
-        break;
-      default:
-        $value = null;
+    if ( $this->has( 'default' ) ) {
+      $value = $this->get( 'default' );
+    } else {
+      switch( $this->get( 'type' ) ) {
+        case 'checkbox':
+          $value = array();
+          break;
+        default:
+          $value = null;
+      }
+      switch( $this->get( 'name' ) ):
+        case 'nonce':
+          $value = wp_create_nonce( $this->get( 'action' ) );
+          break;
+      endswitch;
     }
-    switch( $this->get( 'name' ) ):
-      case 'nonce':
-        $value = wp_create_nonce( $this->get( 'action' ) );
-      break;
-    endswitch;
 
     return $value;
   }

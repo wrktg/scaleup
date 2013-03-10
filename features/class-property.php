@@ -81,7 +81,7 @@ class ScaleUp_Property extends ScaleUp_Feature {
    * @param   array $args
    * @return  array
    */
-  function read( $args = array() ) {
+  function read( $args ) {
     if ( $this->setup( $args ) ) {
       $ID        = $this->get( 'ID' );
       $meta_type = $this->get( 'meta_type' );
@@ -103,8 +103,8 @@ class ScaleUp_Property extends ScaleUp_Feature {
    * @param   array $args
    * @return  array
    */
-  function update( $args = array() ) {
-    
+  function update( $args ) {
+
     if ( $this->setup( $args ) ) {
       $ID        = $this->get( 'ID' );
       $meta_type = $this->get( 'meta_type' );
