@@ -22,17 +22,23 @@ class ScaleUp_Property extends ScaleUp_Feature {
   }
 
   /**
+   * Set post ID from args
    *
    * @param array $args
    * @return bool
    */
-  function setup( $args = array() ) {
+  function setup( $args ) {
     $successful = false;
 
-    if ( isset( $args[ 'id' ] ) && $args[ 'id' ] > 0 ) {
-      $this->set( 'item_id', $args[ 'id' ] );
+    if ( isset( $args[ 'ID' ][ 'value' ] ) ) {
+      $this->set( 'ID', $args[ 'ID' ][ 'value' ] );
+      $name = $this->get( 'name' );
+      if ( isset( $args[ $name ][ 'value' ] ) ) {
+        $this->set( 'value', $args[ $name ][ 'value' ] );
+      }
       $successful = true;
     }
+
 
     return $successful;
   }
@@ -40,34 +46,22 @@ class ScaleUp_Property extends ScaleUp_Feature {
   /**
    * Create the value of this property when the value for this property is passed in args array.
    *
-   * @param $feature ScaleUp_Feature
-   * @param $args array
+   * @param   array $args
+   * @return  array
    */
-  function create( $feature, $args = array() ) {
-    $item_id   = null;
-    $name      = $this->get( 'name' );
+  function create( $args ) {
+
     $meta_key  = $this->get_meta_key();
     $meta_type = $this->get( 'meta_type' );
     if ( $this->setup( $args ) ) {
-      /**
-       * This property is a schema property
-       */
-      $item_id = $this->get( 'item_id' );
-      if ( isset( $args[ $name ] ) ) {
-        $value = $args[ $name ];
-      }
-    } else {
-      /**
-       * This property is a item property
-       */
-      if ( $feature->get( 'id' ) && $this->get( 'value' ) ) {
-        $item_id = $feature->get( 'id' );
-      }
-      $value = $this->get( 'value' );
-    }
-    if ( !is_null( $item_id ) ) {
-      $successful = add_metadata( $meta_type, $item_id, $meta_key, $value );
-      if ( !$successful ) {
+      $ID     = $this->get( 'ID' );
+      $value  = $this->get( 'value' );
+      $unique = $this->get( 'unique' );
+      $id = add_metadata( $meta_type, $ID, $meta_key, $value, $unique );
+      if ( $id ) {
+        $name = $this->get( 'name' );
+        $args[ $name ][ 'id' ] = $id;
+      } else {
         $this->add( 'alert',
           array(
             'type'  => 'warning',
@@ -77,53 +71,52 @@ class ScaleUp_Property extends ScaleUp_Feature {
         );
       }
     }
+
+    return $args;
   }
 
   /**
    * Read the value from the database and store it in this object
    *
-   * @param $schema ScaleUp_Schema
-   * @param array $args
+   * @param   array $args
+   * @return  array
    */
-  function read( $schema, $args = array() ) {
-    $item_id   = $this->get( 'item_id' );
-    $meta_type = $this->get( 'meta_type' );
-    $meta_key  = $this->get_meta_key();
-    $value     = get_metadata( $meta_type, $item_id, $meta_key );
-    $this->get( 'value', $value );
+  function read( $args = array() ) {
+    if ( $this->setup( $args ) ) {
+      $ID        = $this->get( 'ID' );
+      $meta_type = $this->get( 'meta_type' );
+      $meta_key  = $this->get_meta_key();
+      $single    = $this->get( 'single' );
+      $value     = get_metadata( $meta_type, $ID, $meta_key, $single );
+      $this->get( 'value', $value );
+
+      $name      = $this->get( 'name' );
+      $args[ $name ][ 'value' ] = $value;
+    }
+    return $args;
   }
 
   /**
    * Update the value of this property. The new value is taken from the $args array.
    * If value is null then this method will remove the current value of the metadata.
    *
-   * @param $feature ScaleUp_Schema
-   * @param array $args
+   * @param   array $args
+   * @return  array
    */
-  function update( $feature, $args = array() ) {
-    $item_id   = null;
-    $meta_type = $this->get( 'meta_type' );
-    $meta_key  = $this->get_meta_key();
-    $name      = $this->get( 'name' );
+  function update( $args = array() ) {
+    
     if ( $this->setup( $args ) ) {
-      $item_id   = $this->get( 'item_id' );
-    } else {
-      /**
-       * This property is a item property
-       */
-      if ( $feature->get( 'id' ) && $this->get( 'value' ) ) {
-        $item_id = $feature->get( 'id' );
-      }
+      $ID        = $this->get( 'ID' );
+      $meta_type = $this->get( 'meta_type' );
+      $meta_key  = $this->get_meta_key();
+      $value     = $this->get( 'value' );
+      $updated   = update_metadata( $meta_type, $ID, $meta_key, $value );
+
+      $name      = $this->get( 'name' );
+      $args[ $name ][ 'updated' ] = $updated;
     }
-    if ( isset( $args[ $name ] ) ) {
-      $value = $args[ $this->get( 'name' ) ];
-    } else {
-      $value = $this->get( 'value' );
-    }
-    if ( !is_null( $value ) ) {
-      update_metadata( $meta_type, $item_id, $meta_key, $value );
-      $this->set( 'value', $value );
-    }
+
+    return $args;
   }
 
   /**
@@ -144,6 +137,8 @@ class ScaleUp_Property extends ScaleUp_Feature {
     return wp_parse_args(
       array(
         'meta_type'     => 'post',
+        'unique'        => false,
+        'single'        => false,
         '_feature_type' => 'template',
       ), parent::get_defaults()
     );

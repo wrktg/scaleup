@@ -15,79 +15,61 @@ class ScaleUp_Item extends ScaleUp_Feature {
   /**
    * Create item with values from $args array
    *
-   * @param $args array
+   * @param   array $args
+   * @return  array $args
    */
   function create( $args = array() ) {
-    $this->do_action( 'create', $args );
-    /**
-     * @todo: check if errors occured and return
-     */
+    $args = $this->apply_filters( 'create', $args );
+    return $args;
   }
 
   /**
-   * Read item from id
+   * Read item
    *
-   * @param $id int
+   * @param   array $args
+   * @return  array
    */
-  function read( $id ) {
-    $this->set( 'id', $id );
-    $this->do_action( 'read', $id );
+  function read( $args ) {
+    $args = $this->apply_filters( 'read', $args );
+    return $args;
   }
 
   /**
    * Update item with values from $args array
    *
-   * @param $args
+   * @param array $args
+   * @return array $args
    */
   function update( $args ) {
-    if ( !isset( $args[ 'ID' ] ) && !is_null( $this->get( 'id' ) ) ) {
-      $args[ 'ID' ] = $this->get( 'id' );
-    }
-    $this->do_action( 'update', $args );
-    /**
-     * @todo: check if errors occured and return
-     */
+    $args = $this->apply_filters( 'read', $args );
+    return $args;
   }
 
   /**
    * Delete item with $id.
    * Set $force_delete to true if you want the item be deleted without going into the Trash.
    *
-   * @param $id int
-   * @param bool $force_delete
+   * @param bool $args
    */
-  function delete( $id, $force_delete = false ) {
-    $this->set( 'id', $id );
-    $this->do_action( 'delete', array( 'id' => $id, 'force_delete' => $force_delete ) );
+  function delete( $args ) {
+    $args = $this->apply_filters( 'read', $args );
   }
 
   /**
    * Callback function to be used when hooking to forms
    *
-   * @param $caller
-   * @param $args
+   * @param array $args
+   * @return array $args
    */
-  function store( $caller, $args ) {
+  function store( $args ) {
 
-    $id = null;
-
-    $this->set( 'caller', $caller );
-    if ( isset( $args[ 'id' ] ) ) {
-      $id = $args[ 'id' ];
-    }
-    if ( isset( $args[ 'ID' ] ) ) {
-      $id = $args[ 'ID' ];
+    if ( isset( $args[ 'ID' ][ 'value' ] ) && $args[ 'ID' ][ 'value' ] ) {
+      $args = $this->update( $args );
+    } else {
+      $args = $this->create( $args );
     }
 
-    $id = (int) $id;
-
-    if ( 0 == $id ) {
-      $this->create( $args );
-    } elseif ( $id > 0 ) {
-      $args[ 'ID' ] = $id;
-      $this->update( $args );
-    }
-
+    return $args;
   }
 
   /**

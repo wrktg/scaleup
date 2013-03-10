@@ -16,3 +16,26 @@ function scaleup_form_field_label_asterisk( $label, $form_field ) {
   return $label;
 }
 add_filter( 'scaleup_form_field_label', 'scaleup_form_field_label_asterisk', 10, 2 );
+
+/**
+ * Normalize value and return the value in format that ScaleUp will be able to work with
+ *
+ * Possible $format values:
+ *  'string'      - provided value is a string
+ *  'args_string' - provided value is an args strings in format $key=$value,$key1=$value1
+ *
+ * @param string $value
+ * @param string $format
+ * @return array
+ */
+function scaleup_normalize_value( $value, $format = 'string' ) {
+  switch ( $format ):
+    case 'args_string':
+      $value = wp_parse_args( $value );
+      break;
+    default:
+      $value = array( 'value' => $value );
+  endswitch;
+  return $value;
+}
+add_filter( 'scaleup_normalize_value', 'scaleup_normalize_value', 10, 2 );

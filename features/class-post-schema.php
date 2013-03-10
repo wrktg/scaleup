@@ -4,13 +4,10 @@ class ScaleUp_Post_Schema extends ScaleUp_Schema {
   /**
    * Create post from provided args
    *
-   * @param $item ScaleUp_Item
-   * @param array $args
-   * @return bool
+   * @param   array $args
+   * @return  array
    */
-  function on_item_create( $item, $args = array() ) {
-
-    $success = false;
+  function on_item_create( $args ) {
 
     /**
      * Only take args that are relevant post
@@ -28,136 +25,130 @@ class ScaleUp_Post_Schema extends ScaleUp_Schema {
      */
     $this->load( $wp_post_args );
 
-    $id = wp_insert_post( $wp_post_args, true );
+    $ID = wp_insert_post( $wp_post_args, true );
 
-    if ( is_wp_error( $id ) ) {
+    if ( is_wp_error( $ID ) ) {
       ScaleUp::add_alert(
         array(
           'type'  => 'warning',
-          'msg'   => $id->get_error_message(),
+          'msg'   => $ID->get_error_message(),
           'debug' => true,
-          'data'  => $id
+          'data'  => $ID
         )
       );
-      $id = null;
+      $ID = null;
     } else {
-      $item->set( 'id', $id );
-      $this->set( 'ID', $id );
-      $success = true;
+      $this->set( 'ID', $ID );
+      /**
+       * Add ID to $args to inform all downstream features of the created post
+       */
+      $args[ 'ID' ] = apply_filters( 'scaleup_normalize_value', $ID );
+      $args[ 'ID' ][ 'post' ] = $this;
     }
 
-    return $success;
+    return $args;
   }
 
   /**
    * Read post from the database
    *
-   * @param $item ScaleUp_Item
-   * @param $id
-   * @return bool
+   * @param   array $args
+   * @return  array
    */
-  function on_item_read( $item, $id ) {
-    $success = false;
-    $post = get_post( $id, ARRAY_A);
-    if ( is_null( $post ) ) {
-      $error = array(
-        'type'  => 'error',
-        'msg'   => "Could not load post with id: $id",
-        'debug' => true,
-      );
-      $this->add( 'alert', $error );
-      $item->add( 'alert', $error );
-    } else {
-      $this->load( $post );
-      $success = true;
+  function on_item_read( $args ) {
+    if ( $this->setup( $args ) ) {
+      $ID = $this->get( 'ID' );
+      $post = get_post( $ID, ARRAY_A);
+      if ( is_null( $post ) ) {
+        $error = array(
+          'type'  => 'error',
+          'msg'   => "Could not load post with id: $ID",
+          'debug' => true,
+        );
+        $this->add( 'alert', $error );
+        /**
+         * Since the item could not loaded then let's remove ID from args so nothing downstream will try to laod it
+         */
+        unset( $args[ 'ID' ] );
+      } else {
+        $this->load( $post );
+      }
     }
-    return $success;
+    return $args;
   }
 
 
   /**
    * Update post with values from args
    *
-   * @param $item ScaleUp_Item
-   * @param $args
-   * @return bool
+   * @param array $args
+   * @return array
    */
-  function on_item_update( $item, $args ) {
+  function on_item_update( $args ) {
 
-    $success = false;
-
-    /**
-     * If ID was passed but it doesn't match this post's ID then unset it
-     */
-    if ( isset( $args[ 'ID' ] ) && 0 != (int) $this->get( 'ID' ) ) {
-      unset( $args[ 'ID' ] );
-    }
-
-    /**
-     * Only take args that are relevant post
-     */
-    $wp_post_args = array_intersect_key( $args, $this->get_defaults() );
-
-    if ( sizeof( $wp_post_args ) > 1 ) {
-      $id = wp_update_post( $wp_post_args, true );
-
-      if ( is_wp_error( $id ) ) {
-        $error = array(
-          'type'  => 'error',
-          'msg'   => $id->get_error_message(),
-          'debug' => true,
-          'data'  => $id,
-        );
-        $this->add( 'alert', $error );
-        $item->add( 'alert', $error );
-      } else {
-        $item->add( 'alert', array(
-          'type'  => 'info',
-          'msg'   => "Item was updated."
-        ));
-        $success = true;
-      }
-    } else {
+    if ( $this->setup( $args ) ) {
       /**
-       * nothing to be done because there is only 1 parameter, which I assume is ID
+       * Only take args that are relevant post
        */
+      $wp_post_args = array_intersect_key( $args, $this->get_defaults() );
+
+      if ( sizeof( $wp_post_args ) > 1 ) {
+        $ID = wp_update_post( $wp_post_args, true );
+
+        if ( is_wp_error( $ID ) ) {
+          $error = array(
+            'type'  => 'error',
+            'msg'   => $ID->get_error_message(),
+            'debug' => true,
+            'data'  => $ID,
+          );
+          $this->add( 'alert', $error );
+        } else {
+          $item = $this->get( 'context' );
+          $item->add( 'alert', array(
+            'type'  => 'info',
+            'msg'   => "Item was updated."
+          ));
+          $args[ 'ID' ][ 'post' ] = $this;
+        }
+      }
     }
 
-    return $success;
+    return $args;
   }
 
   /**
-   * Delete post with id specified by $args[ 'id' ].
-   * Set $args[ 'force_delete' ] to true if you want the post to skip the Trash.
+   * Delete post
    *
-   * @param $item ScaleUp_Item
-   * @param $args array
-   * @return bool
+   * @param   array $args
+   * @return  array
    */
-  function on_item_delete( $item, $args ) {
+  function on_item_delete( $args ) {
 
-    $success = false;
-
-    if ( !isset( $args[ 'id' ] ) && !is_null( $this->get( 'ID' ) ) ) {
-      $args[ 'id' ] = $this->get( 'ID' );
+    if ( $this->setup( $args ) ) {
+      if ( isset( $args[ 'ID' ][ 'force_delete' ] ) ) {
+        $force_delete = $args[ 'ID' ][ 'force_delete' ];
+      } else {
+        $force_delete = false;
+      }
+      $ID = $this->get( 'ID' );
+      $item = $this->get( 'context' );
+      if ( wp_delete_post( $ID, $force_delete ) ) {
+        $item->add( 'alert', array(
+          'type'  => 'info',
+          'msg'   => "Deleted item with id: {$ID}.",
+        ));
+      } else {
+        $error = array(
+          'type'  => 'error',
+          'msg'   => "Failed to delete item with id: {$args['id']}.",
+        );
+        $item->add( 'alert', $error );
+        $this->add( 'alert', $error );
+      }
     }
 
-    if ( wp_delete_post( $args[ 'id' ], $args[ 'force_delete' ] ) ) {
-      $item->add( 'alert', array(
-        'type'  => 'info',
-        'msg'   => "Deleted item with id: {$args['id']}.",
-      ));
-      $success = true;
-    } else {
-      $error = array(
-        'type'  => 'error',
-        'msg'   => "Failed to delete item with id: {$args['id']}.",
-      );
-      $item->add( 'alert', $error );
-      $this->add( 'alert', $error );
-    }
-
-    return $success;
+    return $args;
   }
 
   function get_defaults() {

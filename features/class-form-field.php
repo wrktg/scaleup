@@ -87,37 +87,31 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
   }
 
   /**
-   * Take value from $args and load it into this form field
-   *
-   * @param array $args
-   * @return array
-   */
-  function populate( $args = array() ) {
-    $name = $this->get( 'name' );
-    if ( isset( $args[ $name ] ) ) {
-      $this->set( 'value', $args[ $name ] );
-    }
-    return $args;
-  }
-
-  /**
    * Deal with intricacies of different field formats
    *
    * @param array $args
    * @return array
    */
   function normalize( $args = array() ) {
-    $value  = $this->get( 'value' );
     $name   = $this->get( 'name' );
     if ( isset( $args[ $name ] ) ) {
-      switch ( $this->get( 'format' ) ):
-        case 'args_string':
-          $value = wp_parse_args( $value );
-        break;
-      endswitch;
-      $args[ $name ] = $value;
+      $args[ $name ] = apply_filters( 'scaleup_normalize_value', $args[ $name ], $this->get( 'format' ) );
     }
 
+    return $args;
+  }
+
+  /**
+   * Take value from $args and load it into this form field
+   *
+   * @param array $args
+   * @return array
+   */
+  function populate( $args = array() ) {
+    $field_name = $this->get( 'name' );
+    if ( isset( $args[ $field_name ][ 'value' ] ) ) {
+      $this->set( 'value', $args[ $field_name ][ 'value' ] );
+    }
     return $args;
   }
 

@@ -121,38 +121,37 @@ class ScaleUp_Form extends ScaleUp_Feature {
    */
   function process( $args = array() ) {
 
-    $this->add_filter( 'process', array( $this, 'populate' ),   10 );
     $this->add_filter( 'process', array( $this, 'normalize' ),  20 );
-    $this->add_filter( 'process', array( $this, 'validate' ),   30 );
-    $this->add_filter( 'process', array( $this, 'store' ),      40 );
-    $this->add_filter( 'process', array( $this, 'notify' ),     50 );
-    $this->add_filter( 'process', array( $this, 'confirm' ),    60 );
+    $this->add_filter( 'process', array( $this, 'populate' ),   30 );
+    $this->add_filter( 'process', array( $this, 'validate' ),   40 );
+    $this->add_filter( 'process', array( $this, 'store' ),      50 );
+    $this->add_filter( 'process', array( $this, 'notify' ),     60 );
+    $this->add_filter( 'process', array( $this, 'confirm' ),    70 );
 
     return $this->apply_filters( 'process', $args );
   }
-
-  /**
-   * Populate form field from $args array
-   *
-   * @param array $args
-   * @return bool
-   */
-  function populate( $args = array() ) {
-    $result = $this->apply_filters( 'populate', $args );
-    return $result;
-  }
-
 
   /**
    * Deal with intricacies of different value formats and convert them to standard string or array and populate the
    * array with normalized values.
    *
    * @param array $args
-   * @return mixed|void
+   * @return mixed
    */
   function normalize( $args = array() ) {
-    $result = $this->apply_filters( 'normalize', $args );
-    return $result;
+    $args = $this->apply_filters( 'normalize', $args );
+    return $args;
+  }
+
+  /**
+   * Populate form field from $args array
+   *
+   * @param array $args
+   * @return array
+   */
+  function populate( $args = array() ) {
+    $args = $this->apply_filters( 'populate', $args );
+    return $args;
   }
 
   /**
@@ -162,18 +161,14 @@ class ScaleUp_Form extends ScaleUp_Feature {
    * @return bool
    */
   function validate( $args = array() ) {
-
-    /**
-     * Run validate on all fields that are hooked to this filter
-     */
-    if ( !$this->apply_filters( 'validate', true ) ) {
+    $args = $this->apply_filters( 'validate', true );
+    if ( false === $args ) {
       $this->register( 'alert', array(
         'msg'  => 'Your submission did not pass validation. Please, verify your entry and resubmit.',
         'type' => 'error'
       ) );
       $this->set( 'continue', false );
     }
-
     return $args;
   }
 
@@ -186,7 +181,7 @@ class ScaleUp_Form extends ScaleUp_Feature {
   function store( $args = array() ) {
 
     if ( $this->get( 'continue' ) ) {
-      $this->do_action( 'store', $args );
+      $args = $this->apply_filters( 'store', $args );
     }
 
     return $args;
