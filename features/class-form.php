@@ -202,7 +202,7 @@ class ScaleUp_Form extends ScaleUp_Feature {
       if ( is_array( $notify ) ) {
         foreach ( $notify as $notice ) {
           if ( isset( $notice[ 'method' ] ) && 'email' == $notice[ 'method' ] ) {
-            $this->notify_email( $notice );
+            $this->notify_email( $notice, $args );
           }
         }
       }
@@ -211,7 +211,7 @@ class ScaleUp_Form extends ScaleUp_Feature {
     return $args;
   }
 
-  function notify_email( $args ) {
+  function notify_email( $notice, $args ) {
 
     if ( isset( $args[ 'to' ] ) ) {
       $to = $args[ 'to' ];

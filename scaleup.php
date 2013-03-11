@@ -37,6 +37,7 @@ include( SCALEUP_DIR . '/features/class-form-field.php' );
 include( SCALEUP_DIR . '/features/class-template.php' );
 include( SCALEUP_DIR . '/features/class-asset.php' );
 include( SCALEUP_DIR . '/features/class-alert.php' );
+include( SCALEUP_DIR . '/features/class-notification.php' );
 
 /**
  * API

@@ -39,3 +39,32 @@ function scaleup_normalize_value( $value, $format = 'string' ) {
   return $value;
 }
 add_filter( 'scaleup_normalize_value', 'scaleup_normalize_value', 10, 2 );
+
+/**
+ * Flatten the array and return it in requested format
+ *
+ * @param array $args
+ * @param string $format ARRAY_A or ARRAY_N
+ * @return array
+ */
+function scaleup_flatten_args( $args, $format = ARRAY_A ) {
+
+  $output = array();
+
+  foreach ( $args as $key => $value ) {
+    if ( is_array( $value ) && isset( $value[ 'value' ] ) ) {
+      $value = $value[ 'value' ];
+    }
+    switch ( $format ):
+      case ARRAY_A:
+        $output[ $key ] = $value;
+        break;
+      case ARRAY_N:
+        $output[] = $value;
+      break;
+    endswitch;
+  }
+
+  return $output;
+}
+add_filter( 'scaleup_flatten_args', 'scaleup_flatten_args', 10, 2 );
