@@ -529,4 +529,28 @@ class ScaleUp_Feature extends ScaleUp_Base {
     }
   }
 
+  /**
+   * Return args that can be used to instantiate an object in a similar state
+   * @todo: build this more thoroughly
+   *
+   * @return mixed
+   */
+  function export() {
+    $state = (array) $this;
+    unset( $state[ '_features' ] );
+    unset( $state[ '_context' ] );
+    $feature_args = ScaleUp::get_feature_type( $this->get( '_feature_type' ) );
+    foreach ( $feature_args as $key => $value ) {
+      unset( $state[ "_$key" ] );
+    }
+    unset( $state[ '__args' ] );
+
+    foreach ( $state as $key => $value ) {
+      unset( $state[ $key ] );
+      $key = trim( $key, '_' );
+      $state[ $key ] = $value;
+    }
+    return $state;
+  }
+
 }
