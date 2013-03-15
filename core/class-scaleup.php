@@ -23,12 +23,16 @@ class ScaleUp {
     $this->site  = new ScaleUp_Site( array( 'name' => 'WordPress' ) );
 
     add_action( 'scaleup_init', array( $this, '_activate_bundled' ) );
-    do_action( 'scaleup_init' );
+    add_action( 'init', array( $this, 'init' ) );
 
   }
 
   static function this() {
     return self::$_this;
+  }
+
+  function init() {
+    do_action( 'scaleup_init' );
   }
 
   /**
@@ -371,11 +375,13 @@ class ScaleUp {
    */
   static function get_feature_type( $feature_type ) {
 
-    if ( !isset( self::$_feature_types[ $feature_type ] ) ) {
-      return null;
+    $args = null;
+
+    if ( isset( self::$_feature_types[ $feature_type ] ) ) {
+        $args = self::$_feature_types[ $feature_type ];
     }
 
-    return self::$_feature_types[ $feature_type ];
+    return $args;
   }
 
   static function register( $feature_type, $args ) {
@@ -384,6 +390,40 @@ class ScaleUp {
 
   static function activate( $feature_type, $args ) {
     return self::$_this->site->activate( $feature_type, $args );
+  }
+
+  /**
+   * Extend feature types with passed arguments.
+   *
+   * @param array $args = array( $feature_type => $args )
+   * @return array $array of modified feature types
+   */
+  static function extend_feature_type( $args = array() ) {
+
+    $modified = array();
+
+    foreach ( $args as $feature_type => $new ) {
+      $feature_type_args = ScaleUp::get_feature_type( $feature_type );
+      if ( is_array( $feature_type_args ) && is_array( $new ) ) {
+        foreach ( $new as $key => $value ) {
+          if ( isset( $feature_type_args[ $key ] ) ) {
+            $old = $feature_type_args[ $key ];
+            if ( is_array( $old ) ) {
+              if ( is_array( $value ) ) {
+                $old = array_merge( $old, $value );
+              } else {
+                $old[] = $value;
+              }
+            }
+            $feature_type_args[ $key ] = $old;
+          }
+        }
+        $modified[ $feature_type ] = $feature_type_args;
+        self::$_feature_types[ $feature_type ] = $feature_type_args;
+      }
+    }
+
+    return $modified;
   }
 
   /**
