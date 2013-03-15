@@ -305,13 +305,12 @@ class ScaleUp_Feature extends ScaleUp_Base {
       $result = $args;
 
     } else {
-      ScaleUp::add( 'alert',
-        array(
-          'type' => 'warning',
-          'msg'  => 'Attempting to register a feature of unknown feature type.',
-          'debug' => true,
-          'wrong' => $feature_type
-        ));
+      ScaleUp::add_alert( array(
+        'type'  => 'warning',
+        'msg'   => 'Attempting to register a feature of unknown feature type.',
+        'debug' => true,
+        'wrong' => $feature_type
+      ) );
     }
 
     return $result;
