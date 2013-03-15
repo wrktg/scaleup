@@ -266,5 +266,7 @@ ScaleUp::register_feature_type( 'form', array(
         'template' => '/scaleup-form.php',
       ),
     ),
-  )
+  ),
+  '_register'     => array( 'global', 'contextual' ),
+  '_activate'     => array( 'global' ),
 ) );

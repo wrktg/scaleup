@@ -11,12 +11,24 @@ class ScaleUp_Global extends ScaleUp_Duck_Type {
   function duck_types( $feature, $args = array() ) {
     parent::duck_types( $feature, $args );
 
-    /**
-     * @todo: refactor to use $site->add( $feature_type, $feature )
-     */
+    if ( $feature->has( '_activate' ) ) {
+      if ( in_array( 'global', $feature->get( '_activate' ) ) ) {
+        $this->add_to_site( $feature );
+      }
+    } else {
+      $this->add_to_site( $feature );
+    }
 
+    return $feature;
+  }
+
+  /**
+   * Add feature to the global site
+   *
+   * @param ScaleUp_Feature $feature
+   */
+  function add_to_site( $feature ) {
     $site = ScaleUp::get_site();
-    /** @var $storage ScaleUp_Base */
     $plural = $feature->get( '_plural' );
     $features = $site->get( 'features' );
     if ( $features->has( $plural ) ) {
@@ -26,8 +38,6 @@ class ScaleUp_Global extends ScaleUp_Duck_Type {
       $features->set( $plural, $storage );
     }
     $storage->set( $feature->get( 'name' ), $feature );
-
-    return $feature;
   }
 
 }

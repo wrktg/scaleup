@@ -1,10 +1,16 @@
 <?php
 class ScaleUp_Template extends ScaleUp_Feature {
 
+  private static $_activated = array();
+
   function activation() {
     $template = $this->get( 'template' );
-    $hook     = "get_template_part_{$template}";
-    add_action( $hook, array( $this, 'get_template_part' ) );
+    $tag      = "get_template_part_{$template}";
+    $callback = array( $this, 'get_template_part' );
+    if ( !in_array( $tag, self::$_activated ) ) {
+      add_action( $tag, $callback );
+      self::$_activated[] = $tag;
+    }
   }
 
   /**
