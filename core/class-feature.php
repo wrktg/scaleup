@@ -3,7 +3,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
 
   var $_features;
 
-  function __construct( $args ) {
+  function __construct( $args = array() ) {
     parent::__construct( $args );
 
     /**
