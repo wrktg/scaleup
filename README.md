@@ -13,28 +13,28 @@ Create a form in theme's functions.php or plugin
 $form = add_form( array( 
 	'name' 	=> 'contact',
 	'title' => 'Send me a message',
-));
+) );
 
 # add form fields
 add_form_field( $form, array(
 	'name' 		=> 'name',
 	'label'		=> 'Name',
 	'validation'=> array( 'required' ),
-));
+) );
 add_form_field( $form, array(
 	'name' 		=> 'email',
 	'label'		=> 'Email',
 	'validation'=> array( 'required' ),
-));
+) );
 add_form_field( $form, array(
 	'name'		=> 'message',
 	'label'		=> 'Message',
-));
+) );
 add_form_field( $form, array(
 	'name'		=> 'submit',
 	'type'		=> 'button',
 	'text'		=> 'Submit'
-));
+) );
 
 # add a notification to the form
 add_form_notification( $form, array(
@@ -43,7 +43,7 @@ add_form_notification( $form, array(
 	'from'		=> '{name} <{email}>',
 	'subject'	=> '{name} sent you a message via your site',
 	'message'	=> '{message}'
-));
+) );
 
 # write code to handle form processing
 if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
@@ -72,7 +72,7 @@ $item = create_item( array(
 	'post_categories' 	=> array( 'Article', 'ScaleUp' ),
 	'post_tags'			=> array(),
 	'post_thumbnail'	=> 'http://example.com/example.jpg' # or file upload array
-));
+) );
 ```
 
 To update an item using Items API
@@ -88,6 +88,7 @@ $updated = update_item( array(
         'size' 		=> 123
         ),
     'post_tags'			=> array( 'Excellent', 'Relevant' ),
+);
 ```
 
 To read an item from the database
@@ -129,7 +130,44 @@ register_schema( 'person', array(
 );
 ```
 
-### Template API
-ScaleUp Template API allows a developer to provide custom templates with a plugin that can be overwritten in the parent theme or child theme. Once a template is registered, it is available to be included in a theme's template using *get_template_part()*.
+### Templates API
+ScaleUp Template API allows a developer to provide custom templates with a plugin that can be overwritten in the parent theme or child theme. Once a template is registered, it is available to be included in a theme's template using ```get_template_part()```.
 
 #### Code Example
+```php
+add_template( array(
+	'template' => '/custom-template.php',
+	'path' => dirname( __FILE__ ) . '/templates' ,
+) );
+```
+
+*Note:* 'path' + 'template' should be real path to your template.
+
+### Assets API
+ScaleUp Assets API is a unified API for managing styles and scripts. Once a script or style is registered via ScaleUp Assets API, they can be added to templates to be enqueued automatically when a template is included using ```get_template_part()```.
+
+#### Code Example
+```php
+// register a js to be used in your plugin
+register_asset( array(
+	'my_js_asset' => array(
+		'type'	=> 'script',
+		'src'	=> '/my-plugin/js/plugin.js',
+		'deps'	=> array( 'jquery' ),
+	),
+) );
+
+// register a css to be used in your plugin
+register_asset( array(
+	'my_css_asset' => array(
+		'type'	=> 'style',
+		'src'	=> '/my-plugin/css/plugin.css',
+	),
+) );
+```
+
+## API Status
+
+The architecture has gone through 2 development iterations and I feel fairly confident that it will not change much going forward. Its been tested under a bunch of different scenarios and it has proven to be flexible enough to have all of the situations in an elegant way. 
+
+The functions that are available in [functions.php], [template-tags.php], [actions.php] and [filters.php] are very minimal therefore they have very little reason to change. New functions will be added over time.
