@@ -4,8 +4,7 @@ ScaleUp is a WordPress-ish developer centric framework for building things with 
 ## Features
 
 ### Forms API
-
-ScaleUp Forms API makes it easy to programatically create, display and process custom forms.
+ScaleUp Forms API makes it easy to programatically create, display and process custom forms. 
 
 #### Code Example
 Create a form in theme's functions.php or plugin
@@ -57,8 +56,10 @@ Display form using a template tag
 the_form( 'contact' );
 ```
 
-### Items API
+#### Forms Style
+By default, ScaleUp Forms uses [Bootstrap](http://twitter.github.com/bootstrap/) styling and html structure. The templates that are included with ScaleUp Forms follow can be easily overwritten in the parent or child theme. You can see ScaleUp Forms default templates in the [templates directory](templates). 
 
+### Items API
 ScaleUp Items API is a unified API for manipulate WordPress content. Using the ScaleUp Items API you can programatically CRUD(create, read, update & delete) content and its associated metadata, taxonomies and relationships. 
 
 #### Code Example
@@ -100,3 +101,35 @@ To delete an item
 delete_item( 323 );
 ```
 
+### Schemas API
+Schemas API allows a developer to apply soft structure to WordPress content. A schema is a post type and a collection of its properties, taxonomies and relationships. In fact, WordPress's post is implemented as a *post* schema and is available by default.
+
+An item can have multiple schemas. A schema can be created with a post type assignment. ScaleUp's item functionality piggybacks on WordPress's post functionality, therefore an item can not have more than 1 schema with a post type assignment.
+
+ScaleUp Schemas API relies on *scribu*'s [Posts 2 Posts](http://wordpress.org/extend/plugins/posts-to-posts/) to provide relationship functionality.
+
+#### Code Example
+Register a schema to make it available within a site
+```php
+register_schema( 'person', array(
+	'givenName'	=> array(
+		'type' => 'property',
+	),
+	'lastName'	=> array(
+		'type' => 'property',
+	),
+	'organization'	=> array(
+		'type' => 'relationship',
+		'to'   => 'organization',
+	),
+	'department'	=> array(
+		'type' 		=> 'taxonomy',
+		'taxonomy' 	=> 'departments'
+	),
+);
+```
+
+### Template API
+ScaleUp Template API allows a developer to provide custom templates with a plugin that can be overwritten in the parent theme or child theme. Once a template is registered, it is available to be included in a theme's template using *get_template_part()*.
+
+#### Code Example
