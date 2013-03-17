@@ -24,6 +24,7 @@ if ( !function_exists( 'add_form' ) ) {
 
     $default = array(
       'name'          => "form_{$count}", # name to be used when referencing this form ( lower case, no spaces, or special characters, use _ as separator between words )
+      'title'         => '', # title to show about the form
       'form_fields'   => array(), # array of fields to be included in this form. See add_form_field() for configuration options
       'notifications' => array(), # array of notifications to be sent out after form is verified. See add_form_notification() for configuration options
       'action'        => $_SERVER[ 'REQUEST_URI' ], # url to submit results to
@@ -135,91 +136,38 @@ if ( !function_exists( 'get_form' ) ) {
   }
 }
 
-if ( !function_exists( 'register_schema' ) ) {
-  /**
-   * A schema is a soft structure that a developer can impose on a content item. A schema can have properties,
-   * taxonomies and relationships. Each schema has a name that uniquely identifies it within a site.
-   *
-   * @todo: add documentation about format of args arrays
-   *
-   * @param string $schema_name
-   * @param array $args
-   * @return ScaleUp_Schema|bool
-   */
-  function register_schema( $schema_name, $args = array() ) {
-
-    $name = ScaleUp::slugify( $schema_name );
-
-    $order = array_keys( $args );
-
-    $properties    = array();
-    $taxonomies    = array();
-    $relationships = array();
-
-    foreach ( $args as $prop_name => $prop_args ) {
-      if ( is_array( $prop_args ) ) {
-        if ( isset( $prop_args[ 'type' ] ) ) {
-          $feature_type = $prop_args[ 'type' ];
-          unset( $prop_args[ 'type' ] );
-        } else {
-          $feature_type = 'property';
-        }
-        switch ( $feature_type ) :
-          case 'taxonomy' :
-            $taxonomies[ $prop_name ] = $prop_args;
-            break;
-          case 'relationships' :
-            $relationships[ $prop_name ] = $prop_args;
-            break;
-          case 'property' :
-          default:
-            $properties[ $prop_name ] = $prop_args;
-        endswitch;
-        unset( $args[ $prop_name ] );
-      }
-    }
-
-    $default = array(
-      'name'          => $name,
-      'properties'    => $properties,
-      'taxonomies'    => $taxonomies,
-      'relationships' => $relationships,
-      'order'         => $order,
-    );
-
-    /**
-     * $default is before $args because 'name', 'properties', 'taxonomies' & 'relationships' are reserved arg names in
-     * this context. They take priority over user's input ( so, user you better check yourself, before you wreck something. )
-     */
-
-    return ScaleUp::register_schema( wp_parse_args( $default, $args ) );
-  }
-} else {
-  ScaleUp::add_alert( array(
-    'type'  => 'warning',
-    'msg'   => sprintf( "register_schema function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
-    'debug' => true
-  ) );
-}
-
 if ( !function_exists( 'create_item' ) ) {
   /**
-   * Create an item with a specific schema and populated with values from the $args array
-   * By default, an item has a schema in addition to schema specified via first parameter of this function.
+   * Create an item and populate it with data from $args array.
    *
-   * If you want to create an item that doesn't have post schema then you can use ScaleUp::create_item function.
-   * @see /core/class-scaleup.php
-   *
-   * @param $schema
    * @param array $args
    * @return ScaleUp_Item
    */
-  function create_item( $schema, $args = array() ) {
-
-    $schema = ( array )$schema;
+  function create_item( $args = array() ) {
 
     $default = array(
-      'schemas' => array_merge( array( 'post' ), $schema )
+      'post_name'             => '',
+      'post_title'            => '',
+      'post_content'          => '',
+      'post_excerpt'          => '',
+      'post_author'           => '',
+      'post_status'           => '',
+      'post_date'             => '',
+      'post_date_gmt'         => '',
+      'comment_status'        => '',
+      'ping_status'           => get_option( 'default_ping_status' ),
+      'post_password'         => '',
+      'post_modified'         => '',
+      'post_modified_gmt'     => '',
+      'post_content_filtered' => '',
+      'post_parent'           => 0,
+      'guid'                  => '',
+      'menu_order'            => 0,
+      'post_type'             => 'post',
+      'post_mime_type'        => '',
+      'comment_count'         => '',
+      'post_thumbnail'        => 0,
+      'schemas'               => array( 'post' ),
     );
 
     return ScaleUp::create_item( wp_parse_args( $args, $default ) );
@@ -320,6 +268,74 @@ if ( !function_exists( 'new_item' ) ) {
       'debug' => true,
     )
   );
+}
+
+
+if ( !function_exists( 'register_schema' ) ) {
+  /**
+   * A schema is a soft structure that a developer can impose on a content item. A schema can have properties,
+   * taxonomies and relationships. Each schema has a name that uniquely identifies it within a site.
+   *
+   * @todo: add documentation about format of args arrays
+   *
+   * @param string $schema_name
+   * @param array $args
+   * @return ScaleUp_Schema|bool
+   */
+  function register_schema( $schema_name, $args = array() ) {
+
+    $name = ScaleUp::slugify( $schema_name );
+
+    $order = array_keys( $args );
+
+    $properties    = array();
+    $taxonomies    = array();
+    $relationships = array();
+
+    foreach ( $args as $prop_name => $prop_args ) {
+      if ( is_array( $prop_args ) ) {
+        if ( isset( $prop_args[ 'type' ] ) ) {
+          $feature_type = $prop_args[ 'type' ];
+          unset( $prop_args[ 'type' ] );
+        } else {
+          $feature_type = 'property';
+        }
+        switch ( $feature_type ) :
+          case 'taxonomy' :
+            $taxonomies[ $prop_name ] = $prop_args;
+            break;
+          case 'relationships' :
+            $relationships[ $prop_name ] = $prop_args;
+            break;
+          case 'property' :
+          default:
+            $properties[ $prop_name ] = $prop_args;
+        endswitch;
+        unset( $args[ $prop_name ] );
+      }
+    }
+
+    $default = array(
+      'name'          => $name,
+      'properties'    => $properties,
+      'taxonomies'    => $taxonomies,
+      'relationships' => $relationships,
+      'order'         => $order,
+    );
+
+    /**
+     * $default is before $args because 'name', 'properties', 'taxonomies' & 'relationships' are reserved arg names in
+     * this context. They take priority over user's input ( so, user you better check yourself, before you wreck something. )
+     */
+
+    return ScaleUp::register_schema( wp_parse_args( $default, $args ) );
+  }
+} else {
+  ScaleUp::add_alert( array(
+    'type'  => 'warning',
+    'msg'   => sprintf( "register_schema function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
+    'debug' => true
+  ) );
 }
 
 if ( !function_exists( 'add_template' ) ) {

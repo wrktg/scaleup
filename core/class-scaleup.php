@@ -215,7 +215,7 @@ class ScaleUp {
    * Create an empty instance of an item ( the database is untouched )
    *
    * @param $args
-   * @return bool|ScaleUp_Feature
+   * @return ScaleUp_Item|bool
    */
   static function new_item( $args ) {
     $site = ScaleUp::get_site();
@@ -227,9 +227,9 @@ class ScaleUp {
    * Get item by id
    *
    * @param int $id
-   * @return ScaleUp_Item|false
+   * @return ScaleUp_Item|bool
    */
-  static function get_item( int $id ) {
+  static function get_item( $id ) {
 
     $item = false;
 

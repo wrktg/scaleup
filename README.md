@@ -4,46 +4,69 @@ ScaleUp is a WordPress-ish developer centric framework for building things with 
 
 ## Features
 
-### Forms
-ScaleUp Forms API makes it easy to programatically create and display custom forms.
+### Forms API
 
-Checkout an example of the API in action:
+ScaleUp Forms API makes it easy to programatically create, display and process custom forms.
 
-#### in your theme functions.php or plugin
+#### Code Example
 
+##### Create a form in theme's functions.php or plugin
 ```php
-$form = add_form( 'contact' );
+# create a new empty form with handle 'contact'
+$form = add_form( array( 
+	'name' 	=> 'contact',
+	'title' => 'Send me a message',
+));
+
+# add form fields
 add_form_field( $form, array(
 	'name' 		=> 'name',
 	'label'		=> 'Name',
-	'validation' 	=> array( 'required' ),
+	'validation'=> array( 'required' ),
 ));
 add_form_field( $form, array(
 	'name' 		=> 'email',
 	'label'		=> 'Email',
-	'validation' 	=> array( 'required' ),
+	'validation'=> array( 'required' ),
 ));
 add_form_field( $form, array(
-	'name'			=> 'message',
+	'name'		=> 'message',
 	'label'		=> 'Message',
 ));
 add_form_field( $form, array(
-	'name'			=> 'submit',
-	'type'			=> 'button',
-	'text'			=> 'Submit'
+	'name'		=> 'submit',
+	'type'		=> 'button',
+	'text'		=> 'Submit'
 ));
+
+# add a notification to the form
 add_form_notification( $form, array(
 	'method'		=> 'email',
-	'to'			=> 'tarasm@gmail.com',
+	'to'			=> get_bloginfo( 'admin_email' ),
 	'from'			=> '{name} <{email}>',
 	'subject'		=> '{name} sent you a message via your site',
 	'message'		=> '{message}'
 ));
+
+# write code to handle form processing
+if ( 'POST' === $_SERVER['REQUEST_METHOD'] ) {
+	$form->process( $_POST );
+}
 ```
 
-#### in a template in your theme
+##### Display form using a template tag
 ```php
+# in a template in your theme
 the_form( 'contact' );
 ```
 
-### Templates
+### Items API
+
+ScaleUp Items API is a unified API for manipulate WordPress content. Using the ScaleUp Items API you can programatically CRUD(create, read, update & delete) content and its associated metadata, taxonomies and relationships. 
+
+Checkout an example of Items API in action
+```php
+$item = create_item( array(
+	'
+));
+```
