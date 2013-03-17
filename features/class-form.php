@@ -1,4 +1,8 @@
 <?php
+/**
+ * Class ScaleUp_Form
+ *
+ */
 class ScaleUp_Form extends ScaleUp_Feature {
 
   /**
@@ -244,7 +248,7 @@ class ScaleUp_Form extends ScaleUp_Feature {
         'template'      => 'form',
         'method'        => 'post',
         'action'        => null,
-        'enctype'       => null,
+        'enctype'       => "application/x-www-form-urlencoded",
         'title'         => '',
         'before_title'  => '<h2>',
         'after_title'   => '</h2>',

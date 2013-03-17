@@ -45,14 +45,119 @@ class ScaleUp {
   }
 
   /**
+   * Add a form to this site & return created form
+   *
+   * @param array $args
+   * @return bool|ScaleUp_Feature
+   */
+  static function add_form( $args ) {
+    $site = ScaleUp::get_site();
+    $form = $site->add( 'form', $args );
+
+    return $form;
+  }
+
+  /**
+   * Return form from this site
+   *
+   * @param string $name
+   * @return bool|ScaleUp_Feature
+   */
+  static function get_form( $name ) {
+
+    $site = ScaleUp::get_site();
+    $form = $site->get_feature( 'form', $name );
+    if ( is_null( $form ) ) {
+      ScaleUp::add_alert( array(
+        'type'  => 'warning',
+        'msg'   => "Form called $form could not be found on this site.",
+        'debug' => true,
+        'wrong' => $form
+      ) );
+      $form = false;
+    }
+
+    return $form;
+  }
+
+  /**
+   * Add form field to a form & return created form
+   *
+   * @param string|ScaleUp_Form $form
+   * @param array $args
+   * @return ScaleUp_Form_Field|bool
+   */
+  static function add_form_field( $form, $args ) {
+
+    $form_field = false;
+
+    if ( is_string( $form ) ) {
+      $form = ScaleUp::get_form( $form );
+    }
+
+    if ( is_object( $form ) ) {
+      $form_field = $form->add( 'form_field', $args );
+      if ( false === $form_field ) {
+        ScaleUp::add_alert( array(
+          'type'  => 'warning',
+          'msg'   => sprintf( "Form field could not be added to form called %s.", $form->get( 'name' ) ),
+          'debug' => true,
+          'wrong' => $args
+        ) );
+      }
+    } else {
+      ScaleUp::add_alert( array(
+        'type'  => "warning",
+        'msg'   => "Field could not be added to the form.",
+        'debug' => true,
+        'wrong' => $form
+      ) );
+    }
+
+    return $form_field;
+  }
+
+  /**
+   * Add a notification to a form
+   *
+   * @todo: implement form notifications
+   *
+   * @param string|ScaleUp_Form $form
+   * @param array $args
+   * @return ScaleUp_Notification|bool
+   */
+  static function add_form_notification( $form, $args ) {
+
+    $notification = false;
+
+    if ( is_string( $form ) ) {
+      $form = ScaleUp::get_form( $form );
+    }
+
+    if ( is_object( $form ) ) {
+      $notification = $form->add( 'notification', $args );
+    } else {
+      ScaleUp::add_alert( array(
+        'type'  => "warning",
+        'msg'   => "Notification could not be added to the form.",
+        'debug' => true,
+        'wrong' => $form
+      ) );
+    }
+
+    return $notification;
+  }
+
+  /**
    * Add an alert to this site
    *
    * @param $args
-   * @return ScaleUp_Alert
+   * @return ScaleUp_Alert|bool
    */
   static function add_alert( $args ) {
     $site = ScaleUp::get_site();
-    return $site->add( 'alert', $args );
+    $alert = $site->add( 'alert', $args );
+    return $alert;
   }
 
   /**
@@ -63,7 +168,8 @@ class ScaleUp {
    */
   static function register_schema( $args ) {
     $site = ScaleUp::get_site();
-    return $site->register( 'schema', $args );
+    $schema = $site->register( 'schema', $args );
+    return $schema;
   }
 
   /**
@@ -85,8 +191,8 @@ class ScaleUp {
        * Let's replace item name in site's item feature storage with a property name that we can reference in the future
        */
       $new_id = "item_$id";
-      $name = $item->get( 'name' );
-      $items = $site->get_features( 'items' );
+      $name   = $item->get( 'name' );
+      $items  = $site->get_features( 'items' );
       /**
        * Remove reference to the old hashed name
        */
@@ -113,6 +219,7 @@ class ScaleUp {
    */
   static function new_item( $args ) {
     $site = ScaleUp::get_site();
+
     return $site->add( 'item', $args );
   }
 
@@ -128,17 +235,22 @@ class ScaleUp {
 
     if ( $id > 0 ) {
       $property_name = "item_$id";
-      $site = ScaleUp::get_site();
+      $site          = ScaleUp::get_site();
       /** @var $items ScaleUp_Base */
       $items = $site->get_features( 'items' );
-      $item = $items->get( $property_name );
+      $item  = $items->get( $property_name );
       if ( is_null( $item ) ) {
         /** @var $item ScaleUp_Item */
         $item = $site->add( 'item' );
         $item->read( $id );
       }
     } else {
-      ScaleUp::add_alert( array( 'type' => 'warning', 'debug' => true, 'wrong' => $id, 'msg' => "Could not get the item because item id is invalid" ) );
+      ScaleUp::add_alert( array(
+        'type'  => 'warning',
+        'debug' => true,
+        'wrong' => $id,
+        'msg'   => "Could not get the item because item id is invalid"
+      ) );
     }
 
     return $item;
@@ -182,6 +294,33 @@ class ScaleUp {
 
     return $success;
   }
+
+  /**
+   * Add template to the site to make it available to use with get_template_part
+   *
+   * @param $args
+   * @return ScaleUp_Feature|bool
+   */
+  static function add_template( $args ) {
+    $site = ScaleUp::get_site();
+    $template = $site->add( 'template', $args );
+
+    return $template;
+  }
+
+  /**
+   * Register an asset to make it available to this site
+   *
+   * @param $args
+   * @return array|bool
+   */
+  static function register_asset( $args ) {
+    $site = ScaleUp::get_site();
+    $asset_args = $site->register( 'asset', $args );
+
+    return $asset_args;
+  }
+
 
   /**
    * Make a feature type available.
@@ -378,7 +517,7 @@ class ScaleUp {
     $args = null;
 
     if ( isset( self::$_feature_types[ $feature_type ] ) ) {
-        $args = self::$_feature_types[ $feature_type ];
+      $args = self::$_feature_types[ $feature_type ];
     }
 
     return $args;
@@ -412,13 +551,13 @@ class ScaleUp {
               if ( is_array( $value ) ) {
                 $old = array_merge( $old, $value );
               } else {
-                $old[] = $value;
+                $old[ ] = $value;
               }
             }
             $feature_type_args[ $key ] = $old;
           }
         }
-        $modified[ $feature_type ] = $feature_type_args;
+        $modified[ $feature_type ]             = $feature_type_args;
         self::$_feature_types[ $feature_type ] = $feature_type_args;
       }
     }
@@ -468,56 +607,56 @@ class ScaleUp {
     );
 
     $transliteration = array(
-      '/ä|æ|ǽ/' => 'ae',
-      '/ö|œ/' => 'oe',
-      '/ü/' => 'ue',
-      '/Ä/' => 'Ae',
-      '/Ü/' => 'Ue',
-      '/Ö/' => 'Oe',
-      '/À|Á|Â|Ã|Å|Ǻ|Ā|Ă|Ą|Ǎ/' => 'A',
-      '/à|á|â|ã|å|ǻ|ā|ă|ą|ǎ|ª/' => 'a',
-      '/Ç|Ć|Ĉ|Ċ|Č/' => 'C',
-      '/ç|ć|ĉ|ċ|č/' => 'c',
-      '/Ð|Ď|Đ/' => 'D',
-      '/ð|ď|đ/' => 'd',
-      '/È|É|Ê|Ë|Ē|Ĕ|Ė|Ę|Ě/' => 'E',
-      '/è|é|ê|ë|ē|ĕ|ė|ę|ě/' => 'e',
-      '/Ĝ|Ğ|Ġ|Ģ/' => 'G',
-      '/ĝ|ğ|ġ|ģ/' => 'g',
-      '/Ĥ|Ħ/' => 'H',
-      '/ĥ|ħ/' => 'h',
-      '/Ì|Í|Î|Ï|Ĩ|Ī|Ĭ|Ǐ|Į|İ/' => 'I',
-      '/ì|í|î|ï|ĩ|ī|ĭ|ǐ|į|ı/' => 'i',
-      '/Ĵ/' => 'J',
-      '/ĵ/' => 'j',
-      '/Ķ/' => 'K',
-      '/ķ/' => 'k',
-      '/Ĺ|Ļ|Ľ|Ŀ|Ł/' => 'L',
-      '/ĺ|ļ|ľ|ŀ|ł/' => 'l',
-      '/Ñ|Ń|Ņ|Ň/' => 'N',
-      '/ñ|ń|ņ|ň|ŉ/' => 'n',
-      '/Ò|Ó|Ô|Õ|Ō|Ŏ|Ǒ|Ő|Ơ|Ø|Ǿ/' => 'O',
-      '/ò|ó|ô|õ|ō|ŏ|ǒ|ő|ơ|ø|ǿ|º/' => 'o',
-      '/Ŕ|Ŗ|Ř/' => 'R',
-      '/ŕ|ŗ|ř/' => 'r',
-      '/Ś|Ŝ|Ş|Š/' => 'S',
-      '/ś|ŝ|ş|š|ſ/' => 's',
-      '/Ţ|Ť|Ŧ/' => 'T',
-      '/ţ|ť|ŧ/' => 't',
+      '/ä|æ|ǽ/'                         => 'ae',
+      '/ö|œ/'                           => 'oe',
+      '/ü/'                             => 'ue',
+      '/Ä/'                             => 'Ae',
+      '/Ü/'                             => 'Ue',
+      '/Ö/'                             => 'Oe',
+      '/À|Á|Â|Ã|Å|Ǻ|Ā|Ă|Ą|Ǎ/'           => 'A',
+      '/à|á|â|ã|å|ǻ|ā|ă|ą|ǎ|ª/'         => 'a',
+      '/Ç|Ć|Ĉ|Ċ|Č/'                     => 'C',
+      '/ç|ć|ĉ|ċ|č/'                     => 'c',
+      '/Ð|Ď|Đ/'                         => 'D',
+      '/ð|ď|đ/'                         => 'd',
+      '/È|É|Ê|Ë|Ē|Ĕ|Ė|Ę|Ě/'             => 'E',
+      '/è|é|ê|ë|ē|ĕ|ė|ę|ě/'             => 'e',
+      '/Ĝ|Ğ|Ġ|Ģ/'                       => 'G',
+      '/ĝ|ğ|ġ|ģ/'                       => 'g',
+      '/Ĥ|Ħ/'                           => 'H',
+      '/ĥ|ħ/'                           => 'h',
+      '/Ì|Í|Î|Ï|Ĩ|Ī|Ĭ|Ǐ|Į|İ/'           => 'I',
+      '/ì|í|î|ï|ĩ|ī|ĭ|ǐ|į|ı/'           => 'i',
+      '/Ĵ/'                             => 'J',
+      '/ĵ/'                             => 'j',
+      '/Ķ/'                             => 'K',
+      '/ķ/'                             => 'k',
+      '/Ĺ|Ļ|Ľ|Ŀ|Ł/'                     => 'L',
+      '/ĺ|ļ|ľ|ŀ|ł/'                     => 'l',
+      '/Ñ|Ń|Ņ|Ň/'                       => 'N',
+      '/ñ|ń|ņ|ň|ŉ/'                     => 'n',
+      '/Ò|Ó|Ô|Õ|Ō|Ŏ|Ǒ|Ő|Ơ|Ø|Ǿ/'         => 'O',
+      '/ò|ó|ô|õ|ō|ŏ|ǒ|ő|ơ|ø|ǿ|º/'       => 'o',
+      '/Ŕ|Ŗ|Ř/'                         => 'R',
+      '/ŕ|ŗ|ř/'                         => 'r',
+      '/Ś|Ŝ|Ş|Š/'                       => 'S',
+      '/ś|ŝ|ş|š|ſ/'                     => 's',
+      '/Ţ|Ť|Ŧ/'                         => 'T',
+      '/ţ|ť|ŧ/'                         => 't',
       '/Ù|Ú|Û|Ũ|Ū|Ŭ|Ů|Ű|Ų|Ư|Ǔ|Ǖ|Ǘ|Ǚ|Ǜ/' => 'U',
       '/ù|ú|û|ũ|ū|ŭ|ů|ű|ų|ư|ǔ|ǖ|ǘ|ǚ|ǜ/' => 'u',
-      '/Ý|Ÿ|Ŷ/' => 'Y',
-      '/ý|ÿ|ŷ/' => 'y',
-      '/Ŵ/' => 'W',
-      '/ŵ/' => 'w',
-      '/Ź|Ż|Ž/' => 'Z',
-      '/ź|ż|ž/' => 'z',
-      '/Æ|Ǽ/' => 'AE',
-      '/ß/' => 'ss',
-      '/Ĳ/' => 'IJ',
-      '/ĳ/' => 'ij',
-      '/Œ/' => 'OE',
-      '/ƒ/' => 'f'
+      '/Ý|Ÿ|Ŷ/'                         => 'Y',
+      '/ý|ÿ|ŷ/'                         => 'y',
+      '/Ŵ/'                             => 'W',
+      '/ŵ/'                             => 'w',
+      '/Ź|Ż|Ž/'                         => 'Z',
+      '/ź|ż|ž/'                         => 'z',
+      '/Æ|Ǽ/'                           => 'AE',
+      '/ß/'                             => 'ss',
+      '/Ĳ/'                             => 'IJ',
+      '/ĳ/'                             => 'ij',
+      '/Œ/'                             => 'OE',
+      '/ƒ/'                             => 'f'
     );
 
     $map = $transliteration + $merge;

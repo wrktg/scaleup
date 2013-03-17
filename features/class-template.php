@@ -38,6 +38,8 @@ class ScaleUp_Template extends ScaleUp_Feature {
     return wp_parse_args(
       array(
         '_feature_type' => 'template',
+        'template'      => null,
+        'path'          => null,
       ), parent::get_defaults()
     );
   }

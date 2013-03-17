@@ -5,33 +5,42 @@
 
 if ( !function_exists( 'add_form' ) ) {
   /**
-   * Adds a form to the site that can be displayed in templates using the_form( $form_name )
-   * @see template-tags.php for more information on how to use this form in your theme
+   * Adds a form to the site that can be displayed in a template using the_form( $form_name ) function.
+   * @see template-tags.php for more information on how to use this form in your theme.
    *
-   * @todo: refactor to have 2nd parameter as $args
+   * Returns a form object that be populated with form fields or processed.
    *
-   * @param string $name
-   * @param array $fields @see add_form_field for array format
+   * @param array $args
    *
-   * @return bool $form ScaleUp_Form
+   * @return ScaleUp_Form|bool $form
    */
-  function add_form( $name, $fields = array() ) {
+  function add_form( $args = array() ) {
 
-    $name = ScaleUp::slugify( $name );
+    static $count;
 
-    $args = array(
-      'name'        => $name,
-      'form_fields' => $fields,
+    if ( !isset( $args[ 'name' ] ) ) {
+      $count++;
+    }
+
+    $default = array(
+      'name'          => "form_{$count}", # name to be used when referencing this form ( lower case, no spaces, or special characters, use _ as separator between words )
+      'form_fields'   => array(), # array of fields to be included in this form. See add_form_field() for configuration options
+      'notifications' => array(), # array of notifications to be sent out after form is verified. See add_form_notification() for configuration options
+      'action'        => $_SERVER[ 'REQUEST_URI' ], # url to submit results to
+      'method'        => "post", # request method to be made to the url ( options: post or get )
+      'enctype'       => "application/x-www-form-urlencoded",
     );
 
-    $site = ScaleUp::get_site();
-
-    $form = $site->add( 'form', $args );
+    $form = ScaleUp::add_form( wp_parse_args( $args ) );
 
     return $form;
   }
 } else {
-  ScaleUp::add_alert( 'warning', sprintf( "add_form function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ), array( 'debug' => true ) );
+  ScaleUp::add_alert( array(
+    'type'  => 'warning',
+    'msg'   => sprintf( "add_form function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
+    'debug' => true
+  ) );
 }
 
 if ( !function_exists( 'add_form_field' ) ) {
@@ -42,6 +51,7 @@ if ( !function_exists( 'add_form_field' ) ) {
    * -----
    * - type:
    *    - text:       regular input field that allows text to be entered
+   *    - hidden:     hidden input field
    *    - textarea:   text area field that allows multiline text entry
    *    - checkbox:   shows a field with many checkboxes
    *    - select:     shows a select field as a dropdown
@@ -52,60 +62,77 @@ if ( !function_exists( 'add_form_field' ) ) {
    * - help:    help information to show after the field
    *
    * @param string|ScaleUp_Form $form
-   * @param string $field_name
    * @param array $args
    * @return ScaleUp_Form_Field|bool
    */
-  function add_form_field( $form, $field_name, $args = array() ) {
+  function add_form_field( $form, $args = array() ) {
 
-    $field = false;
+    static $count;
 
-    if ( !is_object( $form ) && is_string( $form ) ) {
-      $form_name = ScaleUp::slugify( $form );
-      $site      = ScaleUp::get_site();
-      $form      = $site->get_feature( 'form', $form_name );
-      if ( false === $form ) {
-        ScaleUp::add_alert(
-          array(
-            'type'  => 'warning',
-            'msg'   => "Form called $form_name could not be found on this site.",
-            'debug' => true,
-            'wrong' => $form_name
-          ) );
-      }
+    if ( !isset( $args[ 'name' ] ) ) {
+      $count++;
     }
 
-    if ( is_object( $form ) ) {
-      $args[ 'name' ] = $field_name;
-      $field          = $form->add( 'form_field', $args );
-      if ( false === $field ) {
-        ScaleUp::add_alert(
-          array(
-            'type'  => 'warning',
-            'msg'   => "Form field could not be added to form called $field_name.",
-            'debug' => true,
-            'wrong' => $args
-          ) );
-      }
-    } else {
-      ScaleUp::add_alert(
-        array(
-          'type'  => "warning",
-          'msg'   => "Field called $field_name could not be added to the form.",
-          'debug' => true,
-          'wrong' => $form
-        ) );
-    }
+    $args = array(
+      'name'        => "field_{$count}", # name attribute of the form field ( highly recommend overwriting this )
+      'type'        => "text", # type form field attribute
+      'value'       => null, # default form field
+      'placeholder' => null, # placeholder text for the form field
+      'label'       => null, # label of the form field
+      'disabled'    => false, # should this form field be disabled?
+    );
+
+    $field = ScaleUp::add_form_field( $form, $args );
 
     return $field;
   }
 } else {
-  ScaleUp::add_alert(
-    array(
-      'type'  => 'warning',
-      'msg'   => sprintf( "add_form_field function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
-      'debug' => true
-    ) );
+  ScaleUp::add_alert( array(
+    'type'  => 'warning',
+    'msg'   => sprintf( "add_form_field function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
+    'debug' => true
+  ) );
+}
+
+if ( !function_exists( 'add_form_notification' ) ) {
+
+  /**
+   * Add a notification to be issued after form is verified
+   *
+   * @todo: implement form notifications
+   *
+   * @param string|ScaleUp_Form $form
+   * @param array $args
+   * @return ScaleUp_Notification|bool
+   */
+  function add_form_notification( $form, $args ) {
+    $notification = ScaleUp::add_form_notification( $form, $args );
+
+    return $notification;
+  }
+
+} else {
+  ScaleUp::add_alert( array(
+    'type'  => 'warning',
+    'msg'   => sprintf( "add_form_notification function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
+    'debug' => true
+  ) );
+}
+
+if ( !function_exists( 'get_form' ) ) {
+  /**
+   * Return form by $name
+   *
+   * @param $name
+   * @return ScaleUp_Form|bool
+   */
+  function get_form( $name ) {
+
+    /*** @var $form ScaleUp_Form */
+    $form = ScaleUp::get_form( $name );
+
+    return $form;
+  }
 }
 
 if ( !function_exists( 'register_schema' ) ) {
@@ -115,13 +142,13 @@ if ( !function_exists( 'register_schema' ) ) {
    *
    * @todo: add documentation about format of args arrays
    *
-   * @param $name
+   * @param string $schema_name
    * @param array $args
-   * @return mixed
+   * @return ScaleUp_Schema|bool
    */
-  function register_schema( $name, $args = array() ) {
+  function register_schema( $schema_name, $args = array() ) {
 
-    $name = ScaleUp::slugify( $name );
+    $name = ScaleUp::slugify( $schema_name );
 
     $order = array_keys( $args );
 
@@ -167,6 +194,12 @@ if ( !function_exists( 'register_schema' ) ) {
 
     return ScaleUp::register_schema( wp_parse_args( $default, $args ) );
   }
+} else {
+  ScaleUp::add_alert( array(
+    'type'  => 'warning',
+    'msg'   => sprintf( "register_schema function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
+    'debug' => true
+  ) );
 }
 
 if ( !function_exists( 'create_item' ) ) {
@@ -192,8 +225,7 @@ if ( !function_exists( 'create_item' ) ) {
     return ScaleUp::create_item( wp_parse_args( $args, $default ) );
   }
 } else {
-  ScaleUp::add_alert(
-    array(
+  ScaleUp::add_alert( array(
       'type'  => 'warning',
       'msg'   => sprintf( "create_item function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
       'debug' => true,
@@ -213,8 +245,7 @@ if ( !function_exists( 'get_item' ) ) {
     return ScaleUp::get_item( $id );
   }
 } else {
-  ScaleUp::add_alert(
-    array(
+  ScaleUp::add_alert( array(
       'type'  => 'warning',
       'msg'   => sprintf( "get_item function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
       'debug' => true,
@@ -235,8 +266,7 @@ if ( !function_exists( 'update_item' ) ) {
     return ScaleUp::update_item( $id, $args );
   }
 } else {
-  ScaleUp::add_alert(
-    array(
+  ScaleUp::add_alert( array(
       'type'  => 'warning',
       'msg'   => sprintf( "update_item function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
       'debug' => true,
@@ -256,8 +286,7 @@ if ( !function_exists( 'delete_item' ) ) {
     return ScaleUp::delete_item( $id );
   }
 } else {
-  ScaleUp::add_alert(
-    array(
+  ScaleUp::add_alert( array(
       'type'  => 'warning',
       'msg'   => sprintf( "delete_item function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
       'debug' => true,
@@ -285,13 +314,71 @@ if ( !function_exists( 'new_item' ) ) {
     return ScaleUp::new_item( wp_parse_args( $args, $default ) );
   }
 } else {
-  ScaleUp::add_alert(
-    array(
+  ScaleUp::add_alert( array(
       'type'  => 'warning',
       'msg'   => sprintf( "new_item function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
       'debug' => true,
     )
   );
+}
+
+if ( !function_exists( 'add_template' ) ) {
+  /**
+   * Add a template to the site to make it available for use with get_template_part.
+   *
+   * @param $args
+   * @return mixed
+   */
+  function add_template( $args ) {
+
+    $default = array(
+      'template'  => '',              # template to be used with get_template_part
+      'path'      => '',              # path to the directory that contains the template
+      'name'      => null,            # name of the template
+    );
+
+    $template = ScaleUp::add_template( wp_parse_args( $args, $default ) );
+
+    return $template;
+  }
+} else {
+  ScaleUp::add_alert( array(
+    'type'  => 'warning',
+    'msg'   => sprintf( "add_template function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
+    'debug' => true
+  ) );
+}
+
+if ( !function_exists( 'register_asset' ) ) {
+  /**
+   * Register an asset to make it available to the site.
+   * This function combines wp_register_style & wp_register_script into one ScaleUp style register function.
+   *
+   * @param $args
+   * @return array|bool
+   */
+  function register_asset( $args ) {
+
+    $default = array(
+      'name'      => '',        # handle for this asset
+      'type'      => '',        # type of asset to register 'script' or 'style'
+      'src'       => '',        # relative to plugins directory
+      'deps'      => array(),   # dependencies that this asset request to be enqueue before
+      'vers'      => '',
+      'in_footer' => true,
+      'media'     => 'screen',
+    );
+
+    $asset_args = ScaleUp::register_asset( wp_parse_args( $args, $default ) );
+
+    return $asset_args;
+  }
+} else {
+  ScaleUp::add_alert( array(
+    'type'  => 'warning',
+    'msg'   => sprintf( "register_asset function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
+    'debug' => true
+  ) );
 }
 
 if ( !function_exists( 'add_alert' ) ) {
@@ -327,13 +414,11 @@ if ( !function_exists( 'add_alert' ) ) {
     );
 
     return ScaleUp::add_alert( wp_parse_args( $args, $default ) );
-
   }
 } else {
-  ScaleUp::add_alert(
-    array(
-      'type'  => 'warning',
-      sprintf( "add_alert function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
-      'debug' => true
-    ) );
+  ScaleUp::add_alert( array(
+    'type'  => 'warning',
+    'msg'   => sprintf( "add_alert function could not be defined in /%s/functions.php because it was defined somewhere else first.", dirname( __FILE__ ) ),
+    'debug' => true
+  ) );
 }
