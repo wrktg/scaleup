@@ -170,4 +170,4 @@ register_asset( array(
 
 The architecture has gone through 2 development iterations and I feel fairly confident that it will not change much going forward. Its been tested under a bunch of different scenarios and it has proven to be flexible enough to have all of the situations in an elegant way. 
 
-The functions that are available in [functions.php], [template-tags.php], [actions.php] and [filters.php] are very minimal therefore they have very little reason to change. New functions will be added over time.
+The functions that are available in [functions.php](functions.php), [template-tags.php](template-tags.php), [actions.php](actions.php) and [filters.php](filters.php) are very minimal therefore they have very little reason to change. New functions will be added over time.
