@@ -110,10 +110,12 @@ class ScaleUp_Property extends ScaleUp_Feature {
       $meta_type = $this->get( 'meta_type' );
       $meta_key  = $this->get_meta_key();
       $value     = $this->get( 'value' );
-      $updated   = update_metadata( $meta_type, $ID, $meta_key, $value );
+      if ( !is_null( $value ) ) {
+        $updated   = update_metadata( $meta_type, $ID, $meta_key, $value );
 
-      $name      = $this->get( 'name' );
-      $args[ $name ][ 'updated' ] = $updated;
+        $name      = $this->get( 'name' );
+        $args[ $name ][ 'updated' ] = $updated;
+      }
     }
 
     return $args;

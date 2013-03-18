@@ -41,7 +41,7 @@ class ScaleUp_Item extends ScaleUp_Feature {
    * @return array $args
    */
   function update( $args ) {
-    $args = $this->apply_filters( 'read', $args );
+    $args = $this->apply_filters( 'update', $args );
     return $args;
   }
 
@@ -53,7 +53,7 @@ class ScaleUp_Item extends ScaleUp_Feature {
    * @return  array
    */
   function delete( $args ) {
-    $args = $this->apply_filters( 'read', $args );
+    $args = $this->apply_filters( 'delete', $args );
     return $args;
   }
 

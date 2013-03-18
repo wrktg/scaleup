@@ -335,6 +335,7 @@ class ScaleUp {
       '__CLASS__'     => 'ScaleUp_Feature',
       '_feature_type' => $feature_type,
       '_plural'       => "{$feature_type}s",
+      '_container'    => "ScaleUp_Base",
       '_supports'     => array(),
       '_duck_types'   => array(),
       '_bundled'      => array(),

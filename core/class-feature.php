@@ -35,14 +35,15 @@ class ScaleUp_Feature extends ScaleUp_Base {
       }
     }
 
-    $this->add_action( 'activation', array( $this, 'activation' ) );
     $this->add_action( 'init', array( $this, 'init' ) );
     $this->add_action( 'init', array( $this, 'apply_duck_types' ) );
     $this->add_action( 'init', array( $this, 'register_features' ) );
     $this->add_action( 'init', array( $this, 'activate_features' ) );
 
+    $this->add_action( 'activation', array( $this, 'activation' ) );
+
     $this->do_action( 'init', $args );
-    $this->do_action( 'activation' );
+    $this->do_action( 'activation', $args );
   }
 
   function init() {
@@ -230,7 +231,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
            * Give this object a name. This name is a hash, but gives this object some resemblance of identity
            * @see http://stackoverflow.com/questions/2254220/php-best-way-to-md5-multi-dimensional-array
            */
-          $args[ 'name' ] = md5( json_encode( $args ) );
+          $args[ 'name' ] = $this->_name_args( $args );
         }
         $name  = $args[ 'name' ];
 
@@ -290,8 +291,10 @@ class ScaleUp_Feature extends ScaleUp_Base {
         }
       }
 
-      if ( !$this->_features->has( $plural ) ) {
-        $this->_features->set( $plural, new ScaleUp_Base() );
+      // create new feature container
+      if ( !$this->has_container( $plural ) ) {
+        // instantiate container from feature type args ( default is ScaleUp_Base )
+        $this->add_container( $plural, $feature_type_args[ '_container' ] );
       }
 
       $storage = $this->_features->get( $plural );
@@ -348,11 +351,12 @@ class ScaleUp_Feature extends ScaleUp_Base {
       $plural = $feature_type_args[ '_plural' ];
 
       // create new feature container
-      if ( !$this->_features->has( $plural ) ) {
-        $this->_features->set( $plural, new ScaleUp_Base() );
+      if ( !$this->has_container( $plural ) ) {
+        // instantiate container from feature type args ( default is ScaleUp_Base )
+        $this->add_container( $plural, $feature_type_args[ '_container' ] );
       }
 
-      // convinient object
+      // convenient object
       $storage = $this->_features->get( $plural );
 
       if ( is_object( $args ) ) {
@@ -488,7 +492,12 @@ class ScaleUp_Feature extends ScaleUp_Base {
           foreach ( $features as $key => $value ) {
             $feature_args = array();
             if ( is_numeric( $key ) ) {
-              $feature_args[ 'name' ] = $value;
+              if ( is_array( $value ) ) {
+                $feature_args[ 'name' ] = $this->_name_args( $value );
+                $feature_args           = wp_parse_args( $feature_args, $value );
+              } else {
+                $feature_args[ 'name' ] = $value;
+              }
             } else {
               $feature_args[ 'name' ] = $key;
               $feature_args           = wp_parse_args( $feature_args, $value );
@@ -529,6 +538,73 @@ class ScaleUp_Feature extends ScaleUp_Base {
   }
 
   /**
+   * Create a feature container and return it
+   *
+   * @param string $plural feature
+   * @param string $class container
+   * @param array  $args
+   * @return object
+   */
+  function add_container( $plural, $class, $args = array() ) {
+
+    $default = array(
+      'context' => $this,
+    );
+
+    if ( class_exists( $class ) ) {
+      $container = new $class( wp_parse_args( $args, $default ) );
+    } else {
+      $container = new ScaleUp_Base( wp_parse_args( $args, $default ) );
+      ScaleUp::add_alert( array(
+        'type'  => "warning",
+        'msg'   => "Failed to instantiate feature container because '$class' does not exist.",
+        'wrong' => $class,
+        'debug' => true,
+      ));
+    }
+
+    $this->set_container( $plural, $container );
+
+    return $container;
+  }
+
+  /**
+   * Return a feature container by plural name
+   *
+   * @param $plural
+   * @return mixed
+   */
+  function get_container( $plural ) {
+    $features = $this->get( 'features' );
+    $container = $features->get( $plural );
+    return $container;
+  }
+
+  /**
+   * Set container as container for feature
+   *
+   * @param $plural
+   * @param $container
+   */
+  function set_container( $plural, $container ) {
+    $features = $this->get( 'features' );
+    $features->set( $plural, $container );
+  }
+
+  /**
+   * Return true if current feature has a container for specified features, otherwise return false
+   *
+   * @param $plural
+   * @return bool
+   */
+  function has_container( $plural ) {
+    $features = $this->get( 'features' );
+    $has = $features->has( $plural );
+    return $has;
+  }
+
+
+  /**
    * Return args that can be used to instantiate an object in a similar state
    * @todo: build this more thoroughly
    *
@@ -550,6 +626,16 @@ class ScaleUp_Feature extends ScaleUp_Base {
       $state[ $key ] = $value;
     }
     return $state;
+  }
+
+  /**
+   * Return unique identifier for this args array
+   *
+   * @param $args
+   * @return string
+   */
+  function _name_args( $args ) {
+    return md5( json_encode( $args ) );
   }
 
 }

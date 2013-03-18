@@ -166,8 +166,8 @@ class ScaleUp_Form extends ScaleUp_Feature {
    */
   function validate( $args = array() ) {
 
-    $result = $this->apply_filters( 'validate', true );
-    if ( false === $result ) {
+    $pass = $this->apply_filters( 'validate', true );
+    if ( false === $pass ) {
       $this->register( 'alert', array(
         'msg'  => 'Your submission did not pass validation. Please, verify your entry and resubmit.',
         'type' => 'error'
@@ -202,29 +202,14 @@ class ScaleUp_Form extends ScaleUp_Feature {
   function notify( $args = array() ) {
 
     if ( $this->get( 'continue' ) ) {
-      $notify = $this->get( 'notify' );
-      if ( is_array( $notify ) ) {
-        foreach ( $notify as $notice ) {
-          if ( isset( $notice[ 'method' ] ) && 'email' == $notice[ 'method' ] ) {
-            $this->notify_email( $notice, $args );
-          }
-        }
+      $notifications = $this->get_features( 'notifications' );
+      foreach ( $notifications as $notification ) {
+        $this->add_filter( 'notify', array( $notification, 'issue' ) );
       }
+      $args = $this->apply_filters( 'notify', $args );
     }
 
     return $args;
-  }
-
-  function notify_email( $notice, $args ) {
-
-    if ( isset( $args[ 'to' ] ) ) {
-      $to = $args[ 'to' ];
-      if ( is_callable( $to ) ) {
-        $to = call_user_func( $to, $this );
-      }
-      wp_mail( $to, $args[ 'subject' ], $args[ 'message' ] );
-    }
-
   }
 
   /**
@@ -261,7 +246,7 @@ class ScaleUp_Form extends ScaleUp_Feature {
 ScaleUp::register_feature_type( 'form', array(
   '__CLASS__'   => 'ScaleUp_Form',
   '_plural'     => 'forms',
-  '_supports'   => array( 'form_fields', 'templates', 'alerts' ),
+  '_supports'   => array( 'form_fields', 'templates', 'alerts', 'notifications' ),
   '_duck_types' => array( 'global', 'contextual' ),
   '_bundled'    => array(
     'templates' => array(

@@ -85,7 +85,7 @@ if ( !function_exists( 'form_has_fields' ) ) {
   }
 }
 
-if ( !function_exists( 'form_has_fields' ) ) {
+if ( !function_exists( 'setup_form_field_data' ) ) {
   /**
    * Set form field by specific name into global scope
    */

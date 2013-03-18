@@ -121,8 +121,8 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
    * @return bool
    */
   function validate( $pass ) {
-    $result = $this->apply_filters( 'validate', $pass );
-    return $result;
+    $pass = $this->apply_filters( 'validate', $pass );
+    return $pass;
   }
 
   /**
