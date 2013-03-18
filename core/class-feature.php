@@ -297,7 +297,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
         $this->add_container( $plural, $feature_type_args[ '_container' ] );
       }
 
-      $storage = $this->_features->get( $plural );
+      $storage = $this->get_container( $plural );
 
       $storage->set( $name, $args );
 
@@ -519,12 +519,12 @@ class ScaleUp_Feature extends ScaleUp_Base {
         $found_feature_type = ScaleUp::find_feature_type( '_plural', $plural_feature_type );
 
         // check if a feature with this feature type was already registered
-        if ( $this->_features->has( $plural_feature_type ) ) {
+        if ( $this->has_container( $plural_feature_type ) ) {
           // get a convinience variable
           /**
            * @todo: change this to use instance variable instead of getter
            */
-          $storage = $this->_features->get( $plural_feature_type );
+          $storage = $this->get_container( $plural_feature_type );
           // get array of registered features for this feature type
           $features = $storage->get_properties();
           foreach ( $features as $feature_name ) {
@@ -548,7 +548,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
   function add_container( $plural, $class, $args = array() ) {
 
     $default = array(
-      'context' => $this,
+      '_context' => $this,
     );
 
     if ( class_exists( $class ) ) {
