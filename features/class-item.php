@@ -20,6 +20,9 @@ class ScaleUp_Item extends ScaleUp_Feature {
    */
   function create( $args = array() ) {
     $args = $this->apply_filters( 'create', $args );
+    if ( isset( $args[ 'ID' ][ 'value' ] ) ) {
+      $this->set( 'ID', $args[ 'ID' ][ 'value' ] );
+    }
     return $args;
   }
 

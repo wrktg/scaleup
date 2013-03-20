@@ -51,9 +51,9 @@ class ScaleUp_Property extends ScaleUp_Feature {
    */
   function create( $args ) {
 
-    $meta_key  = $this->get_meta_key();
-    $meta_type = $this->get( 'meta_type' );
-    if ( $this->setup( $args ) ) {
+    if ( $this->setup( $args ) && !is_null( $this->get( 'unique' ) ) ) {
+      $meta_key  = $this->get_meta_key();
+      $meta_type = $this->get( 'meta_type' );
       $ID     = $this->get( 'ID' );
       $value  = $this->get( 'value' );
       $unique = $this->get( 'unique' );

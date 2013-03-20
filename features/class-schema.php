@@ -104,4 +104,6 @@ ScaleUp::register_feature_type( 'schema', array(
   '_plural'       => 'schemas',
   '_supports'     => array( 'properties', 'taxonomies', 'relationships' ),
   '_duck_types'   => array( 'global', 'contextual' ),
+  '_register'     => array( 'global', 'contextual' ),
+  '_activate'     => array( 'contextual' ),
 ) );

@@ -181,18 +181,23 @@ class ScaleUp {
   static function create_item( $args ) {
     $site = ScaleUp::get_site();
     /*** @var $item ScaleUp_Item */
-    $item = $site->add( 'item', $args );
-    $item->create( $args );
+    $item = $site->add( 'item' );
+    if ( isset( $args[ 'schemas' ] ) && is_array( $args[ 'schemas' ] ) ) {
+      foreach ( $args[ 'schemas' ] as $schema ) {
+        $item->add( 'schema', array( 'name' => $schema ) );
+      }
+      unset( $args[ 'schemas' ] );
+    }
+    $item->create( apply_filters( 'scaleup_expand_args', $args ) );
 
-    $id = $item->get( 'id' );
+    $ID = $item->get( 'ID' );
 
-    if ( is_int( $id ) && $id > 0 ) {
+    if ( is_int( $ID ) && $ID > 0 ) {
       /**
        * Let's replace item name in site's item feature storage with a property name that we can reference in the future
        */
-      $new_id = "item_$id";
       $name   = $item->get( 'name' );
-      $items  = $site->get_features( 'items' );
+      $items  = $site->get_container( 'items' );
       /**
        * Remove reference to the old hashed name
        */
@@ -200,15 +205,10 @@ class ScaleUp {
       /**
        * Set new refence using item's id
        */
-      $items->set( $new_id, $item );
-    } else {
-      $item = null;
-      /**
-       * @todo: an error to return
-       */
+      $items->set( $ID, $item );
     }
 
-    return $item;
+    return $ID;
   }
 
   /**

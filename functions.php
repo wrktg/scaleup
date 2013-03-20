@@ -24,7 +24,7 @@ if ( !function_exists( 'add_form' ) ) {
 
     $default = array(
       'name'          => "form_{$count}", # name to be used when referencing this form ( lower case, no spaces, or special characters, use _ as separator between words )
-      'title'         => '', # title to show about the form
+      'title'         => null, # title to show about the form
       'form_fields'   => array(), # array of fields to be included in this form. See add_form_field() for configuration options
       'notifications' => array(), # array of notifications to be sent out after form is verified. See add_form_notification() for configuration options
       'action'        => $_SERVER[ 'REQUEST_URI' ], # url to submit results to
@@ -146,27 +146,27 @@ if ( !function_exists( 'create_item' ) ) {
   function create_item( $args = array() ) {
 
     $default = array(
-      'post_name'             => '',
-      'post_title'            => '',
-      'post_content'          => '',
-      'post_excerpt'          => '',
-      'post_author'           => '',
-      'post_status'           => '',
-      'post_date'             => '',
-      'post_date_gmt'         => '',
-      'comment_status'        => '',
-      'ping_status'           => get_option( 'default_ping_status' ),
-      'post_password'         => '',
-      'post_modified'         => '',
-      'post_modified_gmt'     => '',
-      'post_content_filtered' => '',
-      'post_parent'           => 0,
-      'guid'                  => '',
-      'menu_order'            => 0,
+      'post_name'             => null,
+      'post_title'            => null,
+      'post_content'          => null,
+      'post_excerpt'          => null,
+      'post_author'           => null,
+      'post_status'           => null,
+      'post_date'             => null,
+      'post_date_gmt'         => null,
+      'comment_status'        => null,
+      'ping_status'           => null,
+      'post_password'         => null,
+      'post_modified'         => null,
+      'post_modified_gmt'     => null,
+      'post_content_filtered' => null,
+      'post_parent'           => null,
+      'guid'                  => null,
+      'menu_order'            => null,
+      'post_mime_type'        => null,
+      'comment_count'         => null,
+      'post_thumbnail'        => null,
       'post_type'             => 'post',
-      'post_mime_type'        => '',
-      'comment_count'         => '',
-      'post_thumbnail'        => 0,
       'schemas'               => array( 'post' ),
     );
 
@@ -348,8 +348,8 @@ if ( !function_exists( 'add_template' ) ) {
   function add_template( $args ) {
 
     $default = array(
-      'template'  => '',              # template to be used with get_template_part
-      'path'      => '',              # path to the directory that contains the template
+      'template'  => null,              # template to be used with get_template_part
+      'path'      => null,              # path to the directory that contains the template
       'name'      => null,            # name of the template
     );
 
@@ -376,11 +376,11 @@ if ( !function_exists( 'register_asset' ) ) {
   function register_asset( $args ) {
 
     $default = array(
-      'name'      => '',        # handle for this asset
-      'type'      => '',        # type of asset to register 'script' or 'style'
-      'src'       => '',        # relative to plugins directory
+      'name'      => null,        # handle for this asset
+      'type'      => null,        # type of asset to register 'script' or 'style'
+      'src'       => null,        # relative to plugins directory
       'deps'      => array(),   # dependencies that this asset request to be enqueue before
-      'vers'      => '',
+      'vers'      => null,
       'in_footer' => true,
       'media'     => 'screen',
     );

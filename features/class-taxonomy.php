@@ -48,12 +48,22 @@ class ScaleUp_Taxonomy extends ScaleUp_Feature {
       $append   = $this->get( 'append' );
       $term = wp_set_post_terms( $ID, $value , $taxonomy, $append );
       if ( is_array( $term ) ) {
-        /**
-         * the term was created
-         */
-        $name   = $this->get( 'name' );
-        $args[ $name ][ 'taxonomy_id' ] = $term;
-        $this->set( 'id', $term );
+        if ( empty( $term ) ) {
+          ScaleUp::add_alert(
+            array(
+              'type'  => 'warning',
+              'msg'   => 'No taxonomy terms were modified but no error returned either.',
+              'debug' => true
+            )
+          );
+        } else {
+          /**
+           * the term was created
+           */
+          $name   = $this->get( 'name' );
+          $args[ $name ][ 'taxonomy_id' ] = $term;
+          $this->set( 'id', $term );
+        }
       } elseif ( false === $term ) {
         ScaleUp::add_alert(
           array(

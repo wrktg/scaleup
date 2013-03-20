@@ -41,6 +41,30 @@ function scaleup_normalize_value( $value, $format = 'string' ) {
 add_filter( 'scaleup_normalize_value', 'scaleup_normalize_value', 10, 2 );
 
 /**
+ * Expand an associative $args array into an array of arrays with value keys
+ *
+ * array( 'hello' => 'world', 'h2' => 'w2' ) becomes array( 'hello' => array( 'value' => 'world' ), 'h2' => array( 'value' => 'w2' ) );
+ *
+ * @param array $args
+ * @return array
+ */
+function scaleup_expand_args( $args = array() ) {
+
+  $result = array();
+  foreach ( $args as $key => $value ) {
+    if ( !is_null( $value ) ) {
+      $expanded = array(
+        'value' => $value,
+      );
+      $result[ $key ] = $expanded;
+    }
+  }
+
+  return $result;
+}
+add_filter( 'scaleup_expand_args', 'scaleup_expand_args' );
+
+/**
  * Flatten the array and return it in requested format
  *
  * @param array $args

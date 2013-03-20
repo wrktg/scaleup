@@ -22,7 +22,7 @@ class ScaleUp_Post_Schema extends ScaleUp_Schema {
     /**
      * Only take args that are relevant post
      */
-    $wp_post_args = array_intersect_key( $args, $this->get_defaults() );
+    $wp_post_args = array_intersect_key( apply_filters( 'scaleup_flatten_args', $args ), $this->get_defaults() );
 
     $wp_post_args = wp_parse_args( $wp_post_args, array(
       'post_title'  => 'Automatically generated post',
