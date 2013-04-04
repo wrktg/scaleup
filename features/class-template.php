@@ -16,20 +16,36 @@ class ScaleUp_Template extends ScaleUp_Feature {
   /**
    * Callback for get_template_part function
    *
-   * @param $template
+   * @param string $template
    */
-  function get_template_part( $template ) {
+  function get_template_part( $template = null ) {
 
-    // check if template exists in child theme directory
-    if ( is_child_theme() && file_exists( get_stylesheet_directory() . $template ) ) {
-      $this->do_action( 'render' );
-      include( get_stylesheet_directory() . $template );
-    } elseif ( file_exists( get_template_directory() . $template ) ) {
-      $this->do_action( 'render' );
-      include( get_template_directory() . $template );
-    } else {
-      $this->do_action( 'render' );
-      include( $this->get( 'path' ) . $template );
+    if ( is_null( $template ) ) {
+      $template = $this->get( 'template' );
+    }
+
+    $paths = array(
+      get_stylesheet_directory()  . $template,          // child theme
+      get_template_directory()    . $template,          // parent theme
+      $this->get( 'path' )        . $template,          // original
+    );
+
+    foreach ( $paths as $path ) {
+      if ( $found = file_exists( $path ) ) {
+        $this->do_action( 'render' );
+        include $path;
+        $this->do_action( 'after' );
+        break;
+      }
+    }
+
+    if ( !$found ) {
+      ScaleUp::add_alert( array(
+        'type'  => 'warning',
+        'msg'   => "Template $template not found.",
+        'wrong' => $template,
+        'debug' => true,
+      ));
     }
 
   }
