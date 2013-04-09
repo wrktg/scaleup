@@ -11,7 +11,7 @@ if ( !function_exists( 'the_form' ) ) {
 
     $form = get_form( $name );
 
-    if ( !is_null( $form ) ) {
+    if ( is_object( $form ) ) {
       $scaleup_form = $form;
 
       /**
