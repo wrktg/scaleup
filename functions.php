@@ -74,7 +74,7 @@ if ( !function_exists( 'add_form_field' ) ) {
       $count++;
     }
 
-    $args = array(
+    $default = array(
       'name'        => "field_{$count}", # name attribute of the form field ( highly recommend overwriting this )
       'type'        => "text", # type form field attribute
       'value'       => null, # default form field
@@ -83,7 +83,7 @@ if ( !function_exists( 'add_form_field' ) ) {
       'disabled'    => false, # should this form field be disabled?
     );
 
-    $field = ScaleUp::add_form_field( $form, $args );
+    $field = ScaleUp::add_form_field( $form, wp_parse_args( $args, $default ) );
 
     return $field;
   }
