@@ -35,8 +35,8 @@ class ScaleUp_Feature extends ScaleUp_Base {
       }
     }
 
-    $this->add_action( 'init', array( $this, 'init' ) );
     $this->add_action( 'init', array( $this, 'apply_duck_types' ) );
+    $this->add_action( 'init', array( $this, 'init' ) );
     $this->add_action( 'init', array( $this, 'register_features' ) );
     $this->add_action( 'init', array( $this, 'activate_features' ) );
 
