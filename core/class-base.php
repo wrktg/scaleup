@@ -49,6 +49,7 @@ class ScaleUp_Base extends stdClass {
     $property_name = "_$name";
 
     $this->$property_name = $value;
+    $this->do_action( 'set', array( 'property' => $name, 'value' => $value ) );
   }
 
   function has( $name ) {
