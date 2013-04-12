@@ -4,6 +4,13 @@ class ScaleUp_Feature extends ScaleUp_Base {
   var $_features;
 
   function __construct( $args = array() ) {
+    /**
+     * $args[ 'name' ] would be null if feature was instantiated directly ( not using register / activate function )
+     */
+    if ( !isset( $args[ 'name' ] ) ) {
+      // let's generate name from objects hash
+      $args[ 'name' ] = substr(spl_object_hash( $this ), -8 );
+    }
     parent::__construct( $args );
 
     /**
