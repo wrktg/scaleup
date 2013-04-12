@@ -38,9 +38,11 @@ class ScaleUp_Feature extends ScaleUp_Base {
           $duck_type = ScaleUp::get_duck_type( $duck_type );
           $this->add_filter( 'duck_types', array( $duck_type, 'duck_types' ) );
         }
-        unset( $duck_type );
+          unset( $duck_type );
       }
     }
+
+    $this->add_action( 'set_name', array( $this, 'set_name' ) );
 
     $this->add_action( 'init', array( $this, 'apply_duck_types' ) );
     $this->add_action( 'init', array( $this, 'init' ) );
@@ -83,6 +85,10 @@ class ScaleUp_Feature extends ScaleUp_Base {
     return $result;
   }
 
+  function __toString() {
+    return (string) $this->get( 'name' );
+  }
+
   /**
    * Return true if instance is of specified duck type
    *
@@ -100,14 +106,25 @@ class ScaleUp_Feature extends ScaleUp_Base {
   }
 
   /**
-   * Check if a feature is registered. Feature can be an object, an array or a string.
+   * Check if a feature is registered.
    *
-   * @param $feature_type
-   * @param $feature ScaleUp_Feature|array|string
+   * @param string $feature_type
+   * @param string $feature_name
    * @return bool
    */
-  function is_registered( $feature_type, $feature ) {
-    return !is_null( $this->get_feature( $feature_type, $feature ) );
+  function is_registered( $feature_type, $feature_name ) {
+    return !is_null( $this->get_feature( $feature_type, $feature_name ) );
+  }
+
+  /**
+   * Check if feature is activated.
+   *
+   * @param string $feature_type
+   * @param string $feature_name
+   * @return bool
+   */
+  function is_activated( $feature_type, $feature_name ) {
+    return is_object( $this->get_feature( $feature_type, $feature_name ) );
   }
 
   /**
@@ -136,45 +153,40 @@ class ScaleUp_Feature extends ScaleUp_Base {
   }
 
   /**
-   * Return feature
+   * Return feature by name
    *
-   * @param $feature_type
-   * @param $feature
+   * @param string $feature_type
+   * @param string $feature_name
    * @return ScaleUp_Feature|null
    */
-  function get_feature( $feature_type, $feature ) {
+  function get_feature( $feature_type, $feature_name ) {
 
-    if ( is_object( $feature ) && method_exists( $feature, 'get' ) ) {
-      $name = $feature->get( 'name' );
-    } else {
-      if ( is_array( $feature ) ) {
-        if ( isset( $feature[ 'name' ] ) ) {
-          $name = $feature[ 'name' ];
-        }
-      } else {
-        if ( is_string( $feature ) ) {
-          $name = $feature;
-        } else {
-          return null;
-        }
-      }
-    }
+    $feature = null;
 
     // make sure that its a known feature
     if ( ScaleUp::is_registered_feature_type( $feature_type ) ) {
+
       $feature_type_args = ScaleUp::get_feature_type( $feature_type );
       $plural            = $feature_type_args[ '_plural' ];
-    } else {
-      return null;
+
+      $container = null;
+
+      if ( isset( $feature_type_args[ '_duck_types' ] ) && in_array( 'contextual', $feature_type_args[ '_duck_types' ] ) ) {
+        $container = $this->get_container( $plural );
+      }
+
+      if ( is_null( $container ) && isset( $feature_type_args[ '_duck_types' ] ) && in_array( 'global', $feature_type_args[ '_duck_types' ] ) ) {
+        $site = ScaleUp::get_site();
+        $container = $site->get_container( $plural );
+      }
+
+      if ( !is_null( $container ) ) {
+        $feature = $container->get( $feature_name );
+      }
+
     }
 
-    if ( $this->_features->has( $plural ) ) {
-      $storage = $this->_features->get( $plural );
-
-      return $storage->get( $name );
-    }
-
-    return null;
+    return $feature;
   }
 
   /**
@@ -364,12 +376,12 @@ class ScaleUp_Feature extends ScaleUp_Base {
       }
 
       // convenient object
-      $storage = $this->_features->get( $plural );
+      $container = $this->get_container( $plural );
 
       if ( is_object( $args ) ) {
         // feature was already instantiate it, we just need to store a reference to it in our internal storage
         if ( method_exists( $args, 'has' ) && $args->has( 'name' ) ) {
-          $storage->set( $args->get( 'name' ), $args );
+          $container->set( $args->get( 'name' ), $args );
           $result = $args;
         }
       }
@@ -466,8 +478,11 @@ class ScaleUp_Feature extends ScaleUp_Base {
           $features = $storage->get_properties();
           foreach ( $features as $feature_name ) {
             // activate registered features
-            $activated = $this->activate( $found_feature_type, $this->get_feature( $found_feature_type, $feature_name ) );
-            $storage->set( $feature_name, $activated );
+            $feature = $this->get_feature( $found_feature_type, $feature_name );
+            if ( !$this->is_activated( $found_feature_type, $feature ) ) {
+              $activated = $this->activate( $found_feature_type, $feature );
+              $storage->set( $feature_name, $activated );
+            }
           }
         }
       }
@@ -509,7 +524,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
    * Return a feature container by plural name
    *
    * @param $plural
-   * @return mixed
+   * @return ScaleUp_Base|null
    */
   function get_container( $plural ) {
     $features = $this->get( 'features' );
@@ -563,6 +578,36 @@ class ScaleUp_Feature extends ScaleUp_Base {
       $state[ $key ] = $value;
     }
     return $state;
+  }
+
+  /**
+   * Change the name of the property that references this feature in it's container
+   *
+   * Callback function for $this->set( 'name', $value )
+   * This is necessary because the container property is used to retrieve features with get_feature
+   * If we don't make this change, then the container will have the old name.
+   *
+   * @param ScaleUp_Feature $feature
+   * @param $args
+   */
+  function set_name( $feature, $args ) {
+
+    if ( $args[ 'old' ] !== $args[ 'new' ] ) {
+      $old = $args[ 'old' ];
+      $new = $args[ 'new' ];
+
+      /*** @var $context ScaleUp_Feature */
+      $context = $feature->get( 'context' );
+      if ( !is_null( $context ) ) {
+        $plural = $feature->get( '_plural' );
+        $container = $context->get_container( $plural );
+        if ( !is_null( $container ) ) {
+          unset( $container->$old );
+          $container->set( $new, $this );
+        }
+      }
+    }
+
   }
 
   /**

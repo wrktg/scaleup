@@ -38,6 +38,9 @@ class ScaleUp_Global extends ScaleUp_Duck_Type {
     }
     $storage = $site->get_container( $plural );
     $storage->set( $feature->get( 'name' ), $feature );
+    if ( !$feature->has( 'context' ) ) {
+      $feature->set( 'context', $site );
+    }
   }
 
 }
