@@ -30,13 +30,13 @@ class ScaleUp_Global extends ScaleUp_Duck_Type {
   function add_to_site( $feature ) {
     $site = ScaleUp::get_site();
     $plural = $feature->get( '_plural' );
-    $features = $site->get( 'features' );
-    if ( $features->has( $plural ) ) {
-      $storage = $features->get( $plural );
-    } else {
-      $storage = new ScaleUp_Base();
-      $features->set( $plural, $storage );
+
+    // create new feature container
+    if ( !$site->has_container( $plural ) ) {
+      // instantiate container from feature type args ( default is ScaleUp_Base )
+      $site->add_container( $plural, $feature->get( '_container' ) );
     }
+    $storage = $site->get_container( $plural );
     $storage->set( $feature->get( 'name' ), $feature );
   }
 
