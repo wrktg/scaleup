@@ -79,4 +79,74 @@ class ScaleUp_Base extends stdClass {
     return $return;
   }
 
+  /**
+   * Add action to this object
+   *
+   * @param $handle
+   * @param null $callback
+   * @param int $priority
+   */
+  function add_action( $handle, $callback, $priority = 10 ) {
+    $object_hash = spl_object_hash( $this );
+    add_action( "{$object_hash}->{$handle}", $callback, $priority, 2 );
+  }
+
+  /**
+   * Remove callback from this object
+   *
+   * @param $handle
+   * @param $callback
+   * @param int $priority
+   */
+  function remove_action( $handle, $callback, $priority = 10 ) {
+    $object_hash = spl_object_hash( $this );
+    remove_action( "{$object_hash}->{$handle}", $callback, $priority, 2 );
+  }
+
+  /**
+   * Do action associated with this object
+   *
+   * @param $handle
+   * @param null $args
+   */
+  function do_action( $handle, $args = null ) {
+    $object_hash = spl_object_hash( $this );
+    do_action( "{$object_hash}->{$handle}", $this, $args );
+  }
+
+  /**
+   * Add filter to this object
+   *
+   * @param $handle
+   * @param null $callback
+   * @param int $priority
+   */
+  function add_filter( $handle, $callback = null, $priority = 10 ) {
+    /**
+     * @todo: remove this
+     */
+    if ( is_null( $callback ) ) {
+      $callback = array( $this, $handle );
+    }
+    $object_hash = spl_object_hash( $this );
+    add_filter( "{$object_hash}->{$handle}", $callback, $priority );
+  }
+
+  /**
+   * Remove filter for this object
+   *
+   * @param $handle
+   * @param $callback
+   * @param int $priority
+   */
+  function remove_filter( $handle, $callback, $priority = 10 ) {
+    $object_hash = spl_object_hash( $this );
+    remove_filter( "{$object_hash}->{$handle}", $callback, $priority );
+  }
+
+  function apply_filters( $handle, $value ) {
+    $object_hash = spl_object_hash( $this );
+    return apply_filters( "{$object_hash}->{$handle}", $value );
+  }
+
 }
