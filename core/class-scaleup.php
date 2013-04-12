@@ -61,7 +61,7 @@ class ScaleUp {
    * Return form from this site
    *
    * @param string $name
-   * @return bool|ScaleUp_Feature
+   * @return ScaleUp_Form|bool
    */
   static function get_form( $name ) {
 
@@ -122,7 +122,7 @@ class ScaleUp {
    *
    * @todo: implement form notifications
    *
-   * @param string|ScaleUp_Form $form
+   * @param ScaleUp_Form|string $form
    * @param array $args
    * @return ScaleUp_Notification|bool
    */
@@ -299,7 +299,7 @@ class ScaleUp {
    * Add template to the site to make it available to use with get_template_part
    *
    * @param $args
-   * @return ScaleUp_Feature|bool
+   * @return ScaleUp_Template|bool
    */
   static function add_template( $args ) {
     $site = ScaleUp::get_site();
