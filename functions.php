@@ -438,3 +438,91 @@ if ( !function_exists( 'add_alert' ) ) {
     'debug' => true
   ) );
 }
+
+/**
+ * Return an existing app by name
+ *
+ * @param $app_name
+ * @return null|ScaleUp_Feature
+ */
+function get_app( $app_name ) {
+  $site = ScaleUp::get_site();
+  $app  = $site->get_feature( 'app', $app_name );
+
+  return $app;
+}
+
+/**
+ * Add an app to this site
+ *
+ * @param array $args
+ *
+ * @return ScaleUp_App $app
+ */
+function add_app( $args = array() ) {
+
+  $default = array(
+    'name'  => null,      // slugified handler for this app
+    'url'   => '',        // base url for this app
+  );
+
+  $site = ScaleUp::get_site();
+  $app = $site->add( 'app', wp_parse_args( $args, $default ) );
+
+  return $app;
+}
+
+/**
+ * Add a view to the app and return instance of that view
+ *
+ * @param $app
+ * @param array $args
+ * @return bool|ScaleUp_View
+ */
+function add_view( $app, $args = array() ) {
+
+  $default = array(
+    'name'  => null,      // slugified handler for this view
+    'url'   => '',        // url for this view
+  );
+
+  $view = false;
+
+  if ( is_string( $app ) ) {
+    $app = get_app( $app );
+  }
+
+  if ( is_object( $app ) ) {
+    $view = $app->add( 'view', wp_parse_args( $args, $default ) );
+  }
+
+  return $view;
+}
+
+/**
+ * Add an addon to this app.
+ * The addon must be already registered for you to be able to add it to the app.
+ *
+ * @param $app
+ * @param array $args
+ * @return bool
+ */
+function add_addon( $app, $args = array() ) {
+
+  $default = array(
+    'name'  => null,      // slugified handler for this addon
+    'url'   => '',        // url for this addon
+  );
+
+  $addon = false;
+
+  if ( is_string( $app ) ) {
+    $app = get_app( $app );
+  }
+
+  if ( is_object( $app ) ) {
+    $addon = $app->add( 'addon', wp_parse_args( $args, $default ) );
+  }
+
+  return $addon;
+}
