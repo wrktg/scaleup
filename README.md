@@ -1,5 +1,7 @@
-# ScaleUp Framework
-ScaleUp is a WordPress-ish developer centric framework for building things with WordPress. Its designed to allow developers to create reusable functionality that is portable and easily customisable. These features can be packaged as plugins or included in theme's functions.php file.
+# ScaleUp API for WordPress Web Apps
+
+ScaleUp is framework for building web apps on WordPress. The goal of this framework is to provide an easy to use and
+remember API that allows developers to programatically build custom applications and large sites.
 
 ## Features
 
@@ -164,6 +166,63 @@ register_asset( array(
 		'src'	=> '/my-plugin/css/plugin.css',
 	),
 ) );
+```
+
+### App API
+
+### add_app( $args ) or $site->add( 'app', $args )
+
+Returns an app object that you can add views and add-ons to. This function takes an args array. Via the args array, you can specify the base url for this app using the **url** option. All views that are added to this app, will follow the url that you specify via this option.
+
+#### Functional example
+```php
+$my_app = add_app( array(
+	'url'	=> '/my_app',
+));
+```
+
+#### Object Oriented example
+```php
+$site = ScaleUp::get_site();		// gives you $site object that you can add Apps to
+$site->add( 'app', array(
+	'url' => '/my_app',
+));
+```
+
+### add_view( $app, $args ) or $app->add( 'view', $args )
+
+Returns view object that you can use to add callback functions that will be called when a request is matched to this view's url.
+
+#### Functional example
+```php
+$my_view = add_view( $app, array(
+	'url' => '/my-view'
+));
+```
+
+#### Object Oriented example
+```php
+$my_view = $app->add( 'view', array(
+	'url' => '/my_app',
+));
+```
+
+### add_addon( $app, $args ) or $app->add( 'addon', $args )
+
+Returns addon object that contains all features that are included with this addon.
+
+#### Functional example
+```php
+$profile_addon = add_addon( $app, array(
+	'name' => 'profile',
+));
+```
+
+#### Object Oriented example
+```php
+$profile_addon = $app->add( 'addon', array(
+	'name' => 'profile',
+));
 ```
 
 ## API Status
