@@ -40,23 +40,52 @@ class ScaleUp_Feature extends ScaleUp_Base {
         }
           unset( $duck_type );
       }
+      $this->add_action( 'activation', array( $this, 'apply_duck_types' ) );
     }
 
+    /**
+     * Hook init of this feature to WP init hook
+     */
+    add_action( 'init', array( $this, 'init' ) );
+
+    /**
+     * Check if features are being added via $args
+     * then register & activate features that are
+     */
+    if ( $this->_has_features( $args ) ) {
+      /**
+       * @todo: refactor to use add_features
+       */
+      add_action( 'init', array( $this, 'register_features' ), 20 );
+      add_action( 'init', array( $this, 'activate_features' ), 20 );
+    }
+
+    /**
+     * Hook to action that's called when this feature's name is changed
+     */
     $this->add_action( 'set_name', array( $this, 'set_name' ) );
 
-    $this->add_action( 'init', array( $this, 'apply_duck_types' ) );
-    $this->add_action( 'init', array( $this, 'init' ) );
-    $this->add_action( 'init', array( $this, 'register_features' ) );
-    $this->add_action( 'init', array( $this, 'activate_features' ) );
-
+    /**
+     * Hook activation function that's called when this feature is activated & execute activation callback
+     */
     $this->add_action( 'activation', array( $this, 'activation' ) );
-
-    $this->do_action( 'init', $args );
     $this->do_action( 'activation', $args );
   }
 
+  /**
+   * Execute init hook for this feature. This function is hooked to main init hook.
+   */
   function init() {
+    $this->do_action( 'init' );
+  }
 
+  /**
+   * Callback function for activation hook.
+   */
+  function activation() {
+    /**
+     * Overload this method to specify code that you want to be executed when this item is activated.
+     */
   }
 
   /**
@@ -217,7 +246,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
    * @param $plural_name string
    * @return bool
    */
-  function has_features( $plural_name ) {
+  function _has_features_args( $plural_name ) {
 
     $features = $this->get( 'features' );
 
@@ -410,28 +439,29 @@ class ScaleUp_Feature extends ScaleUp_Base {
     return $result;
   }
 
-  /**
-   * Executes after activation is completed successfully
-   */
-  function activation() {
-
-  }
-
-  /**
-   * @todo: Add proper docs to action and filter methods
-   */
-
   function apply_duck_types( $feature, $args ) {
     $this->apply_filters( 'duck_types', $feature, $args );
   }
 
   /**
-   * Register features that are passed via an args array
-   *
-   * @param $feature ScaleUp_Feature
-   * @param $args array
+   * Return true if $args array has elements with keys matching to supported features
+   * @param array $args
+   * @return bool
    */
-  function register_features( $feature, $args ) {
+  private function _has_features( $args ) {
+
+    $plurals            = array_keys( $args );
+    $supports           = (array) $this->get( '_supports' );
+    $passed_features    = array_intersect( $plurals, $supports );
+
+    return !empty( $passed_features );
+  }
+
+  /**
+   * Register features that are passed via an args array
+   */
+  function register_features() {
+    $args = $this->get( '_args' );
     if ( $this->has( '_supports' ) && is_array( $args ) ) {
       $supported = (array)$this->get( '_supports' );
       foreach ( $supported as $plural_feature_type ) {

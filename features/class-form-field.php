@@ -5,7 +5,7 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
 
   var $_error = false;
 
-  function init() {
+  function activation() {
 
     // set the id, incase one was not specified
     if ( !$this->has( 'id' ) ) {
@@ -34,9 +34,6 @@ class ScaleUp_Form_Field extends ScaleUp_Feature {
     }
 
     $this->add_action( 'register', array( $this, 'add_error_class' ), 20 );
-  }
-
-  function activation() {
 
     /**
      * Change form action if activating a field file

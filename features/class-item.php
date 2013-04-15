@@ -1,10 +1,6 @@
 <?php
 class ScaleUp_Item extends ScaleUp_Feature {
 
-  function init() {
-    $this->add_action( 'activation', array( $this, 'activation' ) );
-  }
-
   function activation() {
     $this->add( 'property', array(
       'name'  => 'schemas',

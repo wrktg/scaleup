@@ -19,7 +19,7 @@ class ScaleUp_Form extends ScaleUp_Feature {
    */
   var $_continue = true;
 
-  function init() {
+  function activation() {
 
     if ( !$this->has( 'action' ) ) {
       $this->set( 'action', $_SERVER[ 'REQUEST_URI' ] );

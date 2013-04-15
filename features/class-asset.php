@@ -1,7 +1,7 @@
 <?php
 class ScaleUp_Asset extends ScaleUp_Feature {
 
-  function init( $feature, $args ) {
+  function activation( $feature, $args ) {
     if ( $this->has( 'context' ) ) {
       $context = $this->get( 'context' );
       $context->add_action( 'activation', array( $this, 'register' ) );

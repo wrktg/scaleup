@@ -1,7 +1,7 @@
 <?php
 class ScaleUp_Login_Or_Register_Addon extends ScaleUp_Addon {
 
-  function init() {
+  function activation() {
 
     ScaleUp::add_form( array(
         'name'         => 'login',
