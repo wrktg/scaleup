@@ -1,8 +1,16 @@
 <?php
 class ScaleUp_View extends ScaleUp_Feature {
 
-  function activation() {
-    $this->add_action( 'headers', array( $this, 'headers' ), 20 );
+  function activation( $view, $args ) {
+
+    //$this->add_action( 'headers', array( $this, 'headers' ), 20 );
+
+    if ( !isset( $args[ 'template' ] ) && isset( $args[ 'templates_dir' ] ) ) {
+      $this->add_template( $this->get( 'name' ), array(
+        'templates_dir' => $args[ 'templates_dir' ]
+      ));
+    }
+
   }
 
   /**
@@ -21,13 +29,13 @@ class ScaleUp_View extends ScaleUp_Feature {
     /**
      * $args array is converted to an object to allow us to pass $args by reference
      */
-    $args = new ScaleUp_Args( array(
+    $args = (object) array(
       'request'   => $args,
       'headers'   => array(),
       'query'     => null,
       'data'      => null,
       'template'  => null,
-    ));
+    );
 
     $this->do_action( 'request',  $args );
     $this->do_action( 'headers',  $args );
@@ -48,10 +56,18 @@ class ScaleUp_View extends ScaleUp_Feature {
    * @return ScaleUp_Template|bool
    */
   function add_template( $name, $args = array() ) {
+
+    if ( isset( $args[ 'templates_dir' ] ) ) {
+      $path = $args[ 'templates_dir' ];
+      unset( $args[ 'templates_dir' ] );
+    } else {
+      $path = null;
+    }
+
     $template = ScaleUp::add_template( wp_parse_args( array(
       'name'      => $name,
-      'path'      => null,
-      'template'  => null,
+      'path'      => $path,
+      'template'  => "/$name.php",
     ), $args ) );
 
     $this->add_action( 'render', array( $template, 'render' ) );

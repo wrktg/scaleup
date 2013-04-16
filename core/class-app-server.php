@@ -93,23 +93,23 @@ class ScaleUp_App_Server {
 
     $return = false;
 
-    $name = $feature->get( 'name' );
+    if ( method_exists( $feature, 'display' ) ) {
+      $return = $feature->display( $args );
+    } else {
+      $name = $feature->get( 'name' );
 
-    $method_name = strtolower( "{$method}_{$name}" );
+      $method_name = strtolower( "{$method}_{$name}" );
 
-    $return = $this->_execute_route( $feature, $method_name, $args );
+      $return = $this->_execute_route( $feature, $method_name, $args );
 
-    /**
-     * If instance doesn't have a callback then its probably in the context.
-     * Let's try to get it from there.
-     */
-    if ( false === $return && $feature->is( 'contextual' ) ) {
-      $return = $this->_execute_route( $feature->get( 'context' ), $method_name, $args );
+      /**
+       * If instance doesn't have a callback then its probably in the context.
+       * Let's try to get it from there.
+       */
+      if ( false === $return && $feature->is( 'contextual' ) ) {
+        $return = $this->_execute_route( $feature->get( 'context' ), $method_name, $args );
+      }
     }
-
-    /**
-     * @todo: add ability to handle wp_errors
-     */
 
     if ( is_null( $return ) ) {
       /**

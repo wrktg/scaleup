@@ -14,9 +14,10 @@ class ScaleUp_App extends ScaleUp_Feature {
    */
   function add_view( $name, $slug = '', $args = array() ) {
     return $this->add( 'view', wp_parse_args( array(
-        'name'      => $name,
-        'url'       => $slug,
-        'template'  => null,
+        'name'          => $name,
+        'url'           => $slug,
+        'template'      => null,
+        'templates_dir' => $this->find_templates_dir(),
     ), $args
     ));
   }
@@ -49,6 +50,33 @@ class ScaleUp_App extends ScaleUp_Feature {
       'debug'     => false,
       'loggable'  => false,
     ), $args ));
+  }
+
+  /**
+   * Attempt to find templates directory for current app and return path otherwise return null.
+   *
+   * @return string|null
+   */
+  function find_templates_dir() {
+
+    $path = null;
+
+    $rc = new ReflectionClass(get_class($this));
+    $dir = dirname( $rc->getFileName() );
+
+    $paths = array(
+      $dir . '/templates',              // if app class is in root directory
+      dirname( $dir ) . '/templates',   // if app class in /classes directory
+    );
+
+    foreach ( $paths as $maybe ) {
+      if ( is_dir( $maybe ) ) {
+        $path = $maybe;
+        break;
+      }
+    }
+
+    return $path;
   }
 
   function get_defaults() {
