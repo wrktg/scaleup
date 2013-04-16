@@ -48,7 +48,12 @@ class ScaleUp_Base extends stdClass {
   function set( $name, $value ) {
     $property_name = "_$name";
 
-    $old = $this->$property_name;
+    if ( property_exists( $this, $property_name ) ) {
+      $old = $this->$property_name;
+    } else {
+      $old = null;
+    }
+
     $this->$property_name = $value;
     $this->do_action( "set_{$name}", array( 'old' => $old, 'new' => $value ) );
   }
