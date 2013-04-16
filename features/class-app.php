@@ -28,7 +28,7 @@ class ScaleUp_App extends ScaleUp_Feature {
    * @param array $args configuration to pass to addon
    * @return ScaleUp_Addon|bool
    */
-  function add_addon( $name, $args ) {
+  function add_addon( $name, $args = array() ) {
     return $this->add( 'addon', wp_parse_args( array(
       'name'  => $name,
     ), $args ));

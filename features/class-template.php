@@ -14,6 +14,16 @@ class ScaleUp_Template extends ScaleUp_Feature {
   }
 
   /**
+   * Callback function for ScaleUp_View->render action
+   *
+   * @param null $context
+   * @param array $args
+   */
+  function render( $context = null, $args = array() ) {
+    $this->get_template_part();
+  }
+
+  /**
    * Callback for get_template_part function
    *
    * @param string $template
