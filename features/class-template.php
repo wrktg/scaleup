@@ -3,12 +3,22 @@ class ScaleUp_Template extends ScaleUp_Feature {
 
   private static $_activated = array();
 
+  /**
+   * Contains data object properties of which are exported into scope before template is included
+   *
+   * @var stdClass
+   */
+  var $_data;
+
   function activation() {
+
+    $this->_data = new stdClass();
+
     $template = $this->get( 'template' );
     $tag      = "get_template_part_{$template}";
-    $callback = array( $this, 'get_template_part' );
+    $callback = array( 'ScaleUp_Template', 'get_template_part' );
     if ( !in_array( $tag, self::$_activated ) ) {
-      add_action( $tag, $callback );
+      add_action( $tag, $callback, 10, 2 );
       self::$_activated[] = $tag;
     }
   }
@@ -17,21 +27,13 @@ class ScaleUp_Template extends ScaleUp_Feature {
    * Callback function for ScaleUp_View->render action
    *
    * @param null $context
-   * @param array $args
+   * @param object $data
    */
-  function render( $context = null, $args = array() ) {
-    $this->get_template_part();
-  }
+  function render( $context = null, $data = null ) {
 
-  /**
-   * Callback for get_template_part function
-   *
-   * @param string $template
-   */
-  function get_template_part( $template = null ) {
-
-    if ( is_null( $template ) ) {
-      $template = $this->get( 'template' );
+    $template = $this->get( 'template' );
+    if ( empty( $template ) ) {
+      $template = "/$template.php";
     }
 
     $paths = array(
@@ -40,15 +42,19 @@ class ScaleUp_Template extends ScaleUp_Feature {
       $this->get( 'path' )        . $template,          // original
     );
 
+    if ( is_null( $data ) ) {
+      $data = $this->get( 'data' );
+    }
+
+    $found = false;
     foreach ( $paths as $path ) {
       if ( $found = file_exists( $path ) ) {
-        $this->do_action( 'render' );
-        include $path;
-        $this->do_action( 'after' );
+        $this->do_render( $path, $data );
         break;
       }
     }
 
+    /** @var $found bool */
     if ( !$found ) {
       ScaleUp::add_alert( array(
         'type'  => 'warning',
@@ -56,6 +62,42 @@ class ScaleUp_Template extends ScaleUp_Feature {
         'wrong' => $template,
         'debug' => true,
       ));
+    }
+
+  }
+
+  /**
+   * Execute render action and include the template at $path. $data object is exported into local scope.
+   *
+   * @param string $path
+   * @param object $data
+   */
+  private function do_render( $path, $data ) {
+    extract( get_object_vars( $data ), EXTR_REFS );
+    $this->do_action( 'render' );
+    include $path;
+    $this->do_action( 'after' );
+  }
+
+  /**
+   * Find template by $slug and $name and output it to the screen
+   *
+   * @callback get_template_part
+   * @param string $name
+   * @param string $slug
+   */
+  static function get_template_part( $slug, $name = null ) {
+
+    $template_name = $slug;
+    if ( !is_null( $name ) && !empty( $name ) ) {
+      $template_name .= "-$name";
+    }
+    $template_name = ScaleUp::slugify( $template_name );
+
+    $template = ScaleUp::get_template( $template_name );
+
+    if ( $template ) {
+      $template->render();
     }
 
   }

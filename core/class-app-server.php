@@ -84,30 +84,32 @@ class ScaleUp_App_Server {
    * Attempt to execute callback for this request
    *
    * @param $method string
-   * @param $feature ScaleUp_Feature
-   * @param $args array
+   * @param $feature ScaleUp_View
+   * @param $vars array
    *
    * @return bool
    */
-  function route( $method, $feature, $args ) {
+  function route( $method, $feature, $vars ) {
 
     $return = false;
 
-    if ( method_exists( $feature, 'display' ) ) {
-      $return = $feature->display( $args );
+    if ( method_exists( $feature, 'process' ) ) {
+      $request = new ScaleUp_Request( $vars );
+      $request->method = $method;
+      $return = $feature->process( $request );
     } else {
       $name = $feature->get( 'name' );
 
       $method_name = strtolower( "{$method}_{$name}" );
 
-      $return = $this->_execute_route( $feature, $method_name, $args );
+      $return = $this->_execute_route( $feature, $method_name, $vars );
 
       /**
        * If instance doesn't have a callback then its probably in the context.
        * Let's try to get it from there.
        */
       if ( false === $return && $feature->is( 'contextual' ) ) {
-        $return = $this->_execute_route( $feature->get( 'context' ), $method_name, $args );
+        $return = $this->_execute_route( $feature->get( 'context' ), $method_name, $vars );
       }
     }
 

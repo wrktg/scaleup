@@ -296,6 +296,20 @@ class ScaleUp {
   }
 
   /**
+   * Return template by name
+   *
+   * @param string $name
+   * @return ScaleUp_Template|null
+   */
+  static function get_template( $name ) {
+
+    $site = ScaleUp::get_site();
+    $template = $site->get_feature( 'template', $name );
+
+    return $template;
+  }
+
+  /**
    * Add template to the site to make it available to use with get_template_part
    *
    * @param $args

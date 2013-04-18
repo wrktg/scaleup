@@ -13,7 +13,7 @@ define( 'SCALEUP_MIN_WP', '3.4' );
  */
 require( SCALEUP_DIR . '/core/class-scaleup.php' );
 require( SCALEUP_DIR . '/core/class-base.php' );
-require( SCALEUP_DIR . '/core/class-args.php' );
+require( SCALEUP_DIR . '/core/class-request.php' );
 require( SCALEUP_DIR . '/core/class-duck-type.php' );
 require( SCALEUP_DIR . '/core/class-feature.php' );
 require( SCALEUP_DIR . '/core/class-app-server.php' );
