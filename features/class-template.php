@@ -73,7 +73,7 @@ class ScaleUp_Template extends ScaleUp_Feature {
    * @param object $data
    */
   private function do_render( $path, $data ) {
-    extract( get_object_vars( $data ), EXTR_REFS );
+    extract( get_object_vars( $data ), EXTR_REFS & EXTR_PREFIX_IF_EXISTS, 'my_' );
     $this->do_action( 'render' );
     include $path;
     $this->do_action( 'after' );
