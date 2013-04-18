@@ -31,7 +31,10 @@ class ScaleUp_View extends ScaleUp_Feature {
   function process( $request ) {
 
     /**
-     * Look in ScaleUp::activation method for list of hooks that are hooked to process action
+     * By default, view's process action has 3 callbacks
+     *  array( $this, do_parse_query ) at priority 20
+     *  array( $this, do_query_posts ) at priority 30
+     *  array( $this, do_template_redirect ) at priority 40
      */
     $this->do_action( 'process', $request );
   }
