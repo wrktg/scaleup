@@ -141,7 +141,6 @@ class ScaleUp_View extends ScaleUp_Feature {
     $template = ScaleUp::add_template( wp_parse_args( array(
       'name'      => $name,
       'path'      => $path,
-      'template'  => "/$name.php",
     ), $args ) );
 
     return $template;

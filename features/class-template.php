@@ -26,16 +26,20 @@ class ScaleUp_Template extends ScaleUp_Feature {
   /**
    * Callback function for ScaleUp_View->render action
    *
-   * @param string        $name
+   * @param string        $template_part
    * @param ScaleUp_View  $context
    * @param object        $data
    */
-  function render( $name = null, $data = null, $context = null ) {
+  function render( $template_part = null, $data = null, $context = null ) {
 
-    $template = $this->get( 'template' );
-    if ( empty( $template ) ) {
-      $template = "/$template.php";
+    $template = $this->get( 'name' );
+
+    if ( !is_null( $template_part ) ) {
+      $template .= "-$template_part";
     }
+
+    $template = "/$template.php";
+
 
     $paths = array(
       get_stylesheet_directory()  . $template,          // child theme
@@ -50,7 +54,7 @@ class ScaleUp_Template extends ScaleUp_Feature {
     $found = false;
     foreach ( $paths as $path ) {
       if ( $found = file_exists( $path ) ) {
-        $this->do_render( $path, $data );
+        $this->do_render( $path, $data, $template_part = null );
         break;
       }
     }
@@ -72,8 +76,9 @@ class ScaleUp_Template extends ScaleUp_Feature {
    *
    * @param string $path
    * @param object $data
+   * @param string $template_part that we're rendering
    */
-  private function do_render( $path, $data ) {
+  private function do_render( $path, $data, $template_part = null ) {
     extract( get_object_vars( $data ), EXTR_REFS & EXTR_PREFIX_IF_EXISTS, 'my_' );
     $this->do_action( 'render' );
     include $path;
@@ -81,18 +86,21 @@ class ScaleUp_Template extends ScaleUp_Feature {
   }
 
   /**
-   * Find template by $slug and $name and output it to the screen
+   * Render template by specifying the name of the template and part that you'd like to render.
+   *
+   * This static function is a callback for get_template_part. get_template_part's arguments $slug and $name were renamed
+   * to $template_name and $template_part_name because $slug and $name is just super confusing.
    *
    * @callback get_template_part
-   * @param string $name
-   * @param string $slug
+   * @param string $template_name
+   * @param string $template_part_name
    */
-  static function get_template_part( $slug, $name = null ) {
+  static function get_template_part( $template_name, $template_part_name = null ) {
 
-    $template = ScaleUp::get_template( $slug );
+    $template = ScaleUp::get_template( $template_name );
 
     if ( $template ) {
-      $template->render( $name );
+      $template->render( $template_part_name );
     }
 
   }
@@ -113,7 +121,7 @@ ScaleUp::register_feature_type( 'template',
     '__CLASS__'   => 'ScaleUp_Template',
     '_plural'     => 'templates',
     '_duck_types' => array( 'global' ),
-    '_supports'   => array( 'assets' ),
+    '_supports'   => array( 'assets', 'template_parts' ),
     '_bundled'    => array(
       'assets' => array(
         'bootstrap_base'   => array(
