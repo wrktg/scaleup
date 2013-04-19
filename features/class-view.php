@@ -114,7 +114,7 @@ class ScaleUp_View extends ScaleUp_Feature {
     /*** @var $template ScaleUp_Template */
     $template = $this->get_feature( 'template', $this->get( 'name' ) );
     if ( $template ) {
-      $template->render( $this, $request->template_data );
+      $template->render( null, $request->template_data, $this );
     }
 
   }

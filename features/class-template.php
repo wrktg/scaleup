@@ -26,10 +26,11 @@ class ScaleUp_Template extends ScaleUp_Feature {
   /**
    * Callback function for ScaleUp_View->render action
    *
-   * @param null $context
-   * @param object $data
+   * @param string        $name
+   * @param ScaleUp_View  $context
+   * @param object        $data
    */
-  function render( $context = null, $data = null ) {
+  function render( $name = null, $data = null, $context = null ) {
 
     $template = $this->get( 'template' );
     if ( empty( $template ) ) {
@@ -88,16 +89,10 @@ class ScaleUp_Template extends ScaleUp_Feature {
    */
   static function get_template_part( $slug, $name = null ) {
 
-    $template_name = $slug;
-    if ( !is_null( $name ) && !empty( $name ) ) {
-      $template_name .= "-$name";
-    }
-    $template_name = ScaleUp::slugify( $template_name );
-
-    $template = ScaleUp::get_template( $template_name );
+    $template = ScaleUp::get_template( $slug );
 
     if ( $template ) {
-      $template->render();
+      $template->render( $name );
     }
 
   }
