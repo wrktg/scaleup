@@ -38,7 +38,8 @@ class ScaleUp_Template extends ScaleUp_Feature {
       $template .= "-$template_part";
     }
 
-    $template = "/$template.php";
+    // replace underscores with dashes
+    $template = str_replace( '_', '-', "/$template.php" );
 
 
     $paths = array(
