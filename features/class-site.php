@@ -3,6 +3,18 @@ class ScaleUp_Site extends ScaleUp_Feature {
 
   private static $_this;
 
+  /**
+   * Points to current active app
+   * @var ScaleUp_App $app
+   */
+  var $app = null;
+
+  /**
+   * Points to current active addon
+   * @var ScaleUp_Addon $addon
+   */
+  var $addon = null;
+
   function this() {
     return self::$_this;
   }
@@ -14,6 +26,23 @@ class ScaleUp_Site extends ScaleUp_Feature {
     }
     parent::__construct( $args );
 
+  }
+
+  /**
+   * Set $this->app & $this->addon from provided feature.
+   *
+   * @param ScaleUp_View $feature
+   */
+  function set_state( $feature ) {
+    $context = $feature->get( 'context' );
+    switch ( $context->get( '_feature_type' ) ) :
+      case 'addon':
+        $this->addon  = $context;
+        $context      = $context->get( 'context' );
+      case 'app':
+        $this->app    = $context;
+      break;
+    endswitch;
   }
 
   function get_defaults() {

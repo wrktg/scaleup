@@ -604,6 +604,31 @@ class ScaleUp {
   }
 
   /**
+   * Find view by $name from current addon or app
+   *
+   * @param $name
+   * @return ScaleUp_View|null
+   */
+  static function get_view( $name ) {
+
+    $view = null;
+    $site = ScaleUp::get_site();
+
+    /**
+     * @todo: implement Sunrise handler
+     */
+    if ( is_object( $site->addon ) ) {
+      $view = $site->addon->get_feature( 'view', $name );
+    }
+
+    if ( is_null( $view ) && is_object( $site->app ) ) {
+      $view = $site->app->get_feature( 'view', $name );
+    }
+
+    return $view;
+  }
+
+  /**
    * Returns a string with all spaces converted to underscores (by default), accented
    * characters converted to non-accented characters, and non word characters removed.
    *

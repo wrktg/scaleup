@@ -84,32 +84,40 @@ class ScaleUp_App_Server {
    * Attempt to execute callback for this request
    *
    * @param $method string
-   * @param $feature ScaleUp_View
+   * @param $view ScaleUp_View
    * @param $vars array
    *
    * @return bool
    */
-  function route( $method, $feature, $vars ) {
+  function route( $method, $view, $vars ) {
 
     $return = false;
 
-    if ( method_exists( $feature, 'process' ) ) {
-      $request = new ScaleUp_Request( $vars );
-      $request->method = $method;
-      $return = $feature->process( $request );
+    if ( method_exists( $view, 'process' ) ) {
+
+      /**
+       * Set $site->app & $site->addon
+       */
+      if ( $view->has( 'context' ) ) {
+        $site = ScaleUp::get_site();
+        $site->set_state( $view );
+      }
+      $return = $view->render( $vars, array(
+        'method'  => $method,
+      ));
     } else {
-      $name = $feature->get( 'name' );
+      $name = $view->get( 'name' );
 
       $method_name = strtolower( "{$method}_{$name}" );
 
-      $return = $this->_execute_route( $feature, $method_name, $vars );
+      $return = $this->_execute_route( $view, $method_name, $vars );
 
       /**
        * If instance doesn't have a callback then its probably in the context.
        * Let's try to get it from there.
        */
-      if ( false === $return && $feature->is( 'contextual' ) ) {
-        $return = $this->_execute_route( $feature->get( 'context' ), $method_name, $vars );
+      if ( false === $return && $view->is( 'contextual' ) ) {
+        $return = $this->_execute_route( $view->get( 'context' ), $method_name, $vars );
       }
     }
 

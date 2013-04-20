@@ -43,13 +43,27 @@ class ScaleUp_Request {
    */
   var $template_data = null;
 
-  function __construct( $vars = array() ) {
+  /**
+   * Name of the template part that should be rendered when rendering the template
+   * @var string|null
+   */
+  var $template_part = null;
+
+  function __construct( $vars = array(), $args = array() ) {
 
     $this->vars = $vars;
 
     $this->template_data = new stdClass();
 
     $this->query = new WP_Query();
+
+    if ( isset( $args[ 'template_part' ] ) ) {
+      $this->template_part = $args[ 'template_part' ];
+    }
+
+    if ( isset( $args[ 'method' ] ) ) {
+      $this->method = $args[ 'method' ];
+    }
 
   }
 

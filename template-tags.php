@@ -174,3 +174,27 @@ if ( !function_exists( 'has_form_field_attr' ) ) {
     return !is_null( get_form_field_attr( $attr ) );
   }
 }
+
+if ( !function_exists( 'the_view' ) ) {
+  /**
+   * Output view based on provided args
+   *
+   * @param string  $name
+   * @param array   $args
+   */
+  function the_view( $name, $args = array() ) {
+
+    $default = array(
+      'vars'          => array(),
+      'template_part' => null,
+    );
+    $args = wp_parse_args( $args, $default );
+
+    $view = ScaleUp::get_view( $name );
+
+    if ( $view ) {
+      $view->render( $args[ 'vars' ], $args );
+    }
+
+  }
+}
