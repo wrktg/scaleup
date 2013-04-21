@@ -180,13 +180,14 @@ if ( !function_exists( 'the_view' ) ) {
    * Output view based on provided args
    *
    * @param string  $name
+   * @param string  $template_part
    * @param array   $args
    */
-  function the_view( $name, $args = array() ) {
+  function the_view( $name, $template_part = null, $args = array() ) {
 
     $default = array(
       'vars'          => array(),
-      'template_part' => null,
+      'template_part' => $template_part,
     );
     $args = wp_parse_args( $args, $default );
 

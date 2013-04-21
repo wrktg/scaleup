@@ -80,7 +80,12 @@ class ScaleUp_Template extends ScaleUp_Feature {
    * @param string $template_part that we're rendering
    */
   private function do_render( $path, $data, $template_part = null ) {
-    extract( get_object_vars( $data ), EXTR_REFS & EXTR_PREFIX_IF_EXISTS, 'my_' );
+    if ( is_array( $data ) ) {
+      extract( $data, EXTR_REFS & EXTR_PREFIX_IF_EXISTS, 'my_' );
+    } elseif ( is_object( $data ) ) {
+      extract( get_object_vars( $data ), EXTR_REFS & EXTR_PREFIX_IF_EXISTS, 'my_' );
+    }
+
     $this->do_action( 'render' );
     include $path;
     $this->do_action( 'after' );

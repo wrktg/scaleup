@@ -124,11 +124,12 @@ class ScaleUp_Base extends stdClass {
   /**
    * Add filter to this object
    *
-   * @param $handle
+   * @param string $handle
    * @param null $callback
    * @param int $priority
+   * @param int $accepted_args
    */
-  function add_filter( $handle, $callback = null, $priority = 10 ) {
+  function add_filter( $handle, $callback = null, $priority = 10, $accepted_args = 1 ) {
     /**
      * @todo: remove this
      */
@@ -136,7 +137,7 @@ class ScaleUp_Base extends stdClass {
       $callback = array( $this, $handle );
     }
     $object_hash = spl_object_hash( $this );
-    add_filter( "{$object_hash}->{$handle}", $callback, $priority );
+    add_filter( "{$object_hash}->{$handle}", $callback, $priority, $accepted_args );
   }
 
   /**

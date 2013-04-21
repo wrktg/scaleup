@@ -41,7 +41,7 @@ class ScaleUp_Request {
    * Contains data that is passed to the template
    * @var array
    */
-  var $template_data = null;
+  var $template_data = array();
 
   /**
    * Name of the template part that should be rendered when rendering the template
@@ -52,8 +52,6 @@ class ScaleUp_Request {
   function __construct( $vars = array(), $args = array() ) {
 
     $this->vars = $vars;
-
-    $this->template_data = new stdClass();
 
     $this->query = new WP_Query();
 

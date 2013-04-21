@@ -1,14 +1,28 @@
 <?php
 class ScaleUp_View extends ScaleUp_Feature {
 
+  /**
+   * The original value of $GLOBALS['wp_query'] before query was modified
+   * @var WP_Query
+   */
+  var $original_query = null;
+
+  /**
+   * The original value of $GLOBALS['post'] before view was rendered
+   * @var
+   */
+  var $original_post = null;
+
   function activation( $view, $args ) {
 
     /**
      * Setup process pipeline
      */
-    $this->add_action( 'process', array( $this, 'do_parse_query' )     , 20 );
-    $this->add_action( 'process', array( $this, 'do_query_posts' )     , 30 );
-    $this->add_action( 'process', array( $this, 'do_template_redirect'), 40 );
+    $this->add_action( 'process', array( $this, 'do_parse_query' )        , 20 );
+    $this->add_action( 'process', array( $this, 'do_query_posts' )        , 30 );
+    $this->add_action( 'process', array( $this, 'do_load_template_data' ) , 40 );
+    $this->add_action( 'process', array( $this, 'do_template_redirect')   , 50 );
+    $this->add_action( 'process', array( $this, 'do_reset_query' )        , 60 );
 
     // default callbacks
     $this->add_action( 'query_posts',       array( $this, 'query_posts' ) );
@@ -78,29 +92,75 @@ class ScaleUp_View extends ScaleUp_Feature {
    * @param ScaleUp_Request $request
    */
   function query_posts( $view, $request ) {
-    $request->query->query( $request->query_vars );
-    /*** @var $wp_the_query WP_Query **/
-    global $wp_the_query;
-    $wp_the_query = $request->query;
+    if ( !empty( $request->query_vars ) ) {
+      // Execute query with new query_vars
+      $request->query->query( $request->query_vars );
+      // set the global wp_query as backup
+      $this->original_query = @$GLOBALS[ 'wp_query' ];
+      $this->original_post  = @$GLOBALS[ 'post' ];
+      // set new query into global
+      $GLOBALS['wp_query'] = $request->query;
+      $this->add_action( 'reset_query', array( $this, 'reset_query' ) );
+      $this->add_action( 'reset_query', array( $this, 'reset_post' ) );
+    }
+  }
+
+  /**
+   * Execute load_template_data action.
+   *
+   * Hook to this action to execute a callback that is expected to populate $request->template_data array with data.
+   * $request->template_data will be exported within local scope of the template include.
+   *
+   * Code Example @see: https://gist.github.com/taras/5408564
+   *
+   * @param $view
+   * @param $request
+   */
+  function do_load_template_data( $view, $request ) {
+    $this->do_action( 'load_template_data', $request );
   }
 
   /**
    * Execute template_redirect action.
    *
-   * This method executes template_data filter to allow the developer to data into the template.
-   * The properties in the data object will be available in the template execution scope as variables.
-   *
-   * Code Example @see: https://gist.github.com/taras/5408564
-   *
    * @param ScaleUp_View $view
    * @param ScaleUp_Request $request
    */
   function do_template_redirect( $view, $request ) {
-    /**
-     * Hook to template_data filter to modify data that will be passed into the template
-     */
-    $request->template_data = $this->apply_filters( 'template_data', $request->template_data );
     $this->do_action( 'template_redirect', $request );
+  }
+
+  /**
+   * Execute reset_query action
+   *
+   * @param ScaleUp_View $view
+   * @param ScaleUp_Request $request
+   */
+  function do_reset_query( $view, $request ) {
+    $this->do_action( 'reset_query', $request );
+  }
+
+  /**
+   * Set global $wp_query back to same state as before this view modified it
+   *
+   * @param ScaleUp_View $view
+   * @param ScaleUp_Request $request
+   */
+  function reset_query( $view, $request ) {
+    $GLOBALS[ 'wp_query' ] = $this->original_query;
+  }
+
+  /**
+   * Set global $post back to same state as before this view modified it
+   * 
+   * @param ScaleUp_View $view
+   * @param ScaleUp_Request $request
+   */
+  function reset_post( $view, $request ) {
+    if ( !empty($this->original_post) ) {
+      $GLOBALS['post'] = $this->original_post;
+      setup_postdata($this->original_post);
+    }
   }
 
   /**
@@ -170,7 +230,7 @@ class ScaleUp_View extends ScaleUp_Feature {
 ScaleUp::register_feature_type( 'view', array(
   '__CLASS__'    => 'ScaleUp_View',
   '_plural'      => 'views',
-  '_supports'    => array( 'forms', 'templates' ),
+  '_supports'    => array( 'forms', 'templates', 'assets' ),
   '_duck_types'  => array( 'contextual', 'routable' ),
   'exclude_docs' => true,
 ) );
