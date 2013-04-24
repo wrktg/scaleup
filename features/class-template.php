@@ -94,6 +94,7 @@ class ScaleUp_Template extends ScaleUp_Feature {
     }
 
     $this->do_action( 'render' );
+    global $wp_query;
     include $path;
     $this->do_action( 'after' );
   }
