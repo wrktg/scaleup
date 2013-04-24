@@ -24,9 +24,8 @@ class ScaleUp_Template extends ScaleUp_Feature {
       $name = $this->get( 'name' );
     }
     $tag      = "get_template_part_{$name}";
-    $callback = array( 'ScaleUp_Template', 'get_template_part' );
     if ( !in_array( $tag, self::$_activated ) ) {
-      add_action( $tag, $callback, 10, 2 );
+      add_action( $tag, array( 'ScaleUp_Template', 'get_template_part' ), 10, 2 );
       self::$_activated[] = $tag;
     }
   }
