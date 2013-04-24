@@ -1,16 +1,26 @@
 <?php
 class ScaleUp {
 
+  /**
+   * @var ScaleUp
+   */
   private static $_this;
 
   /**
-   * Registered features
+   * Registered feature types
    * @var array
    */
   private static $_feature_types = array();
 
+  /**
+   * Registered duck types
+   * @var array
+   */
   private static $_duck_types = array();
 
+  /**
+   * @var ScaleUp_Site
+   */
   var $site;
 
   function __construct() {

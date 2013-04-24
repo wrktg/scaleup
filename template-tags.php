@@ -199,3 +199,24 @@ if ( !function_exists( 'the_view' ) ) {
 
   }
 }
+
+if ( !function_exists( 'the_view_part' ) ) {
+  /**
+   * Output part of the current view
+   *
+   * @param string $template_part
+   * @param array $args
+   */
+  function the_view_part( $template_part, $args = array() ) {
+
+    $site = ScaleUp::get_site();
+    if ( property_exists( $site, 'view' ) && is_object( $site->view ) ) {
+      /*** @var $view ScaleUp_View */
+      $view = $site->view;
+      if ( is_object( $view ) && method_exists( $view, 'render_template_part' ) ) {
+        $view->render_template_part( $template_part, $args );
+      }
+    }
+
+  }
+}

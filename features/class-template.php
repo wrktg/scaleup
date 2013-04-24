@@ -35,7 +35,7 @@ class ScaleUp_Template extends ScaleUp_Feature {
    *
    * @param string        $template_part
    * @param ScaleUp_View  $context
-   * @param object        $data
+   * @param array        $data
    */
   function render( $template_part = null, $data = null, $context = null ) {
 

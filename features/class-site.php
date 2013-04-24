@@ -15,6 +15,13 @@ class ScaleUp_Site extends ScaleUp_Feature {
    */
   var $addon = null;
 
+  /**
+   * Points to current active view
+   *
+   * @var ScaleUp_View $view
+   */
+  var $view = null;
+
   function this() {
     return self::$_this;
   }
@@ -41,7 +48,8 @@ class ScaleUp_Site extends ScaleUp_Feature {
         $context      = $context->get( 'context' );
       case 'app':
         $this->app    = $context;
-      break;
+      default :
+        $this->view   = $feature;
     endswitch;
   }
 

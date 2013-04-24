@@ -9,9 +9,23 @@ class ScaleUp_View extends ScaleUp_Feature {
 
   /**
    * The original value of $GLOBALS['post'] before view was rendered
-   * @var
+   * @var WP_Post
    */
   var $original_post = null;
+
+  /**
+   * Last request that was executed in this view
+   *
+   * @var ScaleUp_Request
+   */
+  var $last_request = null;
+
+  /**
+   * View that was in $site->view before $this->process()
+   *
+   * @var ScaleUp_View
+   */
+  var $original_view = null;
 
   function activation( $view, $args ) {
 
@@ -26,6 +40,7 @@ class ScaleUp_View extends ScaleUp_Feature {
 
     $this->add_action( 'reset', array( $this, 'reset_query' ) );
     $this->add_action( 'reset', array( $this, 'reset_post' ) );
+    $this->add_action( 'reset', array( $this, 'reset_view' ) );
 
     // default callbacks
     $this->add_action( 'query_posts',       array( $this, 'query_posts' ) );
@@ -46,6 +61,14 @@ class ScaleUp_View extends ScaleUp_Feature {
    * @internal param array $args
    */
   function process( $request ) {
+
+    $site = ScaleUp::get_site();
+    if ( property_exists( $site, 'view' ) && $this !== $site->view ) {
+      $this->original_view = $site->view;
+      $site->view = $this;
+    }
+
+    $this->last_request = $request;
 
     /**
      * By default, view's process action has 3 callbacks
@@ -163,15 +186,14 @@ class ScaleUp_View extends ScaleUp_Feature {
   }
 
   /**
-   * Remove hooked action from reset action
+   * Set the original view into $site
    *
-   * @param ScaleUp_View $view
+   * @param ScaleUp_View    $view
    * @param ScaleUp_Request $request
    */
-  function reset_actions( $view, $request ) {
-    $this->remove_action( 'reset', array( $this, 'reset_query' ) );
-    $this->remove_action( 'reset', array( $this, 'reset_post' ) );
-    $this->remove_action( 'reset', array( $this, 'reset_actions' ) );
+  function reset_view( $view, $request ) {
+    $site = ScaleUp::get_site();
+    $site->view = $this->original_view;
   }
 
   /**
@@ -186,6 +208,44 @@ class ScaleUp_View extends ScaleUp_Feature {
     $template = $this->get_feature( 'template', $this->get( 'name' ) );
     if ( $template ) {
       $template->render( $request->template_part, $request->template_data, $this );
+    }
+
+  }
+
+  /**
+   * Render a template_part while using the query in this view
+   *
+   * @param string $template_part
+   * @param array $args
+   */
+  function render_template_part( $template_part, $args = array() ) {
+    // check if this view previously processed a request
+    if ( is_null( $this->last_request ) ) {
+      // if not, create a new request with provided $template_part
+      $request = new ScaleUp_Request(
+        array(
+          'template_part' => $template_part,
+        )
+      );
+      $last_template_part = null;
+    } else {
+      $request = $this->last_request; // reuse
+      $last_template_part = $request->template_part;
+      $request->template_part = $template_part;
+    }
+
+    /**
+     * Set into template data to make it available during template include
+     */
+    $request->template_data[ 'args' ] = $args;
+
+    $this->do_load_template_data( $this,  $request );
+    $this->do_template_redirect(  $this,  $request );
+
+    if ( is_null( $last_template_part ) ) {
+      unset( $request ); // cleanup
+    } else {
+      $request->template_part = $last_template_part; // reset the old template_part
     }
 
   }
