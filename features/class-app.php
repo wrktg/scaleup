@@ -8,16 +8,17 @@ class ScaleUp_App extends ScaleUp_Feature {
    * If you are adding a view that's intended to route to the root of the app, then set $slug to ''
    *
    * @param string $name for this view
-   * @param string $slug of the view ( relative to app )
+   * @param bool|string $slug of the view ( relative to app ) or false if not routable
    * @param array $args
    * @return ScaleUp_View|bool
    */
-  function add_view( $name, $slug = '', $args = array() ) {
+  function add_view( $name, $slug = false, $args = array() ) {
     return $this->add( 'view', wp_parse_args( array(
         'name'          => $name,
         'url'           => $slug,
         'template'      => null,
         'templates_dir' => $this->find_templates_dir(),
+        'exclude_route' => false == $slug,
     ), $args
     ));
   }
