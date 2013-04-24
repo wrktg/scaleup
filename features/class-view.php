@@ -22,7 +22,10 @@ class ScaleUp_View extends ScaleUp_Feature {
     $this->add_action( 'process', array( $this, 'do_query_posts' )        , 30 );
     $this->add_action( 'process', array( $this, 'do_load_template_data' ) , 40 );
     $this->add_action( 'process', array( $this, 'do_template_redirect')   , 50 );
-    $this->add_action( 'process', array( $this, 'do_reset_query' )        , 60 );
+    $this->add_action( 'process', array( $this, 'do_reset' )              , 60 );
+
+    $this->add_action( 'reset', array( $this, 'reset_query' ) );
+    $this->add_action( 'reset', array( $this, 'reset_post' ) );
 
     // default callbacks
     $this->add_action( 'query_posts',       array( $this, 'query_posts' ) );
@@ -92,17 +95,15 @@ class ScaleUp_View extends ScaleUp_Feature {
    * @param ScaleUp_Request $request
    */
   function query_posts( $view, $request ) {
+    // set the global wp_query as backup
+    $this->original_query = ( isset( $GLOBALS[ 'wp_query' ] ) ) ? $GLOBALS[ 'wp_query' ] : null ;
+    $this->original_post  = ( isset( $GLOBALS[ 'post' ] ) )     ? $GLOBALS[ 'post' ] : null ;
+    // Execute query with new query_vars
     if ( !empty( $request->query_vars ) ) {
-      // Execute query with new query_vars
       $request->query->query( $request->query_vars );
-      // set the global wp_query as backup
-      $this->original_query = @$GLOBALS[ 'wp_query' ];
-      $this->original_post  = @$GLOBALS[ 'post' ];
-      // set new query into global
-      $GLOBALS['wp_query'] = $request->query;
-      $this->add_action( 'reset_query', array( $this, 'reset_query' ) );
-      $this->add_action( 'reset_query', array( $this, 'reset_post' ) );
     }
+    // set new query into global
+    $GLOBALS['wp_query'] = $request->query;
   }
 
   /**
@@ -136,8 +137,8 @@ class ScaleUp_View extends ScaleUp_Feature {
    * @param ScaleUp_View $view
    * @param ScaleUp_Request $request
    */
-  function do_reset_query( $view, $request ) {
-    $this->do_action( 'reset_query', $request );
+  function do_reset( $view, $request ) {
+    $this->do_action( 'reset', $request );
   }
 
   /**
@@ -152,15 +153,25 @@ class ScaleUp_View extends ScaleUp_Feature {
 
   /**
    * Set global $post back to same state as before this view modified it
-   * 
+   *
    * @param ScaleUp_View $view
    * @param ScaleUp_Request $request
    */
   function reset_post( $view, $request ) {
-    if ( !empty($this->original_post) ) {
-      $GLOBALS['post'] = $this->original_post;
-      setup_postdata($this->original_post);
-    }
+    $GLOBALS['post'] = $this->original_post;
+    setup_postdata( $GLOBALS[ 'post' ] );
+  }
+
+  /**
+   * Remove hooked action from reset action
+   *
+   * @param ScaleUp_View $view
+   * @param ScaleUp_Request $request
+   */
+  function reset_actions( $view, $request ) {
+    $this->remove_action( 'reset', array( $this, 'reset_query' ) );
+    $this->remove_action( 'reset', array( $this, 'reset_post' ) );
+    $this->remove_action( 'reset', array( $this, 'reset_actions' ) );
   }
 
   /**
