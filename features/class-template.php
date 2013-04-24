@@ -14,8 +14,16 @@ class ScaleUp_Template extends ScaleUp_Feature {
 
     $this->_data = new stdClass();
 
-    $template = $this->get( 'template' );
-    $tag      = "get_template_part_{$template}";
+    /**
+     * This is only here for compatibility
+     * @todo: remove this in the future.
+     */
+    if ( $this->get( 'template' ) ) {
+      $name = $this->get( 'template' );
+    } else {
+      $name = $this->get( 'name' );
+    }
+    $tag      = "get_template_part_{$name}";
     $callback = array( 'ScaleUp_Template', 'get_template_part' );
     if ( !in_array( $tag, self::$_activated ) ) {
       add_action( $tag, $callback, 10, 2 );
