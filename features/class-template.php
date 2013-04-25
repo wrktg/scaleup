@@ -1,34 +1,12 @@
 <?php
 class ScaleUp_Template extends ScaleUp_Feature {
 
-  private static $_activated = array();
-
   /**
    * Contains data object properties of which are exported into scope before template is included
    *
    * @var stdClass
    */
   var $_data;
-
-  function activation() {
-
-    $this->_data = new stdClass();
-
-    /**
-     * This is only here for compatibility
-     * @todo: remove this in the future.
-     */
-    if ( $this->get( 'template' ) ) {
-      $name = $this->get( 'template' );
-    } else {
-      $name = $this->get( 'name' );
-    }
-    $tag      = "get_template_part_{$name}";
-    if ( !in_array( $tag, self::$_activated ) ) {
-      add_action( $tag, array( 'ScaleUp_Template', 'get_template_part' ), 10, 2 );
-      self::$_activated[] = $tag;
-    }
-  }
 
   /**
    * Callback function for ScaleUp_View->render action
