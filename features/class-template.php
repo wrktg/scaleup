@@ -72,7 +72,15 @@ class ScaleUp_Template extends ScaleUp_Feature {
     }
 
     $this->do_action( 'render' );
-    global $wp_query;
+
+    global $wp_query, $post;
+    /**
+     * TODO: When the query is a list of posts based on a tax query
+     * TODO: is_post_type_archive will otherwise be set to true and
+     * TODO: it will throw errors inside wp_title().
+     */
+    $wp_query->is_post_type_archive = false;
+
     include $path;
     $this->do_action( 'after' );
   }
