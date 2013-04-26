@@ -1,4 +1,4 @@
-# ScaleUp API for WordPress Web Apps
+# API for building WordPress Apps
 
 ScaleUp is framework for building web apps on WordPress. The goal of this framework is to provide an easy to use and
 remember API that allows developers to programatically build custom applications and large sites.
