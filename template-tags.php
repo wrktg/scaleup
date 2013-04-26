@@ -195,6 +195,8 @@ if ( !function_exists( 'the_view' ) ) {
 
     if ( $view ) {
       $view->render( $args[ 'vars' ], $args );
+    } else {
+      get_template_part( $name, $template_part );
     }
 
   }
