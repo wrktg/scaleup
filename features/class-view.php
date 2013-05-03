@@ -182,7 +182,9 @@ class ScaleUp_View extends ScaleUp_Feature {
    */
   function reset_post( $view, $request ) {
     $GLOBALS['post'] = $post = $this->original_post;
-    setup_postdata( $post );
+    if ( ! is_null( $post ) ) {
+      setup_postdata( $post );
+    }
   }
 
   /**
@@ -207,6 +209,7 @@ class ScaleUp_View extends ScaleUp_Feature {
     /*** @var $template ScaleUp_Template */
     $template = $this->get_feature( 'template', $this->get( 'name' ) );
     if ( $template ) {
+      $template->view = $this;
       $template->render( $request->template_part, $request->template_data, $this );
     }
 
