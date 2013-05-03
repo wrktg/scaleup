@@ -18,7 +18,7 @@ class ScaleUp_App extends ScaleUp_Feature {
         'url'           => $slug,
         'template'      => null,
         'templates_dir' => $this->find_templates_dir(),
-        'exclude_route' => false == $slug,
+        'exclude_route' => false === $slug,
     ), $args
     ));
   }
