@@ -49,6 +49,13 @@ class ScaleUp_Request {
    */
   var $template_part = null;
 
+  /**
+   * Original args that were passed during instantiation
+   *
+   * @var array
+   */
+  var $args = array();
+
   function __construct( $vars = array(), $args = array() ) {
 
     $this->vars = $vars;
@@ -63,6 +70,8 @@ class ScaleUp_Request {
       $this->method = $args[ 'method' ];
     }
 
+    $this->args = $args;
+    
   }
 
 }
