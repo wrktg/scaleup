@@ -71,7 +71,7 @@ class ScaleUp_Request {
     }
 
     $this->args = $args;
-    
+
   }
 
 }
