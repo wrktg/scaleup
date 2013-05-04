@@ -11,7 +11,7 @@ if ( !function_exists( 'scaleup_form_header_alerts' ) ) {
     if ( $alerts ) : ?>
       <div class="help-block">
       <?php foreach ( $alerts as $alert ) : ?>
-          <div class="alert alert-<?php echo $alert[ 'type' ]; ?>"><?php echo $alert[ 'msg' ]; ?></div>
+          <div class="alert alert-<?php echo $alert->get( 'type' ); ?>"><?php echo $alert->get( 'msg' ); ?></div>
         <?php endforeach; ?>
       </div>
     <?php endif;
