@@ -48,10 +48,14 @@ class ScaleUp {
   /**
    * Returns the global scope object for this class
    *
-   * @return ScaleUp_Site
+   * @return ScaleUp_Site|null
    */
   static function get_site() {
-    return self::$_this->site;
+    if ( isset( self::$_this ) && isset( self::$_this->site ) ) {
+      return self::$_this->site;
+    } else {
+      return null;
+    }
   }
 
   /**
