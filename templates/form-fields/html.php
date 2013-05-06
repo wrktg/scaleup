@@ -1,0 +1,1 @@
+<?php echo get_form_field_attr( 'content' );
