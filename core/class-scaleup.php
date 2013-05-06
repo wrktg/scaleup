@@ -337,6 +337,26 @@ class ScaleUp {
   }
 
   /**
+   * Render template by specifying the name of the template and part that you'd like to render.
+   *
+   * This static function is a callback for get_template_part. get_template_part's arguments $slug and $name were renamed
+   * to $template_name and $template_part_name because $slug and $name is just super confusing.
+   *
+   * @callback get_template_part
+   * @param string $template_name
+   * @param string $template_part_name
+   */
+  static function get_template_part( $template_name, $template_part_name = null ) {
+
+    $template = ScaleUp::get_template( $template_name );
+
+    if ( $template ) {
+      $template->render( $template_part_name );
+    }
+
+  }
+
+  /**
    * Register an asset to make it available to this site
    *
    * @param $args

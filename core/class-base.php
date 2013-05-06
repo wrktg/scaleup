@@ -66,7 +66,14 @@ class ScaleUp_Base extends stdClass {
 
   function __unset( $name ) {
     $property_name = "_$name";
-    unset( $this->$property_name );
+    if ( isset( $this->$name ) ) {
+      unset( $this->$property_name );
+    }
+  }
+
+  function __isset( $name ) {
+    $property_name = "_$name";
+    return property_exists( $this, $property_name );
   }
 
   /**
