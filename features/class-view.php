@@ -37,8 +37,17 @@ class ScaleUp_View extends ScaleUp_Feature {
     $this->add_action( 'reset', array( $this, 'reset_view' ) );
 
     // default callbacks
-    $this->add_action( 'query_posts',       array( $this, 'query_posts' ) );
-    $this->add_action( 'template_redirect', array( $this, 'template_redirect' ) );
+    $this->add_action( 'query_posts',       array( $this, 'default_query_posts' ) );
+    $this->add_action( 'template_redirect', array( $this, 'default_template_redirect' ) );
+
+    /**
+     * Automatically hook instance methods
+     */
+    foreach( array( 'process', 'parse_query', 'query_posts', 'load_template_data', 'template_redirect', 'reset' ) as $action ) {
+      if ( method_exists( $this, $action ) ) {
+        $this->add_action( $action, array( $this, $action ) );
+      }
+    }
 
     if ( !isset( $args[ 'template' ] ) && isset( $args[ 'templates_dir' ] ) ) {
       $this->add_template( $this->get( 'name' ), array(
@@ -79,7 +88,7 @@ class ScaleUp_View extends ScaleUp_Feature {
    * @param ScaleUp_View $view
    * @param ScaleUp_Request $request
    */
-  function query_posts( $view, $request ) {
+  function default_query_posts( $view, $request ) {
     // set the global wp_query as backup
     $this->original_query = ( isset( $GLOBALS[ 'wp_query' ] ) ) ? $GLOBALS[ 'wp_query' ] : null ;
     $this->original_post  = ( isset( $GLOBALS[ 'post' ] ) )     ? $GLOBALS[ 'post' ] : null ;
@@ -131,7 +140,7 @@ class ScaleUp_View extends ScaleUp_Feature {
    * @param ScaleUp_View    $view
    * @param ScaleUp_Request $request
    */
-  function template_redirect( $view, $request ) {
+  function default_template_redirect( $view, $request ) {
 
     /*** @var $template ScaleUp_Template */
     if ( is_null( $this->get( 'template' ) ) ) {
