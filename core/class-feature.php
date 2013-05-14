@@ -9,7 +9,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
      */
     if ( !isset( $args[ 'name' ] ) ) {
       // let's generate name from objects hash
-      $args[ 'name' ] = substr(spl_object_hash( $this ), -8 );
+      $args[ 'name' ] = spl_object_hash( $this );
     }
     parent::__construct( $args );
 

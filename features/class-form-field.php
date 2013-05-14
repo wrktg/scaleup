@@ -367,44 +367,34 @@ ScaleUp::register_feature_type( 'form_field', array(
   '_bundled'    => array(
     'templates' => array(
       'html_field'   => array(
-        'template' => '/scaleup-form-fields/html.php',
-        'path'     => SCALEUP_DIR . '/templates'
+        'directory'=> 'form-fields'
       ),
       'button'       => array(
-        'template' => '/scaleup-form-fields/button.php',
-        'path'     => SCALEUP_DIR . '/templates'
+        'directory'=> 'form-fields'
       ),
       'checkbox'     => array(
-        'template' => '/scaleup-form-fields/checkbox.php',
-        'path'     => SCALEUP_DIR . '/templates'
+        'directory'=> 'form-fields'
       ),
       'confirmation' => array(
-        'template' => '/scaleup-form-fields/confirmation.php',
-        'path'     => SCALEUP_DIR . '/templates'
+        'directory'=> 'form-fields'
       ),
       'help'         => array(
-        'template' => '/scaleup-form-fields/help.php',
-        'path'     => SCALEUP_DIR . '/templates'
+        'directory'=> 'form-fields'
       ),
       'input'        => array(
-        'template' => '/scaleup-form-fields/input.php',
-        'path'     => SCALEUP_DIR . '/templates'
+        'directory'=> 'form-fields'
       ),
       'label'        => array(
-        'template' => '/scaleup-form-fields/label.php',
-        'path'     => SCALEUP_DIR . '/templates'
+        'directory'=> 'form-fields'
       ),
       'textarea'     => array(
-        'template' => '/scaleup-form-fields/textarea.php',
-        'path'     => SCALEUP_DIR . '/templates'
+        'directory'=> 'form-fields'
       ),
       'select'       => array(
-        'template' => '/scaleup-form-fields/select.php',
-        'path'     => SCALEUP_DIR . '/templates'
+        'directory'=> 'form-fields'
       ),
       'select2'       => array(
-        'template' => '/scaleup-form-fields/select2.php',
-        'path'     => SCALEUP_DIR . '/templates',
+        'directory'=> 'form-fields',
         'assets'   => array(
           'select2_css' => array(
             'type' => 'style',
@@ -418,8 +408,7 @@ ScaleUp::register_feature_type( 'form_field', array(
         ),
       ),
       'radio'        => array(
-        'template' => '/scaleup-form-fields/radio.php',
-        'path'     => SCALEUP_DIR . '/templates'
+        'directory'=> 'form-fields',
       ),
     ),
   ),

@@ -440,6 +440,15 @@ if ( !function_exists( 'add_alert' ) ) {
 }
 
 /**
+ * Return current site instance
+ *
+ * @return ScaleUp_Site|null
+ */
+function get_site() {
+  return ScaleUp::get_site();
+}
+
+/**
  * Return an existing app by name
  *
  * @param $app_name

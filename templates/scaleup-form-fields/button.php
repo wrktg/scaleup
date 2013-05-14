@@ -1,1 +1,0 @@
-<button <?php the_form_field_attr( "name" ); ?> <?php the_form_field_attr( 'id' ); ?> class="btn <?php echo get_form_field_attr( 'class' ); ?>" <?php the_form_field_attr( 'value' ); ?> <?php echo ( has_form_field_attr( 'submit' ) ) ? ' style="submit"' : '';  ?>><?php echo get_form_field_attr( 'text' ); ?></button>

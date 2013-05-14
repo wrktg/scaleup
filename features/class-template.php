@@ -6,7 +6,14 @@ class ScaleUp_Template extends ScaleUp_Feature {
    *
    * @var stdClass
    */
-  var $_data;
+  protected $_data;
+
+  /**
+   * Prepend this string to the beginning of template name when creating template include path
+   *
+   * @var string
+   */
+  protected $_directory;
 
   /**
    * Callback function for ScaleUp_View->render action
@@ -26,11 +33,15 @@ class ScaleUp_Template extends ScaleUp_Feature {
     // replace underscores with dashes
     $template = str_replace( '_', '-', "/$template.php" );
 
+    $directory = $this->get( 'directory' );
+    if ( !empty( $directory ) ) {
+      $directory = "/$directory";
+    }
 
     $paths = array(
-      get_stylesheet_directory()  . $template,          // child theme
-      get_template_directory()    . $template,          // parent theme
-      $this->get( 'path' )        . $template,          // original
+      get_stylesheet_directory()  . $directory . $template,          // child theme
+      get_template_directory()    . $directory . $template,          // parent theme
+      $this->get( 'path' )        . $directory . $template,          // original
     );
 
     if ( is_null( $data ) ) {
@@ -86,23 +97,32 @@ class ScaleUp_Template extends ScaleUp_Feature {
   }
 
   /**
-   * Render template by specifying the name of the template and part that you'd like to render.
+   * Attempt to find templates directory relative to the path of the class of $object. If found, return the path
+   * otherwise return null.
    *
-   * This static function is a callback for get_template_part. get_template_part's arguments $slug and $name were renamed
-   * to $template_name and $template_part_name because $slug and $name is just super confusing.
-   *
-   * @callback get_template_part
-   * @param string $template_name
-   * @param string $template_part_name
+   * @param ScaleUp_Feature $object
+   * @return string|null
    */
-  static function get_template_part( $template_name, $template_part_name = null ) {
+  static function find_templates_dir( $object ) {
 
-    $template = ScaleUp::get_template( $template_name );
+    $path = null;
 
-    if ( $template ) {
-      $template->render( $template_part_name );
+    $rc = new ReflectionClass(get_class( $object ));
+    $dir = dirname( $rc->getFileName() );
+
+    $paths = array(
+      $dir . '/templates',              // if app class is in root directory
+      dirname( $dir ) . '/templates',   // if app class in /classes directory
+    );
+
+    foreach ( $paths as $maybe ) {
+      if ( is_dir( $maybe ) ) {
+        $path = $maybe;
+        break;
+      }
     }
 
+    return $path;
   }
 
   function get_defaults() {
@@ -110,7 +130,8 @@ class ScaleUp_Template extends ScaleUp_Feature {
       array(
         '_feature_type' => 'template',
         'template'      => null,
-        'path'          => null,
+        'path'          => SCALEUP_DIR . '/templates',
+        'directory'     => null,
       ), parent::get_defaults()
     );
   }

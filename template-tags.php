@@ -20,7 +20,7 @@ if ( !function_exists( 'the_form' ) ) {
       $scaleup_form->add_action( 'header', 'scaleup_form_header_alerts' );
 
       $scaleup_form->do_action( 'header' );
-      get_template_part( '/scaleup-form.php' );
+      ScaleUp::get_template_part( 'form' );
       $scaleup_form->do_action( 'footer' );
     }
 
@@ -114,13 +114,7 @@ if ( !function_exists( 'the_form_field' ) ) {
     global $scaleup_form_field;
 
     $template_name = $scaleup_form_field->get( 'template' );
-
-    $site = ScaleUp::get_site();
-    $feature = $site->get_feature( 'template', $template_name );
-    if ( is_object( $feature ) && $feature->has( 'template' ) ) {
-      $template = $feature->get( 'template' );
-      get_template_part( $template );
-    }
+    ScaleUp::get_template_part( $template_name );
 
   }
 }

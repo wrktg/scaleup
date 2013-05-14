@@ -25,7 +25,7 @@ class ScaleUp_Form extends ScaleUp_Feature {
       $this->set( 'action', $_SERVER[ 'REQUEST_URI' ] );
     }
 
-    $this->register( 'form_field', array(
+    $this->add( 'form_field', array(
       'name'        => 'form_name',
       'type'        => 'hidden',
       'value'      => $this->get( 'name' ),
@@ -34,7 +34,7 @@ class ScaleUp_Form extends ScaleUp_Feature {
 
     $nonce_action = $this->get( 'action' ) . $this->get( 'name' );
 
-    $this->register( 'form_field', array(
+    $this->add( 'form_field', array(
       'name'        => 'nonce',
       'type'        => 'hidden',
       'action'      => $nonce_action,
@@ -101,6 +101,22 @@ class ScaleUp_Form extends ScaleUp_Feature {
    */
   function get_current_field() {
     return $this->get( 'current_field' );
+  }
+
+  /**
+   * Add a form field to this form and return its instance
+   *
+   * @param string $name underscorized
+   * @param string $type
+   * @param array $args
+   * @return ScaleUp_Form_Field|bool
+   */
+  function add_field( $name, $type, $args = array() ) {
+    $default = array(
+      'name'  => $name,
+      'type'  => $type,
+    );
+    return $this->add( 'form_field', wp_parse_args( $args, $default ) );
   }
 
   /**

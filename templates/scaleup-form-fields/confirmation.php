@@ -1,1 +1,0 @@
-<?php echo get_form_attr( 'confirmation' );

@@ -46,16 +46,6 @@ include( SCALEUP_DIR . '/features/class-alert.php' );
 include( SCALEUP_DIR . '/features/class-notification.php' );
 
 /**
- * Addons
- */
-function scaleup_init() {
-  include( SCALEUP_DIR . '/addons/login/login.php' );
-  include( SCALEUP_DIR . '/addons/profile/profile.php' );
-  include( SCALEUP_DIR . '/addons/frontpage/frontpage.php' );
-}
-add_action( 'scaleup_init', 'scaleup_init' );
-
-/**
  * API
  */
 include( SCALEUP_DIR . '/functions.php' );
@@ -71,3 +61,11 @@ add_action( 'after_setup_theme', 'scaleup_after_setup_theme' );
  */
 new ScaleUp();
 new ScaleUp_App_Server();
+
+/**
+ * Addons
+ */
+include( SCALEUP_DIR . '/addons/login/login.php' );
+include( SCALEUP_DIR . '/addons/profile/profile.php' );
+include( SCALEUP_DIR . '/addons/frontpage/frontpage.php' );
+include( SCALEUP_DIR . '/addons/upgrades/upgrades.php' );
