@@ -32,12 +32,6 @@ class ScaleUp_View extends ScaleUp_Feature {
     /**
      * Setup process pipeline
      */
-    $this->add_action( 'process', array( $this, 'do_parse_query' )        , 20 );
-    $this->add_action( 'process', array( $this, 'do_query_posts' )        , 30 );
-    $this->add_action( 'process', array( $this, 'do_load_template_data' ) , 40 );
-    $this->add_action( 'process', array( $this, 'do_template_redirect')   , 50 );
-    $this->add_action( 'process', array( $this, 'do_reset' )              , 60 );
-
     $this->add_action( 'reset', array( $this, 'reset_query' ) );
     $this->add_action( 'reset', array( $this, 'reset_post' ) );
     $this->add_action( 'reset', array( $this, 'reset_view' ) );
@@ -60,7 +54,7 @@ class ScaleUp_View extends ScaleUp_Feature {
    * @param ScaleUp_Request $request
    * @internal param array $args
    */
-  function process( $request ) {
+  function do_process( $request ) {
 
     $site = ScaleUp::get_site();
     if ( property_exists( $site, 'view' ) && $this !== $site->view ) {
@@ -70,47 +64,13 @@ class ScaleUp_View extends ScaleUp_Feature {
 
     $this->last_request = $request;
 
-    /**
-     * By default, view's process action has 3 callbacks
-     *  array( $this, do_parse_query ) at priority 20
-     *  array( $this, do_query_posts ) at priority 30
-     *  array( $this, do_load_template_data ) at priority 40
-     *  array( $this, do_template_redirect ) at priority 50
-     *  array( $this, do_reset ) at priority 60
-     */
-    $this->do_action( 'process', $request );
-  }
+    $this->do_action( 'process',            $request );
+    $this->do_action( 'parse_query',        $request );
+    $this->do_action( 'query_posts',        $request );
+    $this->do_action( 'load_template_data', $request );
+    $this->do_action( 'template_redirect',  $request );
+    $this->do_action( 'reset',              $request );
 
-  /**
-   * Executes parse_query action.
-   *
-   * parse_query is the first action that's executed when a view is being processed.
-   * during parse_query action, $request->query_vars array is modified based on $request->vars.
-   * Hook to this action and modify the $request->query_vars array.
-   *
-   * Code Example: @see: https://gist.github.com/taras/5408564
-   *
-   * @param $view
-   * @param $request
-   */
-  function do_parse_query( $view, $request ) {
-    /**
-     * use $this->add_action( 'parse_query, 'your_callback' ) to hook your callback to this action.
-     */
-    $this->do_action( 'parse_query', $request );
-  }
-
-  /**
-   * Executes query_posts action. During query_posts action, a new query is executed based on $request->query_vars.
-   *
-   * To override the default query_posts callback, unhook array( $this, 'query_posts' ) from 'query_posts' action and hook
-   * your callback function.
-   *
-   * @param $view
-   * @param $request
-   */
-  function do_query_posts( $view, $request ) {
-    $this->do_action( 'query_posts', $request );
   }
 
   /**
@@ -129,41 +89,6 @@ class ScaleUp_View extends ScaleUp_Feature {
     }
     // set new query into global
     $GLOBALS['wp_query'] = $request->query;
-  }
-
-  /**
-   * Execute load_template_data action.
-   *
-   * Hook to this action to execute a callback that is expected to populate $request->template_data array with data.
-   * $request->template_data will be exported within local scope of the template include.
-   *
-   * Code Example @see: https://gist.github.com/taras/5408564
-   *
-   * @param $view
-   * @param $request
-   */
-  function do_load_template_data( $view, $request ) {
-    $this->do_action( 'load_template_data', $request );
-  }
-
-  /**
-   * Execute template_redirect action.
-   *
-   * @param ScaleUp_View $view
-   * @param ScaleUp_Request $request
-   */
-  function do_template_redirect( $view, $request ) {
-    $this->do_action( 'template_redirect', $request );
-  }
-
-  /**
-   * Execute reset_query action
-   *
-   * @param ScaleUp_View $view
-   * @param ScaleUp_Request $request
-   */
-  function do_reset( $view, $request ) {
-    $this->do_action( 'reset', $request );
   }
 
   /**
@@ -251,8 +176,8 @@ class ScaleUp_View extends ScaleUp_Feature {
      */
     $request->template_data[ 'args' ] = $args;
 
-    $this->do_load_template_data( $this,  $request );
-    $this->do_template_redirect(  $this,  $request );
+    $this->do_action( 'load_template_data', $request );
+    $this->do_action( 'template_redirect',  $request );
 
     if ( is_null( $last_template_part ) ) {
       unset( $request ); // cleanup
@@ -270,7 +195,7 @@ class ScaleUp_View extends ScaleUp_Feature {
    */
   function render( $vars = array(), $args = array() ) {
     $request = new ScaleUp_Request( $vars, $args );
-    $this->process( $request );
+    $this->do_process( $request );
   }
 
   /**

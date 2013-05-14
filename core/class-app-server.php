@@ -93,7 +93,7 @@ class ScaleUp_App_Server {
 
     $return = false;
 
-    if ( method_exists( $view, 'process' ) ) {
+    if ( method_exists( $view, 'do_process' ) ) {
 
       /**
        * Set $site->app & $site->addon
