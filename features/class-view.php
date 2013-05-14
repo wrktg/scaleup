@@ -74,7 +74,9 @@ class ScaleUp_View extends ScaleUp_Feature {
      * By default, view's process action has 3 callbacks
      *  array( $this, do_parse_query ) at priority 20
      *  array( $this, do_query_posts ) at priority 30
-     *  array( $this, do_template_redirect ) at priority 40
+     *  array( $this, do_load_template_data ) at priority 40
+     *  array( $this, do_template_redirect ) at priority 50
+     *  array( $this, do_reset ) at priority 60
      */
     $this->do_action( 'process', $request );
   }
@@ -207,7 +209,14 @@ class ScaleUp_View extends ScaleUp_Feature {
   function template_redirect( $view, $request ) {
 
     /*** @var $template ScaleUp_Template */
-    $template = $this->get_feature( 'template', $this->get( 'name' ) );
+    if ( is_null( $this->get( 'template' ) ) ) {
+      $template_name = $this->get( 'name' );
+    } else {
+      $template_name = $this->get( 'template' );
+    }
+
+    $template = $this->get_feature( 'template', $template_name );
+
     if ( $template ) {
       $template->view = $this;
       $template->render( $request->template_part, $request->template_data, $this );
