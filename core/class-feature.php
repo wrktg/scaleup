@@ -428,7 +428,7 @@ class ScaleUp_Feature extends ScaleUp_Base {
         }
       }
 
-      $this->do_action( 'activate', $result );
+      $this->do_action( 'activate_feature', $result );
 
       do_action( 'activate_feature', $result );
 
