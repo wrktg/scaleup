@@ -1,6 +1,16 @@
 <?php
 class ScaleUp_Addon extends ScaleUp_Feature {
 
+  function activation() {
+
+    $context = $this->get( 'context' );
+
+    if ( method_exists( $this, 'activate_feature' ) ) {
+      $context->add_action( 'activate_feature', array( $this, 'activate_feature' ) );
+    }
+
+  }
+
   /**
    * Add a view to the app that addon is active on and return its instance.
    *
