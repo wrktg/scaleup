@@ -7,7 +7,7 @@ class ScaleUp_Upgrades_Addon extends ScaleUp_Addon {
     $this->set( 'option_key', "{$context_name}_upgrades" );
 
 
-    $upgrades_view  = $this->add_view( 'upgrades',  '' );
+    $upgrades_view  = $this->add_view( 'upgrades',  '/upgrades' );
     $upgrades_view->add_action( 'process',              array( $this, 'process' ) );
     $upgrades_view->add_action( 'load_template_data',   array( $this, 'load_template_data' ) );
 
@@ -136,14 +136,6 @@ class ScaleUp_Upgrades_Addon extends ScaleUp_Addon {
       $executed_upgrades = array();
     }
     return $executed_upgrades;
-  }
-
-  function get_defaults() {
-    return wp_parse_args(
-      array(
-        'url' => '/upgrades',
-      ), parent::get_defaults()
-    );
   }
 
 }
