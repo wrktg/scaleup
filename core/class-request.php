@@ -70,6 +70,10 @@ class ScaleUp_Request {
       $this->method = $args[ 'method' ];
     }
 
+    if ( isset( $args[ 'template_data' ] ) ) {
+      $this->template_data = $args[ 'template_data' ];
+    }
+
     $this->args = $args;
 
   }
